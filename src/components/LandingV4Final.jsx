@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { FPL_DATA, TEAM_COLORS } from '../data.js';
+import WorldCupPredictor from './WorldCupPredictor.jsx';
 
 // TheModelSays — final landing page
 // Broad scope: FPL (primary) + Premier League match predictions + World Cup 2026.
@@ -100,23 +101,23 @@ function V4Nav() {
       </div>
       <div style={{ display: 'flex', gap: 28, marginLeft: 12, fontFamily: display }}>
         {[
-          ['FPL',         'app/index.html'],
-          ['Matches',     'app/index.html'],
-          ['World Cup',   'app/index.html'],
-          ['Track record','pages/track-record.html'],
-          ['Updates',     'pages/changelog.html'],
+          ['FPL',          '#'],
+          ['Matches',      '#'],
+          ['World Cup',    '#'],
+          ['Track record', '#'],
+          ['Updates',      '#'],
         ].map(([label, href]) => (
-          <a key={label} href={href} style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>{label}</a>
+          <a key={label} href={href} onClick={e => e.preventDefault()} style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none', cursor: 'not-allowed', opacity: 0.5 }}>{label}</a>
         ))}
       </div>
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 18 }}>
         <span style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, fontFamily: display, cursor: 'pointer' }}>Sign in</span>
-        <a href="/app" style={{
-          background: v4.electric, color: v4.bg, border: 0, borderRadius: 999,
-          padding: '9px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+        <span style={{
+          background: 'rgba(0,255,135,0.15)', color: v4.textVeryDim, border: 0, borderRadius: 999,
+          padding: '9px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'not-allowed',
           letterSpacing: '0.03em', textTransform: 'uppercase', fontFamily: display,
-          boxShadow: `0 4px 18px rgba(0,255,135,0.25)`, textDecoration: 'none', display: 'inline-block',
-        }}>Open app →</a>
+          display: 'inline-block', opacity: 0.6,
+        }}>Coming soon</span>
       </div>
     </div>
   );
@@ -183,18 +184,11 @@ function V4Hero() {
           </p>
 
           <div style={{ display: 'flex', gap: 12, marginTop: 36, alignItems: 'center', flexWrap: 'wrap' }}>
-            <a href="/app" style={{
-              background: v4.electric, color: v4.bg, border: 0, borderRadius: 999,
-              padding: '15px 24px', fontSize: 14.5, fontWeight: 700, cursor: 'pointer',
-              letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: display,
-              boxShadow: `0 6px 28px rgba(0,255,135,0.32)`, textDecoration: 'none',
-            }}>See the picks →</a>
-            <a href="/track-record" style={{
-              background: 'transparent', color: v4.text,
-              border: `1.5px solid ${v4.borderHi}`, borderRadius: 999,
-              padding: '15px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-              fontFamily: display, textDecoration: 'none',
-            }}>How accurate?</a>
+            <span style={{
+              background: 'rgba(0,255,135,0.15)', color: v4.textVeryDim, border: 0, borderRadius: 999,
+              padding: '15px 24px', fontSize: 14.5, fontWeight: 700, cursor: 'not-allowed',
+              letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: display, opacity: 0.6,
+            }}>App coming soon</span>
           </div>
 
           {/* stats row */}
@@ -571,11 +565,11 @@ function V4Accuracy() {
           <p style={{ color: v4.textDim, fontSize: 16, lineHeight: 1.55, marginTop: 18, maxWidth: 460 }}>
             We grade ourselves against the same official numbers FPL shows you. Six of the last six gameweeks, the model's been closer to the truth.
           </p>
-          <a href="/track-record" style={{
+          <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 24,
-            color: v4.electric, fontFamily: display, fontWeight: 700, fontSize: 14,
-            textDecoration: 'none', letterSpacing: '0.02em',
-          }}>See the full track record →</a>
+            color: v4.textVeryDim, fontFamily: display, fontWeight: 700, fontSize: 14,
+            letterSpacing: '0.02em', cursor: 'not-allowed', opacity: 0.5,
+          }}>Track record coming soon</span>
         </div>
 
         <div style={{ background: v4.surface, border: `1px solid ${v4.border}`, borderRadius: 16, padding: 28 }}>
@@ -699,16 +693,11 @@ function V4CTA() {
           Thirty seconds to connect. Free forever. Built for everyone who plays.
         </p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 40 }}>
-          <a href="/app" style={{
-            background: v4.electric, color: v4.bg, border: 0, borderRadius: 999,
-            padding: '18px 32px', fontSize: 16, fontWeight: 700, cursor: 'pointer',
-            letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: display,
-            boxShadow: `0 8px 32px rgba(0,255,135,0.35)`, textDecoration: 'none',
-          }}>Open the app</a>
-          <a href="/track-record" style={{
-            background: 'transparent', color: v4.text, border: `1.5px solid ${v4.borderHi}`, borderRadius: 999,
-            padding: '18px 26px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: display, textDecoration: 'none',
-          }}>See accuracy</a>
+          <span style={{
+            background: 'rgba(0,255,135,0.15)', color: v4.textVeryDim, border: 0, borderRadius: 999,
+            padding: '18px 32px', fontSize: 16, fontWeight: 700, cursor: 'not-allowed',
+            letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: display, opacity: 0.6,
+          }}>App coming soon</span>
         </div>
       </div>
     </div>
@@ -814,6 +803,7 @@ function LandingV4Final() {
       <V4Hero />
       <V4Marquee />
       <V4Features />
+      <WorldCupPredictor />
       <V4Accuracy />
       <V4HowItWorks />
       <V4Quote />

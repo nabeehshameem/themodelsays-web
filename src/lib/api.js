@@ -37,13 +37,20 @@ async function request(path, { method = 'GET', body, signal } = {}) {
 }
 
 // ── World Cup ─────────────────────────────────────────────────────
-// POST /api/wc/predict — used by the score predictor widget.
-// Returns { home_score, away_score, win_prob, draw_prob, ... } — confirm shape
-// against the Railway endpoint and adjust callers as needed.
-export function predictWorldCupMatch({ home, away, stage = 'group' }) {
+// GET /api/wc/teams → { teams: string[] }
+export function fetchWcTeams() {
+  return request('/api/wc/teams');
+}
+
+// POST /api/wc/predict → {
+//   home_name, away_name, home_xg, away_xg, predicted_score,
+//   win_pct, draw_pct, loss_pct,
+//   most_likely: [{ home_goals, away_goals, probability_pct }, ...]
+// }
+export function predictWorldCupMatch({ home, away }) {
   return request('/api/wc/predict', {
     method: 'POST',
-    body: { home, away, stage },
+    body: { home_team: home, away_team: away },
   });
 }
 
