@@ -78,7 +78,7 @@ function PlayerRow({ player, rank }) {
           {player.projected_pts.toFixed(1)}
           <span style={{ fontSize: 10, color: v4.textVeryDim, fontWeight: 400 }}> pts</span>
         </div>
-        <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim }}>£{player.price_m.toFixed(1)}m</div>
+        <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim }}>${player.price_m.toFixed(1)}m</div>
       </div>
     </div>
   );
@@ -162,7 +162,7 @@ function SquadOptimizer() {
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Total cost</div>
-              <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: v4.text }}>£{result.total_cost_m.toFixed(1)}m</div>
+              <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: v4.text }}>${result.total_cost_m.toFixed(1)}m</div>
             </div>
           </div>
 
