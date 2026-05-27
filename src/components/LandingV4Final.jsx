@@ -5,6 +5,7 @@
 import React from 'react';
 import { FPL_DATA, TEAM_COLORS } from '../data.js';
 import WorldCupPredictor from './WorldCupPredictor.jsx';
+import WCFantasySection from './WCFantasySection.jsx';
 
 // TheModelSays — final landing page
 // Broad scope: FPL (primary) + Premier League match predictions + World Cup 2026.
@@ -804,6 +805,7 @@ function LandingV4Final() {
       <V4Marquee />
       <V4Features />
       <WorldCupPredictor />
+      <WCFantasySection />
       <V4Accuracy />
       <V4HowItWorks />
       <V4Quote />

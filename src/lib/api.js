@@ -54,6 +54,12 @@ export function predictWorldCupMatch({ home, away }) {
   });
 }
 
+// ── WC Fantasy ───────────────────────────────────────────────────
+export const wcFantasy = {
+  optimise: (body) => request('/api/wc/fantasy/optimise', { method: 'POST', body }),
+  captains: (top_n = 10) => request(`/api/wc/fantasy/captains?top_n=${top_n}`),
+};
+
 // ── FPL (add as the app grows in July) ────────────────────────────
 export const fpl = {
   nextGameweek: () => request('/gameweek/next'),
