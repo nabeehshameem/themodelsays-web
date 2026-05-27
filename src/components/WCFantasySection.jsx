@@ -101,7 +101,6 @@ function SquadSection({ label, players, color }) {
 // ── Squad Optimizer ──────────────────────────────────────────────────────────
 
 function SquadOptimizer() {
-  const [budget, setBudget] = React.useState(100);
   const [status, setStatus] = React.useState('idle');
   const [result, setResult] = React.useState(null);
   const [errMsg, setErrMsg] = React.useState('');
@@ -111,7 +110,7 @@ function SquadOptimizer() {
     setResult(null);
     setErrMsg('');
     try {
-      const data = await wcFantasy.optimise({ budget: Math.round(budget * 10) });
+      const data = await wcFantasy.optimise({ budget: 1000 });
       setResult(data);
       setStatus('success');
     } catch (e) {
@@ -124,22 +123,6 @@ function SquadOptimizer() {
 
   return (
     <div>
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <div style={{ fontFamily: mono, fontSize: 11, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Budget</div>
-          <div style={{ fontFamily: mono, fontSize: 18, fontWeight: 700, color: v4.electric }}>£{budget.toFixed(1)}m</div>
-        </div>
-        <input
-          type="range" min={75} max={100} step={0.5} value={budget}
-          onChange={e => setBudget(parseFloat(e.target.value))}
-          disabled={status === 'loading'}
-          style={{ width: '100%', accentColor: v4.electric, cursor: 'pointer' }}
-        />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: mono, fontSize: 10, color: v4.textVeryDim, marginTop: 4 }}>
-          <span>£75m</span><span>£100m</span>
-        </div>
-      </div>
-
       <button
         onClick={handleOptimise}
         disabled={status === 'loading'}
