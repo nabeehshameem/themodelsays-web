@@ -176,7 +176,7 @@ function modelWinner(simData, t1, t2) {
 // ── Match card ─────────────────────────────────────────────────────
 const CARD_W = 122;
 
-function MatchCard({ match, t1, t2, winner, onPick, simData, flip }) {
+function MatchCard({ match, t1, t2, winner, onPick, simData, flip, fillWidth }) {
   const canPick = !!(t1 && t2);
   const s1 = simFor(simData, t1);
   const s2 = simFor(simData, t2);
@@ -232,7 +232,7 @@ function MatchCard({ match, t1, t2, winner, onPick, simData, flip }) {
       border: `1px solid ${winner ? 'rgba(0,255,135,0.25)' : v4.border}`,
       borderRadius: 7,
       overflow: 'hidden',
-      width: CARD_W,
+      width: fillWidth ? '100%' : CARD_W,
       flexShrink: 0,
     }}>
       {slot(t1, match.t1, true,  canPick ? bar1 : null)}
@@ -515,8 +515,7 @@ function GroupStageView({ groupPicks, onGroupReorder, simData, onContinue }) {
 // These are the 8 official bracket slot keys that resolveSlot expects
 const THIRD_SLOTS = ['3_ABCDF','3_CDFGH','3_CEFHI','3_EHIJK','3_BEFIJ','3_AEHIJ','3_EFGIJ','3_DEIJL'];
 
-function ThirdPlacePicker({ onPick, groupPicks, simData }) {
-  const [selected, setSelected] = React.useState(new Set());
+function ThirdPlacePicker({ onPick, groupPicks, simData, selected, onSelectionChange }) {
 
   const thirds = Object.keys(GROUPS).map(letter => ({
     team:  groupPicks[letter]?.[2],
@@ -539,7 +538,7 @@ function ThirdPlacePicker({ onPick, groupPicks, simData }) {
     if (next.has(team)) { next.delete(team); }
     else if (next.size < 8) { next.add(team); }
     else { return; }
-    setSelected(next);
+    onSelectionChange(next);
     pushAssignments(next);
   }
 
@@ -548,7 +547,7 @@ function ThirdPlacePicker({ onPick, groupPicks, simData }) {
   React.useEffect(() => {
     const pruned = new Set([...selected].filter(t => validTeams.has(t)));
     if (pruned.size !== selected.size) {
-      setSelected(pruned);
+      onSelectionChange(pruned);
       pushAssignments(pruned);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -599,7 +598,7 @@ function ThirdPlacePicker({ onPick, groupPicks, simData }) {
 }
 
 // ── Symmetric knockout bracket ─────────────────────────────────────
-function KnockoutView({ groupPicks, picks, onPick, simData }) {
+function KnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThirdSelectionChange }) {
   const H  = 800; // bracket height in px
   const GAP = 14;  // connector width
 
@@ -635,7 +634,8 @@ function KnockoutView({ groupPicks, picks, onPick, simData }) {
 
   return (
     <div>
-      <ThirdPlacePicker onPick={onPick} groupPicks={groupPicks} simData={simData} />
+      <ThirdPlacePicker onPick={onPick} groupPicks={groupPicks} simData={simData}
+        selected={thirdSelected} onSelectionChange={onThirdSelectionChange} />
 
       <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
         {/* Round labels row */}
@@ -802,6 +802,138 @@ function KnockoutView({ groupPicks, picks, onPick, simData }) {
   );
 }
 
+// ── Mobile round-by-round view ─────────────────────────────────────
+const MOBILE_ROUNDS = [
+  { id: 'R32',   label: 'R32',   fullLabel: 'Round of 32',         matches: [...R32_L, ...R32_R] },
+  { id: 'R16',   label: 'R16',   fullLabel: 'Round of 16',         matches: [...R16_L, ...R16_R] },
+  { id: 'QF',    label: 'QF',    fullLabel: 'Quarter-finals',      matches: [...QF_L,  ...QF_R]  },
+  { id: 'SF',    label: 'SF',    fullLabel: 'Semi-finals',         matches: [...SF_L,  ...SF_R]  },
+  { id: 'Final', label: 'Final', fullLabel: 'Final & 3rd Place',   matches: [...FINAL, ...THIRD_PLACE] },
+];
+
+function MobileKnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThirdSelectionChange }) {
+  const [round, setRound] = React.useState('R32');
+  const ridx     = MOBILE_ROUNDS.findIndex(r => r.id === round);
+  const current  = MOBILE_ROUNDS[ridx];
+  const champion = picks['F'] ?? null;
+
+  React.useEffect(() => {
+    if (typeof document !== 'undefined' && !document.getElementById('champ-glow-kf')) {
+      const s = document.createElement('style');
+      s.id = 'champ-glow-kf';
+      s.textContent = `
+        @keyframes champPulse { 0%,100% { box-shadow:0 0 20px rgba(255,176,32,.15),0 0 60px rgba(255,176,32,.06); border-color:rgba(255,176,32,.35); } 50% { box-shadow:0 0 40px rgba(255,176,32,.35),0 0 80px rgba(255,176,32,.14); border-color:rgba(255,176,32,.65); } }
+        @keyframes champFadeIn { from { opacity:0; transform:scale(.88) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        @keyframes trophySpin  { 0% { transform:rotate(-8deg) scale(1); } 30% { transform:rotate(8deg) scale(1.12); } 60% { transform:rotate(-4deg) scale(1.06); } 100% { transform:rotate(0deg) scale(1); } }
+      `;
+      document.head.appendChild(s);
+    }
+  }, []);
+
+  const pickedCount = current.matches.filter(m => picks[m.id]).length;
+
+  return (
+    <div>
+      <ThirdPlacePicker onPick={onPick} groupPicks={groupPicks} simData={simData}
+        selected={thirdSelected} onSelectionChange={onThirdSelectionChange} />
+
+      {/* Round tabs */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
+        {MOBILE_ROUNDS.map(r => {
+          const isActive = r.id === round;
+          return (
+            <button key={r.id} onClick={() => setRound(r.id)} style={{
+              flexShrink: 0,
+              background: isActive ? v4.electric : 'transparent',
+              color: isActive ? '#000' : v4.textDim,
+              border: `1px solid ${isActive ? v4.electric : v4.border}`,
+              borderRadius: 7, padding: '7px 14px',
+              fontSize: 12, fontWeight: 700, fontFamily: mono, cursor: 'pointer',
+              letterSpacing: '0.04em', transition: 'all 0.15s',
+            }}>
+              {r.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Round header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span style={{ fontFamily: display, fontSize: 15, fontWeight: 700, color: v4.text }}>
+          {current.fullLabel}
+        </span>
+        <span style={{ fontFamily: mono, fontSize: 10, color: pickedCount === current.matches.length ? v4.electric : v4.textVeryDim }}>
+          {pickedCount}/{current.matches.length} picked
+        </span>
+      </div>
+
+      {/* Match list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {current.matches.map(match => {
+          const t1 = resolveSlot(match.t1, groupPicks, picks);
+          const t2 = resolveSlot(match.t2, groupPicks, picks);
+          return (
+            <MatchCard key={match.id} match={match} t1={t1} t2={t2}
+              winner={picks[match.id]}
+              onPick={team => onPick(match.id, team)}
+              simData={simData}
+              fillWidth
+            />
+          );
+        })}
+      </div>
+
+      {/* Champion reveal */}
+      {round === 'Final' && champion && (
+        <div style={{
+          marginTop: 20, textAlign: 'center', padding: '18px 24px 16px',
+          background: 'linear-gradient(180deg, rgba(255,176,32,0.13) 0%, rgba(255,176,32,0.04) 100%)',
+          border: '1px solid rgba(255,176,32,0.35)', borderRadius: 16,
+          animation: 'champFadeIn 0.45s cubic-bezier(0.2,0.8,0.3,1) both, champPulse 2.8s ease-in-out 0.5s infinite',
+        }}>
+          <div style={{ fontSize: 32, animation: 'trophySpin 0.7s cubic-bezier(0.2,0.8,0.3,1) 0.4s both', display: 'inline-block', marginBottom: 6 }}>🏆</div>
+          <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: v4.amber, textTransform: 'uppercase', marginBottom: 7 }}>World Champion 2026</div>
+          <div style={{ fontFamily: display, fontSize: 22, fontWeight: 800, color: '#FFD060', letterSpacing: '-0.02em', textShadow: '0 0 20px rgba(255,208,32,0.55)' }}>
+            {champion}
+          </div>
+        </div>
+      )}
+
+      {/* Prev / Next navigation */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20, gap: 8 }}>
+        <button
+          onClick={() => ridx > 0 && setRound(MOBILE_ROUNDS[ridx - 1].id)}
+          disabled={ridx === 0}
+          style={{
+            flex: 1, padding: '11px 0', borderRadius: 8,
+            background: 'transparent',
+            color: ridx === 0 ? v4.textVeryDim : v4.textDim,
+            border: `1px solid ${ridx === 0 ? 'transparent' : v4.border}`,
+            fontFamily: display, fontSize: 13, fontWeight: 700,
+            cursor: ridx === 0 ? 'default' : 'pointer',
+          }}
+        >
+          {ridx > 0 ? `← ${MOBILE_ROUNDS[ridx - 1].label}` : ''}
+        </button>
+        <button
+          onClick={() => ridx < MOBILE_ROUNDS.length - 1 && setRound(MOBILE_ROUNDS[ridx + 1].id)}
+          disabled={ridx === MOBILE_ROUNDS.length - 1}
+          style={{
+            flex: 1, padding: '11px 0', borderRadius: 8,
+            background: ridx === MOBILE_ROUNDS.length - 1 ? 'transparent' : v4.electric,
+            color: ridx === MOBILE_ROUNDS.length - 1 ? v4.textVeryDim : '#000',
+            border: `1px solid ${ridx === MOBILE_ROUNDS.length - 1 ? 'transparent' : v4.electric}`,
+            fontFamily: display, fontSize: 13, fontWeight: 700,
+            cursor: ridx === MOBILE_ROUNDS.length - 1 ? 'default' : 'pointer',
+          }}
+        >
+          {ridx < MOBILE_ROUNDS.length - 1 ? `${MOBILE_ROUNDS[ridx + 1].label} →` : ''}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────
 export default function TournamentBracket() {
   const mobile = useIsMobile();
@@ -814,6 +946,12 @@ export default function TournamentBracket() {
   );
   const [picks, setPicks] = React.useState(_urlState?.picks ?? {});
   const [copied, setCopied] = React.useState(false);
+  const [thirdSelected, setThirdSelected] = React.useState(() => {
+    if (!_urlState?.picks) return new Set();
+    const sel = new Set();
+    THIRD_SLOTS.forEach(slot => { if (_urlState.picks[slot]) sel.add(_urlState.picks[slot]); });
+    return sel;
+  });
 
   React.useEffect(() => {
     setSimLoading(true);
@@ -822,15 +960,6 @@ export default function TournamentBracket() {
       .catch(() => {})
       .finally(() => setSimLoading(false));
   }, []);
-
-  // Auto-sort groups by model strength on first load (skip if bracket was shared via URL)
-  React.useEffect(() => {
-    if (simData && !_urlState) {
-      setGroupPicks(Object.fromEntries(
-        Object.keys(GROUPS).map(g => [g, modelGroupOrder(simData, g)])
-      ));
-    }
-  }, [simData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleGroupReorder(letter, newOrder) {
     setGroupPicks(prev => {
@@ -868,6 +997,16 @@ export default function TournamentBracket() {
     );
     setGroupPicks(newGroups);
     const p = {};
+
+    // Auto-pick top-8 third-place teams by model advance %
+    const thirds = Object.keys(GROUPS)
+      .map(g => newGroups[g][2])
+      .filter(Boolean)
+      .sort((a, b) => (simFor(simData, b)?.r32_pct ?? 0) - (simFor(simData, a)?.r32_pct ?? 0))
+      .slice(0, 8);
+    thirds.forEach((team, i) => { if (THIRD_SLOTS[i]) p[THIRD_SLOTS[i]] = team; });
+    setThirdSelected(new Set(thirds));
+
     const fill = matches => matches.forEach(m => {
       const t1 = resolveSlot(m.t1, newGroups, p);
       const t2 = resolveSlot(m.t2, newGroups, p);
@@ -898,6 +1037,7 @@ export default function TournamentBracket() {
   function resetAll() {
     setGroupPicks(Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]])));
     setPicks({});
+    setThirdSelected(new Set());
     window.history.replaceState(null, '', window.location.pathname);
   }
 
@@ -1033,12 +1173,23 @@ export default function TournamentBracket() {
           simData={simData}
           onContinue={() => setTab('knockout')}
         />
+      ) : mobile ? (
+        <MobileKnockoutView
+          groupPicks={groupPicks}
+          picks={picks}
+          onPick={handlePick}
+          simData={simData}
+          thirdSelected={thirdSelected}
+          onThirdSelectionChange={setThirdSelected}
+        />
       ) : (
         <KnockoutView
           groupPicks={groupPicks}
           picks={picks}
           onPick={handlePick}
           simData={simData}
+          thirdSelected={thirdSelected}
+          onThirdSelectionChange={setThirdSelected}
         />
       )}
     </section>
