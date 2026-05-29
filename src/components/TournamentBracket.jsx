@@ -1057,6 +1057,7 @@ export default function TournamentBracket() {
 
   return (
     <section style={{ padding: mobile ? '56px 20px' : '72px 56px', background: v4.bg, borderTop: `1px solid ${v4.border}` }}>
+      <div style={{ maxWidth: 1440, margin: '0 auto' }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
@@ -1170,6 +1171,7 @@ export default function TournamentBracket() {
           onThirdSelectionChange={setThirdSelected}
         />
       )}
+      </div>
     </section>
   );
 }
