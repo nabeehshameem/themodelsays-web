@@ -35,8 +35,34 @@ if (typeof document !== 'undefined' && !document.getElementById('tms-anim')) {
       0%, 100% { opacity: 1; }
       50%       { opacity: 0.4; }
     }
+    @keyframes tmsMarquee {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-33.333%); }
+    }
+    .tms-marquee-inner { animation: tmsMarquee 28s linear infinite; }
+    @media (max-width: 768px) {
+      .tms-hero-grid   { grid-template-columns: 1fr !important; }
+      .tms-feat-grid   { grid-template-columns: 1fr !important; }
+      .tms-widget-grid { grid-template-columns: 1fr !important; }
+      .tms-acc-grid    { grid-template-columns: 1fr !important; }
+      .tms-quote-grid  { grid-template-columns: 1fr !important; }
+      .tms-foot-grid   { grid-template-columns: 1fr 1fr !important; }
+      .tms-hide-mobile { display: none !important; }
+    }
   `;
   document.head.appendChild(s);
+}
+
+function useIsMobile() {
+  const [mobile, setMobile] = React.useState(
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
+  React.useEffect(() => {
+    const handler = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return mobile;
 }
 
 function TmsLogo({ size = 32 }) {
@@ -60,34 +86,41 @@ function TmsBrand({ size = 18 }) {
 
 // ── Nav ─────────────────────────────────────────────────────────────
 function V4Nav() {
+  const mobile = useIsMobile();
   return (
     <div style={{
       position: 'sticky', top: 0, zIndex: 50,
       background: 'rgba(13,1,24,0.82)', backdropFilter: 'blur(14px)',
       borderBottom: `1px solid ${v4.border}`,
-      padding: '16px 56px', display: 'flex', alignItems: 'center', gap: 36,
+      padding: mobile ? '14px 20px' : '16px 56px',
+      display: 'flex', alignItems: 'center', gap: 36,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <TmsLogo />
         <TmsBrand />
       </div>
-      <div style={{ display: 'flex', gap: 28, marginLeft: 12, fontFamily: display }}>
-        {[
-          ['World Cup', '#'],
-          ['Track record', '#'],
-          ['Updates', '#'],
-        ].map(([label, href]) => (
-          <a key={label} href={href} onClick={e => e.preventDefault()}
-             style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none', cursor: 'not-allowed', opacity: 0.5 }}>
-            {label}
-          </a>
-        ))}
-      </div>
+      {!mobile && (
+        <div style={{ display: 'flex', gap: 28, marginLeft: 12, fontFamily: display }}>
+          {[
+            ['World Cup 2026', '#'],
+            ['Bracket', '#'],
+            ['Fantasy', '#'],
+          ].map(([label, href]) => (
+            <a key={label} href={href} onClick={e => e.preventDefault()}
+               style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none', cursor: 'not-allowed', opacity: 0.5 }}>
+              {label}
+            </a>
+          ))}
+        </div>
+      )}
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 18 }}>
-        <span style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, fontFamily: display, cursor: 'pointer' }}>Sign in</span>
+        {!mobile && (
+          <span style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, fontFamily: display, cursor: 'pointer' }}>Sign in</span>
+        )}
         <span style={{
           background: 'rgba(0,255,135,0.12)', color: v4.textVeryDim, borderRadius: 999,
-          padding: '9px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'not-allowed',
+          padding: mobile ? '7px 14px' : '9px 18px',
+          fontSize: 13, fontWeight: 700, cursor: 'not-allowed',
           letterSpacing: '0.03em', textTransform: 'uppercase', fontFamily: display,
           display: 'inline-block', opacity: 0.55,
         }}>Coming soon</span>
@@ -96,18 +129,95 @@ function V4Nav() {
   );
 }
 
+// ── WC Favourites hero widget ────────────────────────────────────────
+const WC_FAVS = [
+  { name: 'France',      pct: 14.2, color: '#4F85D3' },
+  { name: 'Brazil',      pct: 12.8, color: '#3DB56A' },
+  { name: 'England',     pct: 11.4, color: '#E05252' },
+  { name: 'Argentina',   pct: 10.9, color: '#74ACDF' },
+  { name: 'Spain',       pct: 9.6,  color: '#D45353' },
+  { name: 'Germany',     pct: 8.1,  color: '#aaaaaa' },
+  { name: 'Portugal',    pct: 7.3,  color: '#D45353' },
+  { name: 'Netherlands', pct: 5.8,  color: '#E07C2A' },
+];
+
+function V4BracketHero() {
+  const max = WC_FAVS[0].pct;
+  return (
+    <div style={{
+      position: 'relative', borderRadius: 14, overflow: 'hidden',
+      background: 'linear-gradient(170deg, rgba(123,46,227,0.12) 0%, rgba(0,0,0,0.4) 100%)',
+      border: `1px solid ${v4.border}`,
+      boxShadow: '0 30px 80px -20px rgba(0,0,0,0.6)',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '16px 20px 12px',
+        borderBottom: `1px solid rgba(255,255,255,0.06)`,
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      }}>
+        <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>CHAMPIONSHIP RACE · MODEL ODDS</span>
+        <span style={{
+          color: v4.electric, fontFamily: mono, fontSize: 9, fontWeight: 700,
+          background: 'rgba(0,255,135,0.08)', padding: '3px 8px', borderRadius: 6,
+        }}>50K SIMS</span>
+      </div>
+
+      {/* Team bars */}
+      <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 11, flex: 1 }}>
+        {WC_FAVS.map((t, i) => (
+          <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ width: 16, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right' }}>{i + 1}</span>
+            <span style={{
+              width: 100, color: i === 0 ? v4.text : v4.textDim,
+              fontFamily: display, fontSize: 13, fontWeight: i === 0 ? 700 : 400,
+            }}>{t.name}</span>
+            <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden' }}>
+              <div style={{
+                width: `${(t.pct / max) * 100}%`, height: '100%', borderRadius: 999,
+                background: i === 0 ? v4.electric : t.color,
+                opacity: i === 0 ? 1 : 0.55,
+              }} />
+            </div>
+            <span style={{
+              width: 44, textAlign: 'right', fontFamily: mono, fontSize: 12, fontWeight: 700,
+              color: i === 0 ? v4.electric : v4.textDim,
+            }}>{t.pct}%</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Predicted final */}
+      <div style={{ margin: '0 14px 14px', padding: '12px 14px', background: 'rgba(0,255,135,0.06)', border: `1px solid rgba(0,255,135,0.18)`, borderRadius: 10 }}>
+        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Model's predicted final</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ color: v4.text, fontFamily: display, fontSize: 15, fontWeight: 700 }}>France</span>
+          <span style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 800, background: 'rgba(0,0,0,0.45)', padding: '3px 9px', borderRadius: 6 }}>57%</span>
+          <span style={{ color: v4.textDim, fontFamily: display, fontSize: 15 }}>Brazil</span>
+        </div>
+        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, marginTop: 6 }}>Updated June 2026 · Retrained after each matchday</div>
+      </div>
+
+      <div style={{ position: 'absolute', bottom: 12, right: 18, color: 'rgba(255,255,255,0.2)', fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.06em' }}>
+        WC 2026 · THE MODEL
+      </div>
+    </div>
+  );
+}
+
 // ── Hero ────────────────────────────────────────────────────────────
 const SAYINGS = [
-  'Take Haaland (C).',
-  'Captain Salah away.',
-  'Sell Foden. Buy Palmer.',
-  'Arsenal beat Chelsea.',
-  'Back England to lift it.',
+  'France lift the trophy.',
+  'Mbappe: Golden Boot.',
+  'England reach the final.',
+  'Brazil beat Argentina.',
+  'Spain win Group H.',
 ];
 
 function V4Hero() {
-  const { squad } = FPL_DATA;
   const [i, setI] = React.useState(0);
+  const mobile = useIsMobile();
   React.useEffect(() => {
     const t = setInterval(() => setI(p => (p + 1) % SAYINGS.length), 2800);
     return () => clearInterval(t);
@@ -115,13 +225,21 @@ function V4Hero() {
 
   return (
     <div style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* Single purple wash */}
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 15% 60%, rgba(123,46,227,0.38), transparent 55%)' }} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 48, position: 'relative', padding: '110px 56px 90px' }}>
+      <div
+        className="tms-hero-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: mobile ? '1fr' : '1.05fr 1fr',
+          gap: mobile ? 32 : 48,
+          position: 'relative',
+          padding: mobile ? '64px 20px 52px' : '110px 56px 90px',
+        }}
+      >
         {/* left */}
         <div>
-          {/* WC pill with blinking dot */}
+          {/* WC pill */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             padding: '5px 12px 5px 8px', borderRadius: 999,
@@ -130,11 +248,13 @@ function V4Hero() {
             fontFamily: mono, fontWeight: 600, letterSpacing: '0.04em',
           }}>
             <span style={{ width: 7, height: 7, borderRadius: 999, background: v4.electric, animation: 'tmsPulse 1.6s ease infinite', flexShrink: 0 }} />
-            WC 2026 LIVE SOON · FPL GW28 FRIDAY
+            FIFA WORLD CUP 2026 · JUNE 11 – JULY 19
           </div>
 
           <h1 style={{
-            color: v4.text, fontSize: 96, fontWeight: 700, letterSpacing: '-0.045em',
+            color: v4.text,
+            fontSize: mobile ? 56 : 96,
+            fontWeight: 700, letterSpacing: '-0.045em',
             lineHeight: 0.96, margin: 0, fontFamily: display,
           }}>
             The model<br/>says.
@@ -142,7 +262,9 @@ function V4Hero() {
 
           <div style={{ marginTop: 18, height: 64, position: 'relative' }}>
             <span key={i} style={{
-              display: 'inline-block', fontFamily: display, fontWeight: 700, fontSize: 44, letterSpacing: '-0.03em',
+              display: 'inline-block', fontFamily: display, fontWeight: 700,
+              fontSize: mobile ? 26 : 44,
+              letterSpacing: '-0.03em',
               background: `linear-gradient(120deg, ${v4.electric} 0%, #00e8c8 60%, ${v4.electric} 100%)`,
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
               animation: 'tmsFade 2.8s ease infinite',
@@ -151,9 +273,9 @@ function V4Hero() {
             </span>
           </div>
 
-          <p style={{ color: v4.textDim, fontSize: 18, lineHeight: 1.55, marginTop: 22, maxWidth: 540, fontWeight: 400 }}>
-            AI picks for FPL, every Premier League match, and the 2026 World Cup.
-            One model. Every call. <span style={{ color: v4.text, fontWeight: 500 }}>Free, open beta.</span>
+          <p style={{ color: v4.textDim, fontSize: mobile ? 16 : 18, lineHeight: 1.55, marginTop: 22, maxWidth: 540, fontWeight: 400 }}>
+            AI predictions for every 2026 World Cup match. 50,000 simulations per team, bracket builder, and fantasy squad optimizer.{' '}
+            <span style={{ color: v4.text, fontWeight: 500 }}>Free, open beta.</span>
           </p>
 
           <div style={{ marginTop: 36 }}>
@@ -165,100 +287,27 @@ function V4Hero() {
             }}>App coming soon</span>
           </div>
 
-          {/* 2 stats */}
+          {/* Stats */}
           <div style={{ display: 'flex', gap: 32, marginTop: 52, alignItems: 'center' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ width: 7, height: 7, borderRadius: 999, background: v4.electric, animation: 'tmsPulse 2s ease infinite' }} />
-                <span style={{ color: v4.electric, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono }}>ACCURACY</span>
+                <span style={{ color: v4.electric, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono }}>SIMULATIONS</span>
               </div>
-              <div style={{ color: v4.text, fontSize: 30, fontWeight: 700, fontFamily: display, letterSpacing: '-0.02em', marginTop: 4 }}>+11%</div>
-              <div style={{ color: v4.textDim, fontSize: 12 }}>vs FPL's own picks</div>
+              <div style={{ color: v4.text, fontSize: 30, fontWeight: 700, fontFamily: display, letterSpacing: '-0.02em', marginTop: 4 }}>50,000</div>
+              <div style={{ color: v4.textDim, fontSize: 12 }}>per tournament run</div>
             </div>
             <div style={{ width: 1, height: 56, background: v4.border }} />
             <div>
               <div style={{ color: v4.textVeryDim, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono }}>COVERAGE</div>
-              <div style={{ color: v4.text, fontSize: 30, fontWeight: 700, fontFamily: display, letterSpacing: '-0.02em', marginTop: 4 }}>Every match</div>
-              <div style={{ color: v4.textDim, fontSize: 12 }}>PL season + WC 2026</div>
+              <div style={{ color: v4.text, fontSize: 30, fontWeight: 700, fontFamily: display, letterSpacing: '-0.02em', marginTop: 4 }}>48 teams</div>
+              <div style={{ color: v4.textDim, fontSize: 12 }}>all 104 WC matches</div>
             </div>
           </div>
         </div>
 
-        {/* right — pitch */}
-        <V4PitchHero squad={squad} />
-      </div>
-    </div>
-  );
-}
-
-function V4PitchHero({ squad }) {
-  return (
-    <div style={{ position: 'relative' }}>
-      <div style={{
-        position: 'relative', borderRadius: 14, overflow: 'hidden', height: 700,
-        background: `linear-gradient(170deg, #0a4f2e 0%, #0d6839 50%, #0a4f2e 100%)`,
-        boxShadow: '0 30px 80px -20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08)',
-      }}>
-        <V4PitchLines />
-
-        {/* top HUD — formation + budget only, no floating score box */}
-        <div style={{ position: 'absolute', top: 16, left: 16, display: 'flex', gap: 8, zIndex: 5 }}>
-          <V4Tag>3-4-3</V4Tag>
-          <V4Tag accent>£99.6 / £100.0m</V4Tag>
-        </div>
-
-        {/* players */}
-        <div style={{ position: 'absolute', inset: '76px 20px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <V4PitchRow players={squad.fwd} />
-          <V4PitchRow players={squad.mid} />
-          <V4PitchRow players={squad.def} />
-          <V4PitchRow players={squad.gk} />
-        </div>
-
-        <div style={{ position: 'absolute', bottom: 14, left: 16, color: 'rgba(255,255,255,0.4)', fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.06em' }}>
-          GW28 · THE MODEL'S XV
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function V4PitchLines() {
-  return (
-    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.16 }} viewBox="0 0 400 700" preserveAspectRatio="none">
-      <rect x="20" y="20" width="360" height="660" stroke="white" strokeWidth="1.5" fill="none" />
-      <line x1="20" y1="350" x2="380" y2="350" stroke="white" strokeWidth="1.5" />
-      <circle cx="200" cy="350" r="56" stroke="white" strokeWidth="1.5" fill="none" />
-      <circle cx="200" cy="350" r="2" fill="white" />
-      <rect x="100" y="20" width="200" height="96" stroke="white" strokeWidth="1.5" fill="none" />
-      <rect x="100" y="584" width="200" height="96" stroke="white" strokeWidth="1.5" fill="none" />
-    </svg>
-  );
-}
-
-function V4PitchRow({ players }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-      {players.map((p, i) => <V4PlayerCard key={i} player={p} />)}
-    </div>
-  );
-}
-
-// Flat colored chip: team badge + name + EV
-function V4PlayerCard({ player }) {
-  const tc = TEAM_COLORS[player.team] || '#555';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-      <div style={{
-        background: 'rgba(0,0,0,0.6)', border: `1px solid rgba(255,255,255,0.12)`,
-        borderRadius: 8, padding: '5px 8px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 52,
-      }}>
-        <span style={{ background: tc, color: 'white', fontSize: 8, fontWeight: 800, fontFamily: mono, letterSpacing: '0.05em', padding: '1px 5px', borderRadius: 4 }}>
-          {player.team}
-        </span>
-        <span style={{ color: v4.text, fontSize: 10, fontWeight: 700, fontFamily: display }}>{player.name}</span>
-        <span style={{ color: v4.electric, fontSize: 10, fontWeight: 800, fontFamily: mono }}>{player.ev.toFixed(1)}</span>
+        {/* right — bracket hero */}
+        <V4BracketHero />
       </div>
     </div>
   );
@@ -278,16 +327,16 @@ function V4Tag({ children, accent }) {
   );
 }
 
-// ── Marquee — dark with electric-green hairlines ────────────────────
+// ── Marquee ────────────────────────────────────────────────────────
 function V4Marquee() {
-  const items = ['PICKED BY THE MODEL', 'EVERY FPL GAMEWEEK', 'EVERY PL MATCH', 'WORLD CUP 2026', 'BEATS FPL’S OWN PICKS', 'FREE FOREVER'];
+  const items = ['WORLD CUP 2026', '48 TEAMS · 104 MATCHES', 'LIVE PREDICTIONS', 'BRACKET BUILDER', '50K SIMULATIONS', 'FANTASY OPTIMIZER', 'FREE OPEN BETA', 'JUNE 11 · USA MEXICO CANADA'];
   const all = [...items, ...items, ...items];
   return (
     <div style={{
       background: v4.bg2, padding: '14px 0', overflow: 'hidden',
       borderTop: `1px solid ${v4.electric}22`, borderBottom: `1px solid ${v4.electric}22`,
     }}>
-      <div style={{ display: 'flex', gap: 48, whiteSpace: 'nowrap' }}>
+      <div className="tms-marquee-inner" style={{ display: 'flex', gap: 48, whiteSpace: 'nowrap', width: 'max-content' }}>
         {all.map((it, i) => (
           <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 48, fontFamily: mono, fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', color: v4.electric }}>
             {it}
@@ -299,63 +348,62 @@ function V4Marquee() {
   );
 }
 
-// ── Features — 2 wide cards ─────────────────────────────────────────
-function V4Features() {
+// ── Features — 3 tool cards ──────────────────────────────────────────
+function V4FeatureCard({ tag, title, body, widget, widgetLabel, widgetStat }) {
   return (
-    <div style={{ padding: '100px 56px' }}>
-      <div style={{ maxWidth: 1320, margin: '0 auto' }}>
-        <div style={{ marginBottom: 52 }}>
-          <div style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>// what the model says</div>
-          <h2 style={{ color: v4.text, fontSize: 56, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.02, margin: 0, fontFamily: display }}>
-            Every gameweek. Every match. Every call.
-          </h2>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <V4WideCard
-            tag="WORLD CUP 2026"
-            title="From group stage to lifting the trophy."
-            body="50,000 simulations. Live as games are played."
-            leftWidget={<WidgetBracket />}
-            leftLabel="BRACKET CALL"
-            leftStat="48 teams · 64 matches"
-            rightWidget={<WidgetMatches />}
-            rightLabel="THIS WEEKEND"
-            rightStat="Updated Friday"
-          />
-          <V4WideCard
-            tag="FPL"
-            title="The optimal XV. Every gameweek."
-            body="Captain, transfers, the full squad under FPL's rules."
-            leftWidget={<WidgetCaptain />}
-            leftLabel="CAPTAIN PICK"
-            leftStat="GW28 · expected pts"
-            rightWidget={<WidgetPlanner />}
-            rightLabel="GW28 → GW33 OUTLOOK"
-            rightStat="chip windows flagged"
-          />
-        </div>
+    <div style={{
+      background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
+      border: `1px solid ${v4.border}`, borderRadius: 14, padding: 28,
+      display: 'flex', flexDirection: 'column', gap: 20,
+    }}>
+      <div>
+        <span style={{ color: v4.electric, fontFamily: mono, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', padding: '4px 10px', background: 'rgba(0,255,135,0.1)', borderRadius: 8 }}>{tag}</span>
+        <div style={{ color: v4.text, fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', fontFamily: display, marginTop: 14 }}>{title}</div>
+        <div style={{ color: v4.textDim, fontSize: 13, marginTop: 6, lineHeight: 1.55 }}>{body}</div>
       </div>
+      <V4WidgetBox label={widgetLabel} stat={widgetStat}>{widget}</V4WidgetBox>
     </div>
   );
 }
 
-function V4WideCard({ tag, title, body, leftWidget, leftLabel, leftStat, rightWidget, rightLabel, rightStat }) {
+function V4Features() {
+  const mobile = useIsMobile();
   return (
-    <div style={{
-      background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
-      border: `1px solid ${v4.border}`, borderRadius: 14, padding: 32,
-    }}>
-      {/* card header */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 18, marginBottom: 24, flexWrap: 'wrap' }}>
-        <span style={{ color: v4.electric, fontFamily: mono, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', padding: '4px 10px', background: 'rgba(0,255,135,0.1)', borderRadius: 8 }}>{tag}</span>
-        <span style={{ color: v4.text, fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', fontFamily: display }}>{title}</span>
-        <span style={{ color: v4.textDim, fontSize: 14 }}>{body}</span>
-      </div>
-      {/* two widgets side by side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-        <V4WidgetBox label={leftLabel} stat={leftStat}>{leftWidget}</V4WidgetBox>
-        <V4WidgetBox label={rightLabel} stat={rightStat}>{rightWidget}</V4WidgetBox>
+    <div style={{ padding: mobile ? '64px 20px' : '100px 56px' }}>
+      <div style={{ maxWidth: 1320, margin: '0 auto' }}>
+        <div style={{ marginBottom: 52 }}>
+          <div style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>what the model says</div>
+          <h2 style={{ color: v4.text, fontSize: mobile ? 36 : 56, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.02, margin: 0, fontFamily: display }}>
+            Every group. Every knockout. Every call.
+          </h2>
+        </div>
+
+        <div className="tms-feat-grid" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr 1fr', gap: 16 }}>
+          <V4FeatureCard
+            tag="SCORE PREDICTOR"
+            title="Pick any match. Get the call."
+            body="Dixon-Coles model trained on WC history and recent international form. Group stage and knockout."
+            widget={<WidgetWCMatches />}
+            widgetLabel="LATEST PICKS"
+            widgetStat="Updated daily"
+          />
+          <V4FeatureCard
+            tag="TOURNAMENT BRACKET"
+            title="Every path to the final."
+            body="50,000 Monte Carlo simulations. Win probabilities for all 48 teams, updated after each matchday."
+            widget={<WidgetBracket />}
+            widgetLabel="BRACKET CALL"
+            widgetStat="48 teams · 104 matches"
+          />
+          <V4FeatureCard
+            tag="FANTASY OPTIMIZER"
+            title="Build the optimal squad."
+            body="Captain picks, budget optimizer, and phase-by-phase EV for FIFA's official WC fantasy game."
+            widget={<WidgetCaptain />}
+            widgetLabel="CAPTAIN PICKS"
+            widgetStat="Projected tournament pts"
+          />
+        </div>
       </div>
     </div>
   );
@@ -376,17 +424,17 @@ function V4WidgetBox({ label, stat, children }) {
 // ── Widgets ────────────────────────────────────────────────────────
 function WidgetCaptain() {
   const rows = [
-    ['Haaland', 9.8, v4.electric, '(C)'],
-    ['Salah',   8.4, v4.text,     ''],
-    ['Palmer',  6.9, v4.textDim,  ''],
-    ['Saka',    5.2, v4.textVeryDim, ''],
+    ['Mbappe',   9.4, v4.electric, '(C)'],
+    ['Vinicius', 8.1, v4.text,     ''],
+    ['Bellingham', 7.2, v4.textDim, ''],
+    ['Salah',    5.9, v4.textVeryDim, ''],
   ];
   const max = rows[0][1];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
       {rows.map(([n, p, c, mark]) => (
         <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 86, fontSize: 13, color: v4.text, fontWeight: 600, fontFamily: display }}>
+          <div style={{ width: 96, fontSize: 13, color: v4.text, fontWeight: 600, fontFamily: display }}>
             {n}{mark && <span style={{ color: v4.electric, fontFamily: mono, marginLeft: 5, fontSize: 10, fontWeight: 800 }}>{mark}</span>}
           </div>
           <div style={{ flex: 1, height: 6, background: v4.border, borderRadius: 999, overflow: 'hidden' }}>
@@ -400,50 +448,46 @@ function WidgetCaptain() {
 }
 
 function WidgetPlanner() {
-  const gws = FPL_DATA.gws;
+  const phases = [
+    { label: 'Group', dates: 'Jun 11–26', ev: '+9.4', hot: true },
+    { label: 'R32',   dates: 'Jun 27–Jul 2', ev: '+5.2', hot: false },
+    { label: 'QF',    dates: 'Jul 4–5', ev: '+3.1', hot: false },
+    { label: 'SF',    dates: 'Jul 8–9', ev: '+2.8', hot: false },
+    { label: 'Final', dates: 'Jul 19', ev: '+1.9', hot: false },
+  ];
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ display: 'flex', gap: 5 }}>
-        {gws.map((g, i) => (
-          <div key={i} style={{ flex: 1, background: v4.bg, border: `1px solid ${g.action !== 'hold' ? 'rgba(0,255,135,0.35)' : v4.border}`, borderRadius: 8, padding: '7px 5px', position: 'relative' }}>
-            <div style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono, fontWeight: 600 }}>GW{g.gw}</div>
-            <div style={{ fontSize: 10, color: v4.text, fontWeight: 700, marginTop: 2, fontFamily: display }}>{g.fix}</div>
-            <div style={{ display: 'flex', gap: 1, marginTop: 5 }}>
-              {Array.from({ length: 5 }).map((_, k) => (
-                <div key={k} style={{ flex: 1, height: 3, background: k < g.diff ? (g.diff <= 2 ? v4.electric : g.diff <= 3 ? v4.amber : '#ff7055') : v4.border, borderRadius: 1 }} />
-              ))}
+    <div style={{ display: 'flex', gap: 5 }}>
+      {phases.map(g => (
+        <div key={g.label} style={{ flex: 1, background: v4.bg, border: `1px solid ${g.hot ? 'rgba(0,255,135,0.35)' : v4.border}`, borderRadius: 8, padding: '7px 5px', position: 'relative' }}>
+          <div style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono, fontWeight: 600 }}>{g.label}</div>
+          <div style={{ fontSize: 9, color: v4.text, fontWeight: 600, marginTop: 2, fontFamily: display, lineHeight: 1.2 }}>{g.dates}</div>
+          <div style={{ fontSize: 10, color: v4.electric, fontFamily: mono, fontWeight: 700, marginTop: 5 }}>{g.ev}</div>
+          {g.hot && (
+            <div style={{ position: 'absolute', top: -7, right: -3, padding: '1px 4px', background: v4.electric, color: v4.bg, fontSize: 7, fontWeight: 800, borderRadius: 8, fontFamily: mono, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+              HOT
             </div>
-            <div style={{ fontSize: 10, color: v4.electric, fontFamily: mono, fontWeight: 700, marginTop: 5 }}>{g.ev}</div>
-            {g.action !== 'hold' && (
-              <div style={{ position: 'absolute', top: -7, right: -3, padding: '1px 4px', background: v4.electric, color: v4.bg, fontSize: 7, fontWeight: 800, borderRadius: 8, fontFamily: mono, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-                {g.action.split(' ')[0].toUpperCase()}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
 
-// Confidence % removed — pick + score only
-function WidgetMatches() {
+function WidgetWCMatches() {
   const fixtures = [
-    { home: 'ARS', away: 'CHE', time: 'Sat 17:30', pick: 'ARS 2-1' },
-    { home: 'LIV', away: 'MCI', time: 'Sun 16:30', pick: 'Draw 1-1' },
-    { home: 'NEW', away: 'TOT', time: 'Sun 14:00', pick: 'NEW 2-0' },
+    { home: 'ENG', away: 'ARG', group: 'L', pick: 'ENG 2-1' },
+    { home: 'FRA', away: 'BRA', group: 'I', pick: 'Draw 1-1' },
+    { home: 'ESP', away: 'GER', group: 'H', pick: 'ESP 2-0' },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {fixtures.map((f, i) => (
         <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center', padding: '7px 0', borderBottom: i < fixtures.length - 1 ? `1px solid ${v4.border}` : 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <div style={{ width: 14, height: 14, background: TEAM_COLORS[f.home], borderRadius: 4 }} />
             <span style={{ color: v4.text, fontFamily: mono, fontSize: 11, fontWeight: 700 }}>{f.home}</span>
             <span style={{ color: v4.textVeryDim, fontSize: 10 }}>vs</span>
             <span style={{ color: v4.text, fontFamily: mono, fontSize: 11, fontWeight: 700 }}>{f.away}</span>
-            <div style={{ width: 14, height: 14, background: TEAM_COLORS[f.away], borderRadius: 4 }} />
-            <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, marginLeft: 4 }}>{f.time}</span>
+            <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, marginLeft: 4 }}>Grp {f.group}</span>
           </div>
           <div style={{ background: 'rgba(0,255,135,0.08)', color: v4.electric, padding: '3px 8px', borderRadius: 8, fontFamily: mono, fontSize: 11, fontWeight: 700 }}>{f.pick}</div>
         </div>
@@ -454,10 +498,10 @@ function WidgetMatches() {
 
 function WidgetBracket() {
   const knockouts = [
-    { round: 'QF',    a: 'Spain',   b: 'Brazil',    score: '2-1', winner: 'Spain' },
-    { round: 'QF',    a: 'England', b: 'Germany',   score: '2-1', winner: 'England' },
-    { round: 'SF',    a: 'Spain',   b: 'England',   score: '1-2', winner: 'England' },
-    { round: 'FINAL', a: 'England', b: 'Argentina', score: '2-1', winner: 'England' },
+    { round: 'QF',    a: 'France',  b: 'Spain',     score: '2-1', winner: 'France' },
+    { round: 'QF',    a: 'Brazil',  b: 'England',   score: '1-1', winner: 'Brazil' },
+    { round: 'SF',    a: 'France',  b: 'Brazil',    score: '2-0', winner: 'France' },
+    { round: 'FINAL', a: 'France',  b: 'Argentina', score: '2-1', winner: 'France' },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -478,8 +522,8 @@ function WidgetBracket() {
         );
       })}
       <div style={{ marginTop: 4, fontSize: 11, color: v4.textVeryDim, fontFamily: mono, display: 'flex', justifyContent: 'space-between' }}>
-        <span>ENGLAND</span>
-        <span>32% win prob</span>
+        <span>FRANCE</span>
+        <span>14.2% win prob</span>
       </div>
     </div>
   );
@@ -487,6 +531,7 @@ function WidgetBracket() {
 
 // ── Accuracy snapshot ─────────────────────────────────────────────
 function V4Accuracy() {
+  const mobile = useIsMobile();
   const bars = [
     { gw: 22, model: 2.05, fpl: 2.19 },
     { gw: 23, model: 1.83, fpl: 2.11 },
@@ -497,11 +542,11 @@ function V4Accuracy() {
   ];
   const max = 2.4;
   return (
-    <div style={{ padding: '100px 56px', background: v4.bg2, borderTop: `1px solid ${v4.border}`, borderBottom: `1px solid ${v4.border}` }}>
-      <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 64, alignItems: 'center' }}>
+    <div style={{ padding: mobile ? '64px 20px' : '100px 56px', background: v4.bg2, borderTop: `1px solid ${v4.border}`, borderBottom: `1px solid ${v4.border}` }}>
+      <div className="tms-acc-grid" style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1.2fr', gap: 64, alignItems: 'center' }}>
         <div>
-          <div style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>// track record</div>
-          <h2 style={{ color: v4.text, fontSize: 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
+          <div style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>track record</div>
+          <h2 style={{ color: v4.text, fontSize: mobile ? 36 : 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
             The model beats FPL's own forecasts.
           </h2>
           <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.5, marginTop: 16, maxWidth: 420 }}>
@@ -546,31 +591,20 @@ function V4Accuracy() {
   );
 }
 
-// ── Quote ──────────────────────────────────────────────────────────
+// ── Stats ──────────────────────────────────────────────────────────
 function V4Quote() {
+  const mobile = useIsMobile();
   return (
-    <div style={{ padding: '110px 56px', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ padding: mobile ? '64px 20px' : '110px 56px', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 50%, rgba(123,46,227,0.15), transparent 60%)' }} />
-      <div style={{ maxWidth: 1180, margin: '0 auto', position: 'relative', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 64, alignItems: 'center' }}>
-        <div>
-          <div style={{ color: v4.electric, fontSize: 180, fontFamily: display, fontWeight: 700, lineHeight: 0.8, letterSpacing: '-0.05em', height: 90, overflow: 'hidden' }}>"</div>
-          <div style={{ color: v4.text, fontSize: 28, lineHeight: 1.35, fontWeight: 600, fontFamily: display, letterSpacing: '-0.02em', marginTop: 20 }}>
-            I built TheModelSays because I was tired of guessing. Now every Friday morning, I just open the app and see what the model says.
-          </div>
-          <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: `linear-gradient(135deg, ${v4.electric}, ${v4.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: v4.bg, fontFamily: display, fontWeight: 800, fontSize: 16 }}>NS</div>
-            <div>
-              <div style={{ color: v4.text, fontSize: 14, fontWeight: 700, fontFamily: display }}>Nabeeh Shameem</div>
-              <div style={{ color: v4.textDim, fontSize: 12, fontFamily: mono }}>creator</div>
-            </div>
-          </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ maxWidth: 860, margin: '0 auto', position: 'relative' }}>
+        <div style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 32, textAlign: 'center' }}>by the numbers</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12 }}>
           {[
-            ['+11%', 'better picks',  'than FPL’s own'],
-            ['32',   'PL matches',    'called every week'],
-            ['64',   'WC fixtures',   'all predicted'],
-            ['£0',    'forever',       'open beta'],
+            ['50K',  'simulations',   'per tournament run'],
+            ['104',  'WC fixtures',   'all predicted'],
+            ['48',   'teams covered', 'every group stage'],
+            ['£0',   'forever',       'open beta'],
           ].map(([n, l, s]) => (
             <div key={l} style={{ background: v4.surface, border: `1px solid ${v4.border}`, borderRadius: 14, padding: 22 }}>
               <div style={{ color: v4.text, fontSize: 38, fontWeight: 700, letterSpacing: '-0.03em', fontFamily: display, lineHeight: 1 }}>{n}</div>
@@ -584,10 +618,11 @@ function V4Quote() {
   );
 }
 
-// ── CTA — email capture for August PL return ───────────────────────
+// ── CTA ────────────────────────────────────────────────────────────
 function V4CTA() {
   const [email, setEmail] = React.useState('');
   const [submitted, setSubmitted] = React.useState(false);
+  const mobile = useIsMobile();
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -595,15 +630,15 @@ function V4CTA() {
   }
 
   return (
-    <div style={{ padding: '120px 56px', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${v4.border}` }}>
+    <div style={{ padding: mobile ? '80px 20px' : '120px 56px', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${v4.border}` }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 65%, rgba(123,46,227,0.22), transparent 52%)' }} />
       <div style={{ position: 'relative', maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ color: v4.electric, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 20 }}>PL RETURNS AUGUST 2025</div>
-        <h2 style={{ color: v4.text, fontSize: 72, fontWeight: 700, letterSpacing: '-0.045em', lineHeight: 0.95, margin: 0, fontFamily: display }}>
-          Don't miss<br/>the first call.
+        <div style={{ color: v4.electric, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 20 }}>WC 2026 KICKS OFF JUNE 11</div>
+        <h2 style={{ color: v4.text, fontSize: mobile ? 48 : 72, fontWeight: 700, letterSpacing: '-0.045em', lineHeight: 0.95, margin: 0, fontFamily: display }}>
+          Follow every<br/>call live.
         </h2>
         <p style={{ color: v4.textDim, fontSize: 16, marginTop: 20, marginBottom: 36, lineHeight: 1.5 }}>
-          Get the model's GW1 picks the moment they're ready.
+          Get the model's picks for the group stage draw the moment they're ready.
         </p>
         {!submitted ? (
           <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -637,7 +672,7 @@ function V4CTA() {
 
 // ── Social links ──────────────────────────────────────────────────
 const SOCIALS = [
-  { name: 'TikTok',    handle: '@themodelsays', href: 'https://www.tiktok.com/@themodelsays',    icon: (
+  { name: 'TikTok',    handle: '@themodel.says', href: 'https://www.tiktok.com/@themodel.says',    icon: (
       <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true">
         <path d="M19.6 6.3a5.4 5.4 0 01-3.2-1V15a5.8 5.8 0 11-5-5.7v3.1a2.7 2.7 0 102 2.6V2h3a5.4 5.4 0 003.2 4z"/>
       </svg>
@@ -682,23 +717,24 @@ function V4SocialLink({ s }) {
   );
 }
 
-// ── Footer — 4 equal columns ──────────────────────────────────────
+// ── Footer ────────────────────────────────────────────────────────
 function V4Footer() {
+  const mobile = useIsMobile();
   const cols = [
-    ['App',   ['FPL Squad', 'Transfers', 'Captain', 'PL Matches', 'World Cup 2026']],
+    ['App',   ['World Cup 2026', 'Bracket Builder', 'Fantasy Squad', 'Match Predictions', 'FPL (Aug 2026)']],
     ['Trust', ['Track record', 'Updates', 'Privacy', 'Contact']],
   ];
   return (
-    <div style={{ borderTop: `1px solid ${v4.border}`, padding: '72px 56px 36px', background: v4.bg }}>
+    <div style={{ borderTop: `1px solid ${v4.border}`, padding: mobile ? '48px 20px 28px' : '72px 56px 36px', background: v4.bg }}>
       <div style={{ maxWidth: 1320, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 48 }}>
-          <div>
+        <div className="tms-foot-grid" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 48 }}>
+          <div style={{ gridColumn: mobile ? '1 / -1' : 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <TmsLogo />
               <TmsBrand />
             </div>
             <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-              AI picks for FPL, every Premier League match, and the World Cup. The same model, every weekend.
+              AI predictions for every 2026 World Cup match. The same model, every matchday.
             </p>
           </div>
           {cols.map(([title, items]) => (
@@ -716,8 +752,8 @@ function V4Footer() {
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 56, paddingTop: 24, borderTop: `1px solid ${v4.border}`, color: v4.textVeryDim, fontSize: 11, fontFamily: mono }}>
-          <span>© 2026 THEMODELSAYS · NOT AFFILIATED WITH THE PREMIER LEAGUE OR FIFA</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginTop: 56, paddingTop: 24, borderTop: `1px solid ${v4.border}`, color: v4.textVeryDim, fontSize: 11, fontFamily: mono, gap: 8 }}>
+          <span>© 2026 THEMODELSAYS · NOT AFFILIATED WITH FIFA OR THE PREMIER LEAGUE</span>
           <span>OPEN BETA · v0.5</span>
         </div>
       </div>
