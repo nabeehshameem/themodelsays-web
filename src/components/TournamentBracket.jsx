@@ -136,7 +136,7 @@ function MatchCard({ match, t1, t2, winner, onPick, simData, flip }) {
   let bar1 = 50, bar2 = 50;
   if (s1 && s2 && s1.win_pct + s2.win_pct > 0) {
     const tot = s1.win_pct + s2.win_pct;
-    bar1 = Math.round(s1.win_pct / tot * 100);
+    bar1 = Math.min(99, Math.max(1, Math.round(s1.win_pct / tot * 100)));
     bar2 = 100 - bar1;
   }
 
@@ -389,7 +389,7 @@ function GroupCard({ letter, order, onReorder, simData }) {
             </span>
             {advPct != null && (
               <span style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono, flexShrink: 0 }}>
-                {advPct.toFixed(0)}%
+                {Math.min(99, advPct).toFixed(0)}%
               </span>
             )}
             {mobile ? (
@@ -465,64 +465,88 @@ function GroupStageView({ groupPicks, onGroupReorder, simData, onContinue }) {
 }
 
 // ── 3rd place picker ───────────────────────────────────────────────
-function ThirdPlacePicker({ picks, onPick, groupPicks, simData }) {
-  const [open, setOpen] = React.useState(false);
-  const selectedCount = Object.keys(picks).filter(k => k.startsWith('3_')).length;
+// These are the 8 official bracket slot keys that resolveSlot expects
+const THIRD_SLOTS = ['3_ABCDF','3_CDFGH','3_CEFHI','3_EHIJK','3_BEFIJ','3_AEHIJ','3_EFGIJ','3_DEIJL'];
 
-  const thirds = Object.entries(GROUPS)
-    .map(([letter]) => {
-      const order = groupPicks[letter];
-      const team  = order?.[2];
-      return { team, group: letter, pct: simFor(simData, team)?.r32_pct ?? 0 };
-    })
-    .filter(x => x.team)
-    .sort((a, b) => b.pct - a.pct);
+function ThirdPlacePicker({ onPick, groupPicks, simData }) {
+  const [selected, setSelected] = React.useState(new Set());
+
+  const thirds = Object.keys(GROUPS).map(letter => ({
+    team:  groupPicks[letter]?.[2],
+    group: letter,
+    pct:   simFor(simData, groupPicks[letter]?.[2])?.r32_pct ?? 0,
+  })).filter(x => x.team).sort((a, b) => b.pct - a.pct);
+
+  const validTeams = new Set(thirds.map(t => t.team));
+
+  function pushAssignments(sel) {
+    THIRD_SLOTS.forEach(slot => onPick(slot, null));
+    const sorted = [...sel]
+      .filter(t => validTeams.has(t))
+      .sort((a, b) => (simFor(simData, b)?.r32_pct ?? 0) - (simFor(simData, a)?.r32_pct ?? 0));
+    sorted.forEach((team, i) => { if (THIRD_SLOTS[i]) onPick(THIRD_SLOTS[i], team); });
+  }
+
+  function toggle(team) {
+    const next = new Set(selected);
+    if (next.has(team)) { next.delete(team); }
+    else if (next.size < 8) { next.add(team); }
+    else { return; }
+    setSelected(next);
+    pushAssignments(next);
+  }
+
+  // Prune selections if group reorder changes who is 3rd
+  const thirdsKey = thirds.map(t => t.team).join(',');
+  React.useEffect(() => {
+    const pruned = new Set([...selected].filter(t => validTeams.has(t)));
+    if (pruned.size !== selected.size) {
+      setSelected(pruned);
+      pushAssignments(pruned);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [thirdsKey]);
 
   return (
     <div style={{
       background: v4.bg2, border: `1px solid ${v4.border}`,
-      borderRadius: 10, padding: '10px 14px', marginBottom: 14,
+      borderRadius: 10, padding: '12px 14px', marginBottom: 14,
     }}>
-      <div onClick={() => setOpen(o => !o)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <span style={{ fontSize: 10.5, fontWeight: 700, color: v4.textDim, fontFamily: mono, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
           Best 3rd-Place Qualifiers
         </span>
-        <span style={{ fontSize: 10, color: v4.textVeryDim, fontFamily: mono }}>({selectedCount}/8 picked)</span>
-        <span style={{ marginLeft: 'auto', color: v4.textVeryDim, fontSize: 10 }}>{open ? '▲' : '▼'}</span>
+        <span style={{ fontSize: 10, color: selected.size === 8 ? v4.electric : v4.textVeryDim, fontFamily: mono }}>
+          {selected.size}/8
+        </span>
       </div>
-      {open && (
-        <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {thirds.map(({ team, group, pct }) => {
-            const isSelected = Object.values(picks).includes(team);
-            const canAdd = isSelected || selectedCount < 8;
-            const key = `3_manual_${group}`;
-            return (
-              <div
-                key={team}
-                onClick={() => {
-                  if (isSelected) {
-                    const entry = Object.entries(picks).find(([, v]) => v === team);
-                    if (entry) onPick(entry[0], null);
-                  } else if (canAdd) {
-                    onPick(key, team);
-                  }
-                }}
-                style={{
-                  background: isSelected ? 'rgba(0,255,135,0.12)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${isSelected ? 'rgba(0,255,135,0.3)' : v4.border}`,
-                  borderRadius: 6, padding: '4px 9px',
-                  cursor: canAdd || isSelected ? 'pointer' : 'not-allowed',
-                  opacity: !canAdd && !isSelected ? 0.4 : 1,
-                  display: 'flex', alignItems: 'center', gap: 5,
-                }}
-              >
-                <span style={{ fontSize: 10.5, fontWeight: 600, color: isSelected ? v4.electric : v4.text, fontFamily: display }}>{team}</span>
-                <span style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono }}>G{group} · {pct.toFixed(0)}%</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {thirds.map(({ team, group, pct }) => {
+          const isSel   = selected.has(team);
+          const canPick = isSel || selected.size < 8;
+          return (
+            <div
+              key={team}
+              onClick={() => canPick && toggle(team)}
+              style={{
+                background: isSel ? 'rgba(0,255,135,0.12)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${isSel ? 'rgba(0,255,135,0.3)' : v4.border}`,
+                borderRadius: 6, padding: '5px 10px',
+                cursor: canPick ? 'pointer' : 'not-allowed',
+                opacity: canPick ? 1 : 0.35,
+                display: 'flex', alignItems: 'center', gap: 5,
+                transition: 'background 0.15s, border-color 0.15s',
+              }}
+            >
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: isSel ? v4.electric : v4.text, fontFamily: display }}>{team}</span>
+              <span style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono }}>G{group} · {Math.min(99, pct).toFixed(0)}%</span>
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, margin: '8px 0 0' }}>
+        Pick 8 · assigned to bracket slots by model strength · picks auto-propagate
+      </p>
     </div>
   );
 }
@@ -540,7 +564,7 @@ function KnockoutView({ groupPicks, picks, onPick, simData }) {
 
   return (
     <div>
-      <ThirdPlacePicker picks={picks} onPick={onPick} groupPicks={groupPicks} simData={simData} />
+      <ThirdPlacePicker onPick={onPick} groupPicks={groupPicks} simData={simData} />
 
       <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
         {/* Round labels row */}
