@@ -768,10 +768,10 @@ function LandingV4Final() {
       <V4Nav />
       <V4Hero />
       <V4Marquee />
-      <V4Features />
-      <WorldCupPredictor />
       <TournamentBracket />
+      <WorldCupPredictor />
       <WCFantasySection />
+      <V4Features />
       <V4Accuracy />
       <V4Quote />
       <V4CTA />

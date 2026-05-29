@@ -95,8 +95,8 @@ const THIRD_LABELS = {
 // ── Helpers ────────────────────────────────────────────────────────
 function resolveSlot(src, groupPicks, picks) {
   if (/^[12][A-L]$/.test(src)) {
-    const pos = src[0] === '1' ? 'first' : 'second';
-    return groupPicks[src[1]]?.[pos] ?? null;
+    const idx = src[0] === '1' ? 0 : 1;
+    return groupPicks[src[1]]?.[idx] ?? null;
   }
   if (src.startsWith('3rd_')) return picks['3_' + src.slice(4)] ?? null;
   if (src.startsWith('W'))    return picks[src.slice(1)] ?? null;
@@ -283,71 +283,142 @@ function BracketColumn({ label, matches, groupPicks, picks, onPick, simData, hei
 }
 
 // ── Group stage components ─────────────────────────────────────────
-function GroupCard({ letter, picks, onPick, simData }) {
-  const ordered = modelGroupOrder(simData, letter);
+const RANK_COLORS = [v4.electric, 'rgba(0,255,135,0.55)', v4.textDim, v4.textVeryDim];
+const RANK_BGS    = ['rgba(0,255,135,0.18)', 'rgba(0,255,135,0.08)', 'rgba(255,255,255,0.04)', 'rgba(255,255,255,0.02)'];
 
-  function handleClick(team) {
-    if (picks.first === team) {
-      onPick({ first: picks.second, second: null });
-    } else if (picks.second === team) {
-      onPick({ ...picks, second: null });
-    } else if (!picks.first) {
-      onPick({ ...picks, first: team });
-    } else if (!picks.second) {
-      onPick({ ...picks, second: team });
-    } else {
-      onPick({ first: team, second: picks.first });
+function GroupCard({ letter, order, onReorder, simData }) {
+  const mobile = useIsMobile();
+  const [dragIdx,  setDragIdx]  = React.useState(null);
+  const [dragOver, setDragOver] = React.useState(null);
+
+  function handleDragStart(e, idx) {
+    setDragIdx(idx);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function handleDragOver(e, idx) {
+    e.preventDefault();
+    setDragOver(idx);
+  }
+  function handleDrop(e, targetIdx) {
+    e.preventDefault();
+    if (dragIdx !== null && dragIdx !== targetIdx) {
+      const next = [...order];
+      const [moved] = next.splice(dragIdx, 1);
+      next.splice(targetIdx, 0, moved);
+      onReorder(next);
     }
+    setDragIdx(null); setDragOver(null);
+  }
+  function handleDragEnd() { setDragIdx(null); setDragOver(null); }
+
+  function promoteToFirst(idx) {
+    if (idx === 0) return;
+    const next = [...order];
+    const [moved] = next.splice(idx, 1);
+    next.unshift(moved);
+    onReorder(next);
+  }
+  function moveUp(idx) {
+    if (idx === 0) return;
+    const next = [...order];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    onReorder(next);
+  }
+  function moveDown(idx) {
+    if (idx >= order.length - 1) return;
+    const next = [...order];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    onReorder(next);
   }
 
   return (
     <div style={{ background: v4.bg2, border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
       <div style={{
         background: 'rgba(123,46,227,0.15)', borderBottom: `1px solid ${v4.border}`,
-        padding: '8px 14px',
+        padding: '7px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <span style={{ color: v4.purple, fontSize: 11, fontWeight: 700, fontFamily: mono, letterSpacing: '0.06em' }}>
           GROUP {letter}
         </span>
+        {!mobile && (
+          <span style={{ color: v4.textVeryDim, fontSize: 8, fontFamily: mono }}>drag · click→1st</span>
+        )}
       </div>
-      {ordered.map((team, idx) => {
-        const isFirst  = picks.first  === team;
-        const isSecond = picks.second === team;
-        const rank = isFirst ? 1 : isSecond ? 2 : null;
-        const advPct = simFor(simData, team)?.r32_pct;
+      {order.map((team, idx) => {
+        const advPct       = simFor(simData, team)?.r32_pct;
+        const isDragging   = dragIdx === idx;
+        const isDragTarget = dragOver === idx && dragIdx !== null && dragIdx !== idx;
         return (
           <div
             key={team}
-            onClick={() => handleClick(team)}
+            draggable={!mobile}
+            onDragStart={!mobile ? e => handleDragStart(e, idx) : undefined}
+            onDragOver={!mobile  ? e => handleDragOver(e, idx)  : undefined}
+            onDrop={!mobile      ? e => handleDrop(e, idx)      : undefined}
+            onDragEnd={!mobile   ? handleDragEnd                : undefined}
+            onClick={() => !mobile && promoteToFirst(idx)}
             style={{
-              padding: '9px 14px',
-              borderBottom: idx < 3 ? `1px solid ${v4.border}` : 'none',
-              display: 'flex', alignItems: 'center', gap: 8,
-              cursor: 'pointer',
-              background: isFirst ? 'rgba(0,255,135,0.08)' : isSecond ? 'rgba(0,255,135,0.04)' : 'transparent',
+              padding: '8px 10px 8px 12px',
+              borderBottom: idx < order.length - 1 ? `1px solid ${v4.border}` : 'none',
+              borderLeft: isDragTarget ? `2px solid ${v4.electric}` : '2px solid transparent',
+              display: 'flex', alignItems: 'center', gap: 6,
+              cursor: mobile ? 'default' : 'grab',
+              background: isDragTarget
+                ? 'rgba(0,255,135,0.1)'
+                : idx === 0 ? 'rgba(0,255,135,0.06)'
+                : idx === 1 ? 'rgba(0,255,135,0.02)'
+                : 'transparent',
+              opacity: isDragging ? 0.3 : 1,
+              transition: 'background 0.15s, opacity 0.12s',
             }}
           >
             <span style={{
-              width: 18, height: 18, borderRadius: 4, flexShrink: 0,
-              background: rank === 1 ? v4.electric : rank === 2 ? 'rgba(0,255,135,0.3)' : 'rgba(255,255,255,0.06)',
+              width: 17, height: 17, borderRadius: 3, flexShrink: 0,
+              background: RANK_BGS[idx],
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 9, fontWeight: 800,
-              color: rank === 1 ? '#000' : rank === 2 ? v4.electric : v4.textVeryDim,
-              fontFamily: mono,
+              fontSize: 8.5, fontWeight: 800, color: RANK_COLORS[idx], fontFamily: mono,
             }}>
-              {rank ?? idx + 1}
+              {idx + 1}
             </span>
             <span style={{
-              flex: 1, fontSize: 12.5, fontWeight: 600,
-              color: rank ? v4.text : v4.textDim, fontFamily: display,
+              flex: 1, fontSize: 12, fontWeight: 600,
+              color: idx < 2 ? v4.text : v4.textDim, fontFamily: display,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {team}
             </span>
             {advPct != null && (
-              <span style={{ fontSize: 10, color: v4.textVeryDim, fontFamily: mono, flexShrink: 0 }}>
+              <span style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono, flexShrink: 0 }}>
                 {advPct.toFixed(0)}%
               </span>
+            )}
+            {mobile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
+                <button
+                  onClick={e => { e.stopPropagation(); moveUp(idx); }}
+                  disabled={idx === 0}
+                  style={{
+                    width: 18, height: 14, padding: 0, border: 'none', borderRadius: 3,
+                    background: idx === 0 ? 'transparent' : 'rgba(255,255,255,0.1)',
+                    color: idx === 0 ? 'transparent' : v4.textDim,
+                    fontSize: 7, cursor: idx === 0 ? 'default' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >▲</button>
+                <button
+                  onClick={e => { e.stopPropagation(); moveDown(idx); }}
+                  disabled={idx >= order.length - 1}
+                  style={{
+                    width: 18, height: 14, padding: 0, border: 'none', borderRadius: 3,
+                    background: idx >= order.length - 1 ? 'transparent' : 'rgba(255,255,255,0.1)',
+                    color: idx >= order.length - 1 ? 'transparent' : v4.textDim,
+                    fontSize: 7, cursor: idx >= order.length - 1 ? 'default' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >▼</button>
+              </div>
+            ) : (
+              <span style={{ fontSize: 11, color: v4.textVeryDim, opacity: 0.4, flexShrink: 0, userSelect: 'none' }}>⠿</span>
             )}
           </div>
         );
@@ -356,39 +427,35 @@ function GroupCard({ letter, picks, onPick, simData }) {
   );
 }
 
-function GroupStageView({ groupPicks, onGroupPick, simData, onContinue }) {
+function GroupStageView({ groupPicks, onGroupReorder, simData, onContinue }) {
   const mobile = useIsMobile();
-  const filledCount = Object.values(groupPicks).filter(p => p.first && p.second).length;
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
         <p style={{ color: v4.textDim, fontSize: 13.5, margin: 0, fontFamily: display }}>
-          Click to set <span style={{ color: v4.electric }}>1st</span> and{' '}
-          <span style={{ color: 'rgba(0,255,135,0.5)' }}>2nd</span> per group.{' '}
-          Green % = model's advance probability.
+          {mobile
+            ? <>Use <span style={{ color: v4.electric }}>▲▼</span> to reorder all 4 teams. Green % = model advance probability.</>
+            : <>Drag rows or click a team to promote to <span style={{ color: v4.electric }}>1st</span>. Green % = model advance probability.</>
+          }
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 12, color: v4.textVeryDim, fontFamily: mono }}>{filledCount}/12 set</span>
-          <button
-            onClick={onContinue}
-            style={{
-              background: filledCount === 12 ? v4.electric : 'rgba(0,255,135,0.12)',
-              color: filledCount === 12 ? '#000' : v4.textVeryDim,
-              border: 'none', borderRadius: 8, padding: '8px 16px',
-              fontSize: 12.5, fontWeight: 700, fontFamily: display, cursor: 'pointer',
-            }}
-          >
-            Knockout Round →
-          </button>
-        </div>
+        <button
+          onClick={onContinue}
+          style={{
+            background: v4.electric, color: '#000',
+            border: 'none', borderRadius: 8, padding: '8px 16px',
+            fontSize: 12.5, fontWeight: 700, fontFamily: display, cursor: 'pointer',
+          }}
+        >
+          Knockout Round →
+        </button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
         {Object.keys(GROUPS).map(letter => (
           <GroupCard
             key={letter}
             letter={letter}
-            picks={groupPicks[letter]}
-            onPick={p => onGroupPick(letter, p)}
+            order={groupPicks[letter]}
+            onReorder={newOrder => onGroupReorder(letter, newOrder)}
             simData={simData}
           />
         ))}
@@ -403,9 +470,9 @@ function ThirdPlacePicker({ picks, onPick, groupPicks, simData }) {
   const selectedCount = Object.keys(picks).filter(k => k.startsWith('3_')).length;
 
   const thirds = Object.entries(GROUPS)
-    .map(([letter, teams]) => {
-      const p = groupPicks[letter];
-      const team = teams.find(t => t !== p?.first && t !== p?.second);
+    .map(([letter]) => {
+      const order = groupPicks[letter];
+      const team  = order?.[2];
       return { team, group: letter, pct: simFor(simData, team)?.r32_pct ?? 0 };
     })
     .filter(x => x.team)
@@ -589,7 +656,7 @@ export default function TournamentBracket() {
   const [simLoading, setSimLoading]= React.useState(false);
 
   const [groupPicks, setGroupPicks] = React.useState(
-    Object.fromEntries(Object.keys(GROUPS).map(g => [g, { first: null, second: null }]))
+    Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]]))
   );
   const [picks, setPicks] = React.useState({});
 
@@ -601,19 +668,16 @@ export default function TournamentBracket() {
       .finally(() => setSimLoading(false));
   }, []);
 
-  function handleGroupPick(letter, p) {
+  function handleGroupReorder(letter, newOrder) {
     setGroupPicks(prev => {
-      const next = { ...prev, [letter]: p };
-      // Clear bracket picks that now reference changed group qualifiers
+      const next = { ...prev, [letter]: newOrder };
       setPicks(cur => {
         const cleared = { ...cur };
-        // Remove picks where the picked team is no longer a qualifier from this group
-        const oldFirst  = prev[letter].first;
-        const oldSecond = prev[letter].second;
+        const oldOrder = prev[letter];
         const stale = new Set([
-          ...(p.first  !== oldFirst  ? [oldFirst]  : []),
-          ...(p.second !== oldSecond ? [oldSecond] : []),
-        ]);
+          ...(newOrder[0] !== oldOrder[0] ? [oldOrder[0]] : []),
+          ...(newOrder[1] !== oldOrder[1] ? [oldOrder[1]] : []),
+        ].filter(Boolean));
         if (stale.size > 0) {
           Object.keys(cleared).forEach(id => {
             if (stale.has(cleared[id])) delete cleared[id];
@@ -636,10 +700,7 @@ export default function TournamentBracket() {
   function fillWithModel() {
     if (!simData) return;
     const newGroups = Object.fromEntries(
-      Object.keys(GROUPS).map(g => {
-        const [first, second] = modelGroupOrder(simData, g);
-        return [g, { first, second }];
-      })
+      Object.keys(GROUPS).map(g => [g, modelGroupOrder(simData, g)])
     );
     setGroupPicks(newGroups);
     const p = {};
@@ -658,12 +719,11 @@ export default function TournamentBracket() {
   }
 
   function resetAll() {
-    setGroupPicks(Object.fromEntries(Object.keys(GROUPS).map(g => [g, { first: null, second: null }])));
+    setGroupPicks(Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]])));
     setPicks({});
   }
 
   const champion = picks['F'] ?? null;
-  const filledGroups = Object.values(groupPicks).filter(p => p.first && p.second).length;
 
   return (
     <section style={{ padding: mobile ? '56px 20px' : '72px 56px', background: v4.bg, borderTop: `1px solid ${v4.border}` }}>
@@ -730,7 +790,7 @@ export default function TournamentBracket() {
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8 }}>
           {[
-            { id: 'groups',   label: `Groups (${filledGroups}/12)` },
+            { id: 'groups',   label: 'Groups' },
             { id: 'knockout', label: 'Knockout bracket' },
           ].map(({ id, label }) => (
             <button
@@ -754,7 +814,7 @@ export default function TournamentBracket() {
       {tab === 'groups' ? (
         <GroupStageView
           groupPicks={groupPicks}
-          onGroupPick={handleGroupPick}
+          onGroupReorder={handleGroupReorder}
           simData={simData}
           onContinue={() => setTab('knockout')}
         />
