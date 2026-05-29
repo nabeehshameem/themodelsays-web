@@ -996,6 +996,8 @@ export default function TournamentBracket() {
       Object.keys(GROUPS).map(g => [g, modelGroupOrder(simData, g)])
     );
     setGroupPicks(newGroups);
+    if (tab === 'groups') return;
+
     const p = {};
 
     // Auto-pick top-8 third-place teams by model advance %
@@ -1080,30 +1082,6 @@ export default function TournamentBracket() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {champion && (
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(255,208,32,0.14) 0%, rgba(255,176,32,0.06) 100%)',
-                border: '1px solid rgba(255,208,32,0.45)',
-                borderRadius: 10, padding: '8px 16px',
-                display: 'flex', alignItems: 'center', gap: 8,
-                boxShadow: '0 0 16px rgba(255,208,32,0.18)',
-              }}>
-                <span style={{ fontSize: 16 }}>🏆</span>
-                <div>
-                  <div style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', color: v4.amber, textTransform: 'uppercase', marginBottom: 1 }}>Champion</div>
-                  <div style={{ fontFamily: display, fontSize: 14, fontWeight: 700, color: '#FFD060' }}>{champion}</div>
-                </div>
-              </div>
-            )}
-            {thirdPlace && (
-              <div style={{
-                background: 'rgba(255,176,32,0.08)', border: '1px solid rgba(255,176,32,0.22)',
-                borderRadius: 8, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8,
-              }}>
-                <span style={{ fontSize: 14 }}>🥉</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: v4.amber, fontFamily: display }}>{thirdPlace}</span>
-              </div>
-            )}
             <button
               onClick={fillWithModel}
               disabled={!simData}
