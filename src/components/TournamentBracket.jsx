@@ -605,6 +605,30 @@ function KnockoutView({ groupPicks, picks, onPick, simData }) {
 
   const colProps = { groupPicks, picks, onPick, simData, height: H };
 
+  React.useEffect(() => {
+    if (typeof document !== 'undefined' && !document.getElementById('champ-glow-kf')) {
+      const s = document.createElement('style');
+      s.id = 'champ-glow-kf';
+      s.textContent = `
+        @keyframes champPulse {
+          0%,100% { box-shadow: 0 0 20px rgba(255,176,32,0.15), 0 0 60px rgba(255,176,32,0.06); border-color: rgba(255,176,32,0.35); }
+          50%      { box-shadow: 0 0 40px rgba(255,176,32,0.35), 0 0 80px rgba(255,176,32,0.14); border-color: rgba(255,176,32,0.65); }
+        }
+        @keyframes champFadeIn {
+          from { opacity: 0; transform: scale(0.88) translateY(8px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes trophySpin {
+          0%   { transform: rotate(-8deg) scale(1); }
+          30%  { transform: rotate(8deg) scale(1.12); }
+          60%  { transform: rotate(-4deg) scale(1.06); }
+          100% { transform: rotate(0deg) scale(1); }
+        }
+      `;
+      document.head.appendChild(s);
+    }
+  }, []);
+
   // Round labels for each column (left side, right side)
   const LEFT_LABELS  = ['R. of 32', 'R. of 16', 'Quarter-finals', 'Semi-finals'];
   const RIGHT_LABELS = ['Semi-finals', 'Quarter-finals', 'R. of 16', 'R. of 32'];
@@ -701,8 +725,35 @@ function KnockoutView({ groupPicks, picks, onPick, simData }) {
               })()}
             </div>
 
+            {/* Champion reveal */}
+            {picks['F'] && (
+              <div style={{
+                margin: '22px 0 4px',
+                textAlign: 'center',
+                padding: '18px 24px 16px',
+                background: 'linear-gradient(180deg, rgba(255,176,32,0.13) 0%, rgba(255,176,32,0.04) 100%)',
+                border: '1px solid rgba(255,176,32,0.35)',
+                borderRadius: 16,
+                animation: 'champFadeIn 0.45s cubic-bezier(0.2,0.8,0.3,1) both, champPulse 2.8s ease-in-out 0.5s infinite',
+                width: '100%',
+                boxSizing: 'border-box',
+              }}>
+                <div style={{ fontSize: 32, animation: 'trophySpin 0.7s cubic-bezier(0.2,0.8,0.3,1) 0.4s both', display: 'inline-block', marginBottom: 6 }}>🏆</div>
+                <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: v4.amber, textTransform: 'uppercase', marginBottom: 7 }}>
+                  World Champion 2026
+                </div>
+                <div style={{
+                  fontFamily: display, fontSize: 19, fontWeight: 800,
+                  color: '#FFD060', letterSpacing: '-0.02em', lineHeight: 1.1,
+                  textShadow: '0 0 20px rgba(255,208,32,0.55)',
+                }}>
+                  {picks['F']}
+                </div>
+              </div>
+            )}
+
             {/* 3rd place */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: 28 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: picks['F'] ? 16 : 28 }}>
               <div style={{
                 background: 'rgba(255,176,32,0.06)',
                 border: `1px solid rgba(255,176,32,0.2)`,
@@ -891,11 +942,17 @@ export default function TournamentBracket() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             {champion && (
               <div style={{
-                background: 'rgba(0,255,135,0.1)', border: '1px solid rgba(0,255,135,0.25)',
-                borderRadius: 8, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8,
+                background: 'linear-gradient(135deg, rgba(255,208,32,0.14) 0%, rgba(255,176,32,0.06) 100%)',
+                border: '1px solid rgba(255,208,32,0.45)',
+                borderRadius: 10, padding: '8px 16px',
+                display: 'flex', alignItems: 'center', gap: 8,
+                boxShadow: '0 0 16px rgba(255,208,32,0.18)',
               }}>
-                <span style={{ fontSize: 14 }}>🏆</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: v4.electric, fontFamily: display }}>{champion}</span>
+                <span style={{ fontSize: 16 }}>🏆</span>
+                <div>
+                  <div style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', color: v4.amber, textTransform: 'uppercase', marginBottom: 1 }}>Champion</div>
+                  <div style={{ fontFamily: display, fontSize: 14, fontWeight: 700, color: '#FFD060' }}>{champion}</div>
+                </div>
               </div>
             )}
             {thirdPlace && (
