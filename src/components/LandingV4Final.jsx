@@ -689,7 +689,7 @@ function V4CTA() {
             )}
           </form>
           <p style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11, marginTop: 14, lineHeight: 1.65, maxWidth: 420, marginInline: 'auto' }}>
-            We'll only use your email to send launch updates and major announcements. Unsubscribe anytime. We store your address securely and never share it with third parties.
+            We'll only use your email to send launch updates and major announcements. To remove your address at any time, email <a href="mailto:unsubscribe@themodelsays.com" style={{ color: 'inherit' }}>unsubscribe@themodelsays.com</a>. We never share your data with third parties.
           </p>
           </>
         ) : (
