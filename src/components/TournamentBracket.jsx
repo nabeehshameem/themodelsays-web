@@ -81,9 +81,10 @@ const R16_R = [
 ];
 const QF_L  = [{ id: 'Q1', t1: 'WR1', t2: 'WR2' }, { id: 'Q2', t1: 'WR3', t2: 'WR4' }];
 const QF_R  = [{ id: 'Q3', t1: 'WR5', t2: 'WR6' }, { id: 'Q4', t1: 'WR7', t2: 'WR8' }];
-const SF_L  = [{ id: 'S1', t1: 'WQ1', t2: 'WQ2' }];
-const SF_R  = [{ id: 'S2', t1: 'WQ3', t2: 'WQ4' }];
-const FINAL = [{ id: 'F',  t1: 'WS1', t2: 'WS2' }];
+const SF_L        = [{ id: 'S1', t1: 'WQ1', t2: 'WQ2' }];
+const SF_R        = [{ id: 'S2', t1: 'WQ3', t2: 'WQ4' }];
+const FINAL       = [{ id: 'F',  t1: 'WS1', t2: 'WS2' }];
+const THIRD_PLACE = [{ id: '3P', t1: 'LS1', t2: 'LS2' }];
 
 const THIRD_LABELS = {
   '3rd_ABCDF': 'A/B/C/D/F', '3rd_CDFGH': 'C/D/F/G/H',
@@ -100,6 +101,16 @@ function resolveSlot(src, groupPicks, picks) {
   }
   if (src.startsWith('3rd_')) return picks['3_' + src.slice(4)] ?? null;
   if (src.startsWith('W'))    return picks[src.slice(1)] ?? null;
+  if (src.startsWith('L')) {
+    const matchId = src.slice(1);
+    const winner  = picks[matchId];
+    if (!winner) return null;
+    const sfMatch = [...SF_L, ...SF_R].find(m => m.id === matchId);
+    if (!sfMatch) return null;
+    const t1 = resolveSlot(sfMatch.t1, groupPicks, picks);
+    const t2 = resolveSlot(sfMatch.t2, groupPicks, picks);
+    return t1 === winner ? t2 : t1;
+  }
   return null;
 }
 
@@ -614,7 +625,7 @@ function KnockoutView({ groupPicks, picks, onPick, simData }) {
           <BracketColumn label="" matches={SF_L} {...colProps} />
           <BracketConnector from={1} height={H} />
 
-          {/* ── FINAL (center) ── */}
+          {/* ── FINAL + 3rd place (center) ── */}
           <div style={{
             width: CARD_W + 40,
             flexShrink: 0,
@@ -622,35 +633,67 @@ function KnockoutView({ groupPicks, picks, onPick, simData }) {
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            gap: 8,
+            gap: 0,
           }}>
-            <div style={{
-              background: 'rgba(0,255,135,0.06)',
-              border: `1px solid rgba(0,255,135,0.2)`,
-              borderRadius: 10,
-              padding: '4px 10px',
-              fontSize: 9.5,
-              fontWeight: 700,
-              color: v4.electric,
-              fontFamily: mono,
-              letterSpacing: '0.08em',
-              marginBottom: 6,
-            }}>
-              🏆 FINAL
+            {/* Final */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                background: 'rgba(0,255,135,0.06)',
+                border: `1px solid rgba(0,255,135,0.2)`,
+                borderRadius: 10,
+                padding: '4px 10px',
+                fontSize: 9.5,
+                fontWeight: 700,
+                color: v4.electric,
+                fontFamily: mono,
+                letterSpacing: '0.08em',
+              }}>
+                🏆 FINAL
+              </div>
+              {(() => {
+                const t1 = resolveSlot('WS1', groupPicks, picks);
+                const t2 = resolveSlot('WS2', groupPicks, picks);
+                return (
+                  <MatchCard
+                    match={FINAL[0]}
+                    t1={t1} t2={t2}
+                    winner={picks['F']}
+                    onPick={team => onPick('F', team)}
+                    simData={simData}
+                  />
+                );
+              })()}
             </div>
-            {(() => {
-              const t1 = resolveSlot('WS1', groupPicks, picks);
-              const t2 = resolveSlot('WS2', groupPicks, picks);
-              return (
-                <MatchCard
-                  match={FINAL[0]}
-                  t1={t1} t2={t2}
-                  winner={picks['F']}
-                  onPick={team => onPick('F', team)}
-                  simData={simData}
-                />
-              );
-            })()}
+
+            {/* 3rd place */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: 28 }}>
+              <div style={{
+                background: 'rgba(255,176,32,0.06)',
+                border: `1px solid rgba(255,176,32,0.2)`,
+                borderRadius: 10,
+                padding: '4px 10px',
+                fontSize: 9.5,
+                fontWeight: 700,
+                color: v4.amber,
+                fontFamily: mono,
+                letterSpacing: '0.08em',
+              }}>
+                🥉 3RD PLACE
+              </div>
+              {(() => {
+                const t1 = resolveSlot('LS1', groupPicks, picks);
+                const t2 = resolveSlot('LS2', groupPicks, picks);
+                return (
+                  <MatchCard
+                    match={THIRD_PLACE[0]}
+                    t1={t1} t2={t2}
+                    winner={picks['3P']}
+                    onPick={team => onPick('3P', team)}
+                    simData={simData}
+                  />
+                );
+              })()}
+            </div>
           </div>
 
           {/* ── RIGHT HALF: SF → QF → R16 → R32 ── */}
@@ -739,6 +782,19 @@ export default function TournamentBracket() {
     fill(QF_L);  fill(QF_R);
     fill(SF_L);  fill(SF_R);
     fill(FINAL);
+    // 3rd place: losers of each SF
+    const sf1Winner = p['S1'];
+    const sf2Winner = p['S2'];
+    if (sf1Winner && sf2Winner) {
+      const sf1T1 = resolveSlot(SF_L[0].t1, newGroups, p);
+      const sf1T2 = resolveSlot(SF_L[0].t2, newGroups, p);
+      const sf2T1 = resolveSlot(SF_R[0].t1, newGroups, p);
+      const sf2T2 = resolveSlot(SF_R[0].t2, newGroups, p);
+      const l1 = sf1T1 === sf1Winner ? sf1T2 : sf1T1;
+      const l2 = sf2T1 === sf2Winner ? sf2T2 : sf2T1;
+      const w3p = modelWinner(simData, l1, l2);
+      if (w3p) p['3P'] = w3p;
+    }
     setPicks(p);
   }
 
@@ -747,7 +803,8 @@ export default function TournamentBracket() {
     setPicks({});
   }
 
-  const champion = picks['F'] ?? null;
+  const champion    = picks['F']  ?? null;
+  const thirdPlace  = picks['3P'] ?? null;
 
   return (
     <section style={{ padding: mobile ? '56px 20px' : '72px 56px', background: v4.bg, borderTop: `1px solid ${v4.border}` }}>
@@ -783,6 +840,15 @@ export default function TournamentBracket() {
               }}>
                 <span style={{ fontSize: 14 }}>🏆</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: v4.electric, fontFamily: display }}>{champion}</span>
+              </div>
+            )}
+            {thirdPlace && (
+              <div style={{
+                background: 'rgba(255,176,32,0.08)', border: '1px solid rgba(255,176,32,0.22)',
+                borderRadius: 8, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8,
+              }}>
+                <span style={{ fontSize: 14 }}>🥉</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: v4.amber, fontFamily: display }}>{thirdPlace}</span>
               </div>
             )}
             <button
