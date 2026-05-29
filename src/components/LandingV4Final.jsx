@@ -103,12 +103,13 @@ function V4Nav() {
       {!mobile && (
         <div style={{ display: 'flex', gap: 28, marginLeft: 12, fontFamily: display }}>
           {[
-            ['World Cup 2026', '#'],
-            ['Bracket', '#'],
-            ['Fantasy', '#'],
-          ].map(([label, href]) => (
-            <a key={label} href={href} onClick={e => e.preventDefault()}
-               style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none', cursor: 'not-allowed', opacity: 0.5 }}>
+            ['World Cup 2026', 'predictor'],
+            ['Bracket',        'bracket'],
+            ['Fantasy',        'fantasy'],
+          ].map(([label, targetId]) => (
+            <a key={label} href={`#${targetId}`}
+               onClick={e => { e.preventDefault(); document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' }); }}
+               style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
               {label}
             </a>
           ))}
@@ -651,6 +652,7 @@ function V4CTA() {
           Get the model's picks for the group stage draw the moment they're ready.
         </p>
         {!done ? (
+          <>
           <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <input
               type="email"
@@ -686,6 +688,10 @@ function V4CTA() {
               </div>
             )}
           </form>
+          <p style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11, marginTop: 14, lineHeight: 1.65, maxWidth: 420, marginInline: 'auto' }}>
+            We'll only use your email to send launch updates and major announcements. Unsubscribe anytime. We store your address securely and never share it with third parties.
+          </p>
+          </>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
             <div style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em' }}>
@@ -799,9 +805,9 @@ function LandingV4Final() {
       <V4Nav />
       <V4Hero />
       <V4Marquee />
-      <TournamentBracket />
-      <WorldCupPredictor />
-      <WCFantasySection />
+      <div id="bracket"><TournamentBracket /></div>
+      <div id="predictor"><WorldCupPredictor /></div>
+      <div id="fantasy"><WCFantasySection /></div>
       <V4Features />
       <V4Accuracy />
       <V4Quote />
