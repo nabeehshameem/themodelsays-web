@@ -2,6 +2,7 @@ import React from 'react';
 import { FPL_DATA, TEAM_COLORS } from '../data.js';
 import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
+import TournamentBracket from './TournamentBracket.jsx';
 
 const v4 = {
   bg:          '#0d0118',
@@ -733,6 +734,7 @@ function LandingV4Final() {
       <V4Marquee />
       <V4Features />
       <WorldCupPredictor />
+      <TournamentBracket />
       <WCFantasySection />
       <V4Accuracy />
       <V4Quote />
