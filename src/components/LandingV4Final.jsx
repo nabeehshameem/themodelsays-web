@@ -1,5 +1,6 @@
 import React from 'react';
 import { FPL_DATA, TEAM_COLORS } from '../data.js';
+import { subscribeEmail } from '../lib/api.js';
 import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
 import TournamentBracket from './TournamentBracket.jsx';
@@ -620,14 +621,23 @@ function V4Quote() {
 
 // ── CTA ────────────────────────────────────────────────────────────
 function V4CTA() {
-  const [email, setEmail] = React.useState('');
-  const [submitted, setSubmitted] = React.useState(false);
+  const [email,  setEmail]  = React.useState('');
+  const [status, setStatus] = React.useState('idle'); // idle | loading | success | error | duplicate
   const mobile = useIsMobile();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (email.trim()) setSubmitted(true);
+    if (!email.trim() || status === 'loading') return;
+    setStatus('loading');
+    try {
+      const res = await subscribeEmail(email.trim());
+      setStatus(res?.status === 'already_subscribed' ? 'duplicate' : 'success');
+    } catch {
+      setStatus('error');
+    }
   }
+
+  const done = status === 'success' || status === 'duplicate';
 
   return (
     <div style={{ padding: mobile ? '80px 20px' : '120px 56px', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${v4.border}` }}>
@@ -640,29 +650,50 @@ function V4CTA() {
         <p style={{ color: v4.textDim, fontSize: 16, marginTop: 20, marginBottom: 36, lineHeight: 1.5 }}>
           Get the model's picks for the group stage draw the moment they're ready.
         </p>
-        {!submitted ? (
+        {!done ? (
           <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <input
               type="email"
               placeholder="your@email.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              disabled={status === 'loading'}
               style={{
                 background: 'rgba(255,255,255,0.06)', color: v4.text,
-                border: `1px solid ${v4.borderHi}`, borderRadius: 999,
+                border: `1px solid ${status === 'error' ? 'rgba(255,85,119,0.5)' : v4.borderHi}`,
+                borderRadius: 999,
                 padding: '13px 20px', fontSize: 14, fontFamily: display,
                 outline: 'none', width: 260, minWidth: 0,
+                opacity: status === 'loading' ? 0.6 : 1,
               }}
             />
-            <button type="submit" style={{
-              background: v4.electric, color: v4.bg, border: 0, borderRadius: 999,
-              padding: '13px 24px', fontSize: 14, fontWeight: 700,
-              letterSpacing: '0.02em', cursor: 'pointer', fontFamily: display,
-            }}>Notify me</button>
+            <button
+              type="submit"
+              disabled={status === 'loading'}
+              style={{
+                background: v4.electric, color: v4.bg, border: 0, borderRadius: 999,
+                padding: '13px 24px', fontSize: 14, fontWeight: 700,
+                letterSpacing: '0.02em',
+                cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+                fontFamily: display, opacity: status === 'loading' ? 0.7 : 1,
+              }}
+            >
+              {status === 'loading' ? 'Saving…' : 'Notify me'}
+            </button>
+            {status === 'error' && (
+              <div style={{ width: '100%', color: '#ff5577', fontFamily: mono, fontSize: 12, marginTop: 4 }}>
+                Something went wrong — try again.
+              </div>
+            )}
           </form>
         ) : (
-          <div style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em' }}>
-            YOU'RE ON THE LIST
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+            <div style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em' }}>
+              {status === 'duplicate' ? 'ALREADY ON THE LIST ✓' : 'YOU\'RE ON THE LIST ✓'}
+            </div>
+            <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11 }}>
+              We'll email you when match predictions go live.
+            </div>
           </div>
         )}
       </div>

@@ -93,6 +93,42 @@ const THIRD_LABELS = {
   '3rd_EFGIJ': 'E/F/G/I/J', '3rd_DEIJL': 'D/E/I/J/L',
 };
 
+// ── URL share encode/decode ────────────────────────────────────────
+const ALL_TEAMS   = Object.values(GROUPS).flat();
+const TEAM_TO_IDX = Object.fromEntries(ALL_TEAMS.map((t, i) => [t, i]));
+
+function encodeState(groupPicks, picks) {
+  const g = {};
+  for (const [letter, order] of Object.entries(groupPicks)) {
+    g[letter] = order.map(t => GROUPS[letter].indexOf(t));
+  }
+  const p = {};
+  for (const [k, v] of Object.entries(picks)) {
+    if (v != null) p[k] = TEAM_TO_IDX[v] ?? v;
+  }
+  return btoa(unescape(encodeURIComponent(JSON.stringify({ g, p }))));
+}
+
+function decodeState(encoded) {
+  try {
+    const { g, p } = JSON.parse(decodeURIComponent(escape(atob(encoded))));
+    const groupPicks = Object.fromEntries(
+      Object.entries(g).map(([letter, idxs]) => [letter, idxs.map(i => GROUPS[letter][i])])
+    );
+    const picks = Object.fromEntries(
+      Object.entries(p).map(([k, v]) => [k, typeof v === 'number' ? ALL_TEAMS[v] : v])
+    );
+    return { groupPicks, picks };
+  } catch { return null; }
+}
+
+// Parsed once at module load — null if no ?b= param in URL
+const _urlState = (() => {
+  if (typeof window === 'undefined') return null;
+  const b = new URLSearchParams(window.location.search).get('b');
+  return b ? decodeState(b) : null;
+})();
+
 // ── Helpers ────────────────────────────────────────────────────────
 function resolveSlot(src, groupPicks, picks) {
   if (/^[12][A-L]$/.test(src)) {
@@ -399,7 +435,7 @@ function GroupCard({ letter, order, onReorder, simData }) {
               {team}
             </span>
             {advPct != null && (
-              <span style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono, flexShrink: 0 }}>
+              <span style={{ fontSize: 9, color: v4.electric, fontFamily: mono, flexShrink: 0 }}>
                 {Math.min(99, advPct).toFixed(0)}%
               </span>
             )}
@@ -550,7 +586,7 @@ function ThirdPlacePicker({ onPick, groupPicks, simData }) {
               }}
             >
               <span style={{ fontSize: 10.5, fontWeight: 600, color: isSel ? v4.electric : v4.text, fontFamily: display }}>{team}</span>
-              <span style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono }}>G{group} · {Math.min(99, pct).toFixed(0)}%</span>
+              <span style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono }}>Group {group} · {Math.min(99, pct).toFixed(0)}%</span>
             </div>
           );
         })}
@@ -723,9 +759,10 @@ export default function TournamentBracket() {
   const [simLoading, setSimLoading]= React.useState(false);
 
   const [groupPicks, setGroupPicks] = React.useState(
-    Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]]))
+    _urlState?.groupPicks ?? Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]]))
   );
-  const [picks, setPicks] = React.useState({});
+  const [picks, setPicks] = React.useState(_urlState?.picks ?? {});
+  const [copied, setCopied] = React.useState(false);
 
   React.useEffect(() => {
     setSimLoading(true);
@@ -734,6 +771,15 @@ export default function TournamentBracket() {
       .catch(() => {})
       .finally(() => setSimLoading(false));
   }, []);
+
+  // Auto-sort groups by model strength on first load (skip if bracket was shared via URL)
+  React.useEffect(() => {
+    if (simData && !_urlState) {
+      setGroupPicks(Object.fromEntries(
+        Object.keys(GROUPS).map(g => [g, modelGroupOrder(simData, g)])
+      ));
+    }
+  }, [simData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleGroupReorder(letter, newOrder) {
     setGroupPicks(prev => {
@@ -801,6 +847,16 @@ export default function TournamentBracket() {
   function resetAll() {
     setGroupPicks(Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]])));
     setPicks({});
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+
+  function shareUrl() {
+    const encoded = encodeState(groupPicks, picks);
+    const url = `${window.location.origin}${window.location.pathname}?b=${encoded}`;
+    window.history.replaceState(null, '', `?b=${encoded}`);
+    navigator.clipboard?.writeText(url).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   const champion    = picks['F']  ?? null;
@@ -862,6 +918,18 @@ export default function TournamentBracket() {
               }}
             >
               Use model picks
+            </button>
+            <button
+              onClick={shareUrl}
+              style={{
+                background: copied ? 'rgba(0,255,135,0.12)' : 'transparent',
+                color: copied ? v4.electric : v4.textDim,
+                border: `1px solid ${copied ? 'rgba(0,255,135,0.35)' : v4.border}`,
+                borderRadius: 8, padding: '8px 14px', fontSize: 12.5, fontWeight: 700,
+                fontFamily: display, cursor: 'pointer', transition: 'all 0.2s',
+              }}
+            >
+              {copied ? '✓ Link copied' : 'Share bracket'}
             </button>
             <button
               onClick={resetAll}

@@ -68,6 +68,11 @@ export const wcFantasy = {
   captains: (top_n = 10) => request(`/api/wc/fantasy/captains?top_n=${top_n}`),
 };
 
+// ── Email subscriptions ───────────────────────────────────────────
+export function subscribeEmail(email) {
+  return request('/api/notify/subscribe', { method: 'POST', body: { email } });
+}
+
 // ── FPL (add as the app grows in July) ────────────────────────────
 export const fpl = {
   nextGameweek: () => request('/gameweek/next'),
