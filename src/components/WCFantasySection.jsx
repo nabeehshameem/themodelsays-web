@@ -225,7 +225,7 @@ export default function WCFantasySection() {
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
-          <div style={{ color: v4.amber, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>// wc2026 fantasy</div>
+          <div style={{ color: v4.amber, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>wc2026 fantasy</div>
           <h2 style={{ color: v4.text, fontSize: 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
             Let the model pick your team
           </h2>

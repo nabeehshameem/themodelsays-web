@@ -131,7 +131,7 @@ export default function WorldCupPredictor() {
 
         {/* heading */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div style={{ color: v4.electric, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>// world cup 2026</div>
+          <div style={{ color: v4.electric, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>world cup 2026</div>
           <h2 style={{ color: v4.text, fontSize: 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
             Who does the model back?
           </h2>

@@ -16,6 +16,18 @@ const v4 = {
 const display = 'Space Grotesk, sans-serif';
 const mono    = 'JetBrains Mono, monospace';
 
+function useIsMobile() {
+  const [mobile, setMobile] = React.useState(
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
+  React.useEffect(() => {
+    const handler = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return mobile;
+}
+
 // ── WC 2026 official groups (FIFA draw, Dec 2023) ─────────────────
 const GROUPS = {
   A: ['Mexico',        'South Africa',          'South Korea',   'Czech Republic'],
@@ -345,6 +357,7 @@ function GroupCard({ letter, picks, onPick, simData }) {
 }
 
 function GroupStageView({ groupPicks, onGroupPick, simData, onContinue }) {
+  const mobile = useIsMobile();
   const filledCount = Object.values(groupPicks).filter(p => p.first && p.second).length;
   return (
     <div>
@@ -369,7 +382,7 @@ function GroupStageView({ groupPicks, onGroupPick, simData, onContinue }) {
           </button>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
         {Object.keys(GROUPS).map(letter => (
           <GroupCard
             key={letter}
@@ -570,6 +583,7 @@ function KnockoutView({ groupPicks, picks, onPick, simData }) {
 
 // ── Main component ─────────────────────────────────────────────────
 export default function TournamentBracket() {
+  const mobile = useIsMobile();
   const [tab,        setTab]       = React.useState('groups');
   const [simData,    setSimData]   = React.useState(null);
   const [simLoading, setSimLoading]= React.useState(false);
@@ -652,7 +666,7 @@ export default function TournamentBracket() {
   const filledGroups = Object.values(groupPicks).filter(p => p.first && p.second).length;
 
   return (
-    <section style={{ padding: '72px 56px', background: v4.bg, borderTop: `1px solid ${v4.border}` }}>
+    <section style={{ padding: mobile ? '56px 20px' : '72px 56px', background: v4.bg, borderTop: `1px solid ${v4.border}` }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
@@ -668,7 +682,7 @@ export default function TournamentBracket() {
               </span>
               {simLoading && <span style={{ fontSize: 10.5, color: v4.textVeryDim, fontFamily: mono }}>loading model…</span>}
             </div>
-            <h2 style={{ color: v4.text, fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', margin: 0, fontFamily: display }}>
+            <h2 style={{ color: v4.text, fontSize: mobile ? 26 : 34, fontWeight: 700, letterSpacing: '-0.03em', margin: 0, fontFamily: display }}>
               Build your 2026 bracket
             </h2>
             <p style={{ color: v4.textDim, fontSize: 15, marginTop: 8, maxWidth: 520, fontFamily: display }}>
