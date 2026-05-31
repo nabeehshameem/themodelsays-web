@@ -47,10 +47,10 @@ export function fetchWcTeams() {
 //   win_pct, draw_pct, loss_pct,
 //   most_likely: [{ home_goals, away_goals, probability_pct }, ...]
 // }
-export function predictWorldCupMatch({ home, away }) {
+export function predictWorldCupMatch({ home, away, knockout = false }) {
   return request('/api/wc/predict', {
     method: 'POST',
-    body: { home_team: home, away_team: away },
+    body: { home_team: home, away_team: away, knockout },
   });
 }
 

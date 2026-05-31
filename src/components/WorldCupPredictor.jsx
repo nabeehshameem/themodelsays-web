@@ -96,12 +96,13 @@ function Spinner() {
 }
 
 export default function WorldCupPredictor() {
-  const [teams,  setTeams]  = React.useState([]);
-  const [home,   setHome]   = React.useState('');
-  const [away,   setAway]   = React.useState('');
-  const [status, setStatus] = React.useState('idle');   // idle | loading | success | error
-  const [result, setResult] = React.useState(null);
-  const [errMsg, setErrMsg] = React.useState('');
+  const [teams,    setTeams]    = React.useState([]);
+  const [home,     setHome]     = React.useState('');
+  const [away,     setAway]     = React.useState('');
+  const [knockout, setKnockout] = React.useState(false);
+  const [status,   setStatus]   = React.useState('idle');   // idle | loading | success | error
+  const [result,   setResult]   = React.useState(null);
+  const [errMsg,   setErrMsg]   = React.useState('');
 
   React.useEffect(() => {
     fetchWcTeams()
@@ -116,7 +117,7 @@ export default function WorldCupPredictor() {
     setResult(null);
     setErrMsg('');
     try {
-      const data = await predictWorldCupMatch({ home, away });
+      const data = await predictWorldCupMatch({ home, away, knockout });
       setResult(data);
       setStatus('success');
     } catch (e) {
@@ -155,6 +156,32 @@ export default function WorldCupPredictor() {
               <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 8 }}>Away team</div>
               <SelectTeam value={away} onChange={setAway} teams={teams} placeholder="Select team…" disabled={status === 'loading'} />
             </div>
+          </div>
+
+          {/* knockout toggle */}
+          <div
+            onClick={() => setKnockout(k => !k)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16,
+              cursor: 'pointer', userSelect: 'none',
+            }}
+          >
+            <div style={{
+              width: 36, height: 20, borderRadius: 10, position: 'relative',
+              background: knockout ? v4.electric : v4.border,
+              transition: 'background 0.2s',
+              flexShrink: 0,
+            }}>
+              <div style={{
+                position: 'absolute', top: 3, left: knockout ? 19 : 3,
+                width: 14, height: 14, borderRadius: '50%',
+                background: knockout ? v4.bg : v4.textVeryDim,
+                transition: 'left 0.2s',
+              }} />
+            </div>
+            <span style={{ fontFamily: mono, fontSize: 12, color: knockout ? v4.electric : v4.textDim, letterSpacing: '0.06em' }}>
+              KNOCKOUT ROUND (resolves draws via ET + pens)
+            </span>
           </div>
 
           <button
@@ -199,14 +226,36 @@ export default function WorldCupPredictor() {
                 <div style={{ color: v4.textDim, fontFamily: mono, fontSize: 12, marginTop: 6 }}>xG {result.home_xg.toFixed(2)}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  color: v4.electric, fontFamily: display, fontSize: 56, fontWeight: 700,
-                  letterSpacing: '-0.04em', lineHeight: 1,
-                  textShadow: `0 0 30px rgba(0,255,135,0.35)`,
-                }}>
-                  {result.predicted_score}
-                </div>
-                <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>MOST LIKELY</div>
+                {(() => {
+                  const [hs, as_] = result.predicted_score.split('-').map(Number);
+                  const isDraw = hs === as_;
+                  const koWin = result.ko_win_pct != null;
+                  // In knockout mode with a draw score, show winner via ET/pens
+                  const winnerName = koWin && isDraw
+                    ? (result.ko_win_pct > result.ko_loss_pct ? result.home_name : result.away_name)
+                    : null;
+                  return (
+                    <>
+                      <div style={{
+                        color: v4.electric, fontFamily: display, fontSize: 56, fontWeight: 700,
+                        letterSpacing: '-0.04em', lineHeight: 1,
+                        textShadow: `0 0 30px rgba(0,255,135,0.35)`,
+                      }}>
+                        {result.predicted_score}
+                      </div>
+                      {winnerName ? (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ color: v4.amber, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em' }}>A.E.T. / PENS</div>
+                          <div style={{ color: v4.electric, fontFamily: display, fontSize: 13, fontWeight: 700, marginTop: 4 }}>
+                            {winnerName} win on pens
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>MOST LIKELY</div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 8 }}>Away</div>
@@ -222,9 +271,18 @@ export default function WorldCupPredictor() {
               display: 'flex', gap: 24, alignItems: 'flex-end',
               marginBottom: 16,
             }}>
-              <ProbBar label={`${result.home_name} win`} pct={result.win_pct}  color={v4.electric} />
-              <ProbBar label="Draw"                      pct={result.draw_pct} color={v4.textDim}  />
-              <ProbBar label={`${result.away_name} win`} pct={result.loss_pct} color={v4.pink}     />
+              {result.ko_win_pct != null ? (
+                <>
+                  <ProbBar label={`${result.home_name} win`} pct={result.ko_win_pct}  color={v4.electric} />
+                  <ProbBar label={`${result.away_name} win`} pct={result.ko_loss_pct} color={v4.pink}     />
+                </>
+              ) : (
+                <>
+                  <ProbBar label={`${result.home_name} win`} pct={result.win_pct}  color={v4.electric} />
+                  <ProbBar label="Draw"                      pct={result.draw_pct} color={v4.textDim}  />
+                  <ProbBar label={`${result.away_name} win`} pct={result.loss_pct} color={v4.pink}     />
+                </>
+              )}
             </div>
 
             {/* top scorelines */}
