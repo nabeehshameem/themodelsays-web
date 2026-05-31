@@ -95,7 +95,18 @@ function Spinner() {
   );
 }
 
+function useIsMobile() {
+  const [mobile, setMobile] = React.useState(() => typeof window !== 'undefined' && window.innerWidth < 640);
+  React.useEffect(() => {
+    const handler = () => setMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return mobile;
+}
+
 export default function WorldCupPredictor() {
+  const isMobile = useIsMobile();
   const [teams,    setTeams]    = React.useState([]);
   const [home,     setHome]     = React.useState('');
   const [away,     setAway]     = React.useState('');
@@ -127,13 +138,13 @@ export default function WorldCupPredictor() {
   }
 
   return (
-    <div style={{ padding: '100px 56px', background: v4.bg2, borderTop: `1px solid ${v4.border}`, borderBottom: `1px solid ${v4.border}` }}>
+    <div style={{ padding: isMobile ? '60px 16px' : '100px 56px', background: v4.bg2, borderTop: `1px solid ${v4.border}`, borderBottom: `1px solid ${v4.border}` }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
 
         {/* heading */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div style={{ color: v4.electric, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>world cup 2026</div>
-          <h2 style={{ color: v4.text, fontSize: 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
+          <h2 style={{ color: v4.text, fontSize: isMobile ? 32 : 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
             Who does the model back?
           </h2>
           <p style={{ color: v4.textDim, fontSize: 16, marginTop: 16, maxWidth: 560, marginInline: 'auto', lineHeight: 1.55 }}>
@@ -146,12 +157,12 @@ export default function WorldCupPredictor() {
           background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
           border: `1px solid ${v4.border}`, borderRadius: 20, padding: 32,
         }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 48px 1fr', gap: 12, alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 48px 1fr', gap: 12, alignItems: 'center', marginBottom: 20 }}>
             <div>
               <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 8 }}>Home team</div>
               <SelectTeam value={home} onChange={setHome} teams={teams} placeholder="Select team…" disabled={status === 'loading'} />
             </div>
-            <div style={{ textAlign: 'center', color: v4.textVeryDim, fontFamily: mono, fontWeight: 700, fontSize: 13, marginTop: 20 }}>vs</div>
+            {!isMobile && <div style={{ textAlign: 'center', color: v4.textVeryDim, fontFamily: mono, fontWeight: 700, fontSize: 13, marginTop: 20 }}>vs</div>}
             <div>
               <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 8 }}>Away team</div>
               <SelectTeam value={away} onChange={setAway} teams={teams} placeholder="Select team…" disabled={status === 'loading'} />
@@ -216,11 +227,11 @@ export default function WorldCupPredictor() {
             {/* scoreline */}
             <div style={{
               background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
-              border: `1px solid ${v4.border}`, borderRadius: 20, padding: '32px 40px',
-              display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 16, alignItems: 'center',
+              border: `1px solid ${v4.border}`, borderRadius: 20, padding: isMobile ? '24px 16px' : '32px 40px',
+              display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr auto 1fr', gap: isMobile ? 8 : 16, alignItems: 'center',
               marginBottom: 16,
             }}>
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: isMobile ? 'center' : 'right' }}>
                 <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 8 }}>Home</div>
                 <div style={{ color: v4.text, fontSize: 22, fontWeight: 700, fontFamily: display }}>{result.home_name}</div>
                 <div style={{ color: v4.textDim, fontFamily: mono, fontSize: 12, marginTop: 6 }}>xG {result.home_xg.toFixed(2)}</div>
@@ -237,7 +248,7 @@ export default function WorldCupPredictor() {
                   return (
                     <>
                       <div style={{
-                        color: v4.electric, fontFamily: display, fontSize: 56, fontWeight: 700,
+                        color: v4.electric, fontFamily: display, fontSize: isMobile ? 48 : 56, fontWeight: 700,
                         letterSpacing: '-0.04em', lineHeight: 1,
                         textShadow: `0 0 30px rgba(0,255,135,0.35)`,
                       }}>
@@ -257,7 +268,7 @@ export default function WorldCupPredictor() {
                   );
                 })()}
               </div>
-              <div style={{ textAlign: 'left' }}>
+              <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
                 <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 8 }}>Away</div>
                 <div style={{ color: v4.text, fontSize: 22, fontWeight: 700, fontFamily: display }}>{result.away_name}</div>
                 <div style={{ color: v4.textDim, fontFamily: mono, fontSize: 12, marginTop: 6 }}>xG {result.away_xg.toFixed(2)}</div>

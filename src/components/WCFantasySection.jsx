@@ -307,16 +307,27 @@ function CaptainPicks() {
   );
 }
 
+function useIsMobile() {
+  const [mobile, setMobile] = React.useState(() => typeof window !== 'undefined' && window.innerWidth < 640);
+  React.useEffect(() => {
+    const handler = () => setMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return mobile;
+}
+
 // ── Main section ─────────────────────────────────────────────────────────────
 
 export default function WCFantasySection() {
+  const isMobile = useIsMobile();
   return (
-    <div style={{ padding: '100px 56px', background: v4.bg, borderTop: `1px solid ${v4.border}`, borderBottom: `1px solid ${v4.border}` }}>
+    <div style={{ padding: isMobile ? '60px 16px' : '100px 56px', background: v4.bg, borderTop: `1px solid ${v4.border}`, borderBottom: `1px solid ${v4.border}` }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
           <div style={{ color: v4.amber, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>wc2026 fantasy</div>
-          <h2 style={{ color: v4.text, fontSize: 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
+          <h2 style={{ color: v4.text, fontSize: isMobile ? 32 : 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
             Let the model pick your team
           </h2>
           <p style={{ color: v4.textDim, fontSize: 16, marginTop: 16, maxWidth: 560, marginInline: 'auto', lineHeight: 1.55 }}>
@@ -324,7 +335,7 @@ export default function WCFantasySection() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24, alignItems: 'start' }}>
 
           {/* Optimizer card */}
           <div style={{
