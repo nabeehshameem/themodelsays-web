@@ -184,32 +184,122 @@ function SquadOptimizer() {
 
 // ── Captain Picks ─────────────────────────────────────────────────────────────
 
-function CaptainPicks() {
-  const [status, setStatus] = React.useState('loading');
-  const [picks,  setPicks]  = React.useState([]);
-  const [errMsg, setErrMsg] = React.useState('');
+const MATCHDAYS = [
+  { id: null, label: 'All 3' },
+  { id: 1,    label: 'MD 1' },
+  { id: 2,    label: 'MD 2' },
+  { id: 3,    label: 'MD 3' },
+];
 
+function CaptainPicks() {
+  const [matchday,     setMatchday]     = React.useState(null);
+  const [status,       setStatus]       = React.useState('loading');
+  const [picks,        setPicks]        = React.useState([]);
+  const [liveStatus,   setLiveStatus]   = React.useState('idle');
+  const [liveData,     setLiveData]     = React.useState(null);
+  const [errMsg,       setErrMsg]       = React.useState('');
+
+  // Load captain picks whenever matchday tab changes
   React.useEffect(() => {
-    wcFantasy.captains(10)
+    setStatus('loading');
+    setPicks([]);
+    wcFantasy.captains(10, matchday)
       .then(d => { setPicks(d.picks); setStatus('success'); })
       .catch(e => { setErrMsg(e.message || 'Failed to load captain picks.'); setStatus('error'); });
-  }, []);
+  }, [matchday]);
+
+  // Poll live advice whenever a specific matchday is selected
+  React.useEffect(() => {
+    if (matchday == null) { setLiveData(null); return; }
+    setLiveStatus('loading');
+    wcFantasy.liveAdvice(matchday)
+      .then(d => { setLiveData(d); setLiveStatus('done'); })
+      .catch(() => setLiveStatus('idle'));
+  }, [matchday]);
+
+  const isLive = liveData?.is_live;
 
   return (
     <div>
+      {/* Matchday tabs */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        {MATCHDAYS.map(({ id, label }) => {
+          const active = id === matchday;
+          return (
+            <button
+              key={String(id)}
+              onClick={() => setMatchday(id)}
+              style={{
+                flex: 1, padding: '6px 0',
+                background: active ? v4.amber : 'transparent',
+                color: active ? v4.bg : v4.textDim,
+                border: `1px solid ${active ? v4.amber : v4.border}`,
+                borderRadius: 7, fontSize: 11, fontWeight: 700,
+                fontFamily: mono, cursor: 'pointer', transition: 'all 0.15s',
+                letterSpacing: '0.05em',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Live swap banner */}
+      {isLive && (
+        <div style={{
+          marginBottom: 14, padding: '10px 14px',
+          background: 'rgba(255,176,32,0.08)', border: '1px solid rgba(255,176,32,0.3)',
+          borderRadius: 10,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff4444', display: 'inline-block', boxShadow: '0 0 6px #ff4444' }} />
+            <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: v4.amber, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Matchday {matchday} live · {liveData.played_team_count / 2} of {(liveData.played_team_count + liveData.remaining_team_count) / 2} fixtures played
+            </span>
+          </div>
+          <div style={{ fontFamily: mono, fontSize: 10, color: v4.textDim, lineHeight: 1.5 }}>
+            {liveData.remaining_picks.length > 0
+              ? `Best still-to-play captain options ranked below ↓`
+              : 'All fixtures in this matchday have kicked off.'}
+          </div>
+        </div>
+      )}
+
       {status === 'loading' && <Spinner />}
       {status === 'error' && (
         <div style={{ padding: '12px 16px', background: 'rgba(255,85,119,0.1)', border: `1px solid rgba(255,85,119,0.3)`, borderRadius: 10, color: v4.red, fontFamily: mono, fontSize: 12 }}>
           {errMsg}
         </div>
       )}
+
       {status === 'success' && (
         <>
-          <div style={{ border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
-            {picks.map((p, i) => <PlayerRow key={p.id} player={p} rank={i + 1} />)}
-          </div>
+          {/* If live: show remaining picks first, then full list */}
+          {isLive && liveData.remaining_picks.length > 0 ? (
+            <>
+              <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: v4.amber, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 14px', background: 'rgba(255,176,32,0.08)', borderRadius: '8px 8px 0 0', border: `1px solid ${v4.border}`, borderBottom: 'none' }}>
+                Still to play — swap candidates
+              </div>
+              <div style={{ border: `1px solid ${v4.border}`, borderRadius: '0 0 12px 12px', overflow: 'hidden', marginBottom: 14 }}>
+                {liveData.remaining_picks.map((p, i) => <PlayerRow key={p.id} player={p} rank={i + 1} />)}
+              </div>
+              <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 14px', background: v4.surface, borderRadius: '8px 8px 0 0', border: `1px solid ${v4.border}`, borderBottom: 'none' }}>
+                All picks — matchday {matchday}
+              </div>
+              <div style={{ border: `1px solid ${v4.border}`, borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
+                {picks.map((p, i) => <PlayerRow key={p.id} player={p} rank={i + 1} />)}
+              </div>
+            </>
+          ) : (
+            <div style={{ border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
+              {picks.map((p, i) => <PlayerRow key={p.id} player={p} rank={i + 1} />)}
+            </div>
+          )}
           <p style={{ color: v4.textVeryDim, fontSize: 11, fontFamily: mono, textAlign: 'center', lineHeight: 1.6, margin: '14px 0 0' }}>
-            Ranked by 3-match projected points · DC model team ratings + position share
+            {matchday == null
+              ? 'Ranked by 3-match projected points · DC model ratings + position share'
+              : `Matchday ${matchday} projected points · 1 match per player`}
           </p>
         </>
       )}
@@ -258,7 +348,7 @@ export default function WCFantasySection() {
             <div style={{ marginBottom: 20 }}>
               <div style={{ color: v4.amber, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 6 }}>Captain Picks</div>
               <div style={{ color: v4.textDim, fontSize: 13, fontFamily: display, lineHeight: 1.5 }}>
-                Top 10 players ranked by projected 3-match returns. Double your points — pick the right captain.
+                Top 10 players per matchday. Switch to a live matchday to see who's still to play — and whether a captain change makes sense.
               </div>
             </div>
             <CaptainPicks />

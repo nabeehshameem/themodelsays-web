@@ -64,8 +64,10 @@ export function fetchSimulation(nSim = 50_000) {
 
 // ── WC Fantasy ───────────────────────────────────────────────────
 export const wcFantasy = {
-  optimise: (body) => request('/api/wc/fantasy/optimise', { method: 'POST', body }),
-  captains: (top_n = 10) => request(`/api/wc/fantasy/captains?top_n=${top_n}`),
+  optimise:   (body) => request('/api/wc/fantasy/optimise', { method: 'POST', body }),
+  captains:   (top_n = 10, matchday = null) =>
+    request(`/api/wc/fantasy/captains?top_n=${top_n}${matchday != null ? `&matchday=${matchday}` : ''}`),
+  liveAdvice: (matchday) => request(`/api/wc/fantasy/captains/live?matchday=${matchday}`),
 };
 
 // ── Email subscriptions ───────────────────────────────────────────
