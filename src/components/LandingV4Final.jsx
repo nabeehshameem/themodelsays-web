@@ -1,6 +1,6 @@
 import React from 'react';
 import { FPL_DATA, TEAM_COLORS } from '../data.js';
-import { subscribeEmail } from '../lib/api.js';
+import { subscribeEmail, fetchSimulation } from '../lib/api.js';
 import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
 import TournamentBracket from './TournamentBracket.jsx';
@@ -88,63 +88,77 @@ function TmsBrand({ size = 18 }) {
 // ── Nav ─────────────────────────────────────────────────────────────
 function V4Nav() {
   const mobile = useIsMobile();
+  function scrollTo(id) {
+    if (id === 'home') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  }
   return (
     <div style={{
       position: 'sticky', top: 0, zIndex: 50,
       background: 'rgba(13,1,24,0.82)', backdropFilter: 'blur(14px)',
       borderBottom: `1px solid ${v4.border}`,
       padding: mobile ? '14px 20px' : '16px 56px',
-      display: 'flex', alignItems: 'center', gap: 36,
+      display: 'flex', alignItems: 'center', gap: 24,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <a href="#" onClick={e => { e.preventDefault(); scrollTo('home'); }}
+         style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
         <TmsLogo />
         <TmsBrand />
-      </div>
+      </a>
       {!mobile && (
-        <div style={{ display: 'flex', gap: 28, marginLeft: 12, fontFamily: display }}>
+        <div style={{ display: 'flex', gap: 24, marginLeft: 8, fontFamily: display }}>
           {[
-            ['World Cup 2026', 'predictor'],
-            ['Bracket',        'bracket'],
-            ['Fantasy',        'fantasy'],
+            ['World Cup 2026',  'home'],
+            ['Score Predictor', 'predictor'],
+            ['Bracket',         'bracket'],
+            ['Fantasy',         'fantasy'],
+            ['FPL',             'fpl'],
           ].map(([label, targetId]) => (
             <a key={label} href={`#${targetId}`}
-               onClick={e => { e.preventDefault(); document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' }); }}
+               onClick={e => { e.preventDefault(); scrollTo(targetId); }}
                style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
               {label}
             </a>
           ))}
         </div>
       )}
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 18 }}>
-        {!mobile && (
-          <span style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, fontFamily: display, cursor: 'pointer' }}>Sign in</span>
-        )}
-        <span style={{
-          background: 'rgba(0,255,135,0.12)', color: v4.textVeryDim, borderRadius: 999,
-          padding: mobile ? '7px 14px' : '9px 18px',
-          fontSize: 13, fontWeight: 700, cursor: 'not-allowed',
-          letterSpacing: '0.03em', textTransform: 'uppercase', fontFamily: display,
-          display: 'inline-block', opacity: 0.55,
-        }}>Coming soon</span>
-      </div>
     </div>
   );
 }
 
 // ── WC Favourites hero widget ────────────────────────────────────────
-const WC_FAVS = [
-  { name: 'France',      pct: 14.2, color: '#4F85D3' },
-  { name: 'Brazil',      pct: 12.8, color: '#3DB56A' },
-  { name: 'England',     pct: 11.4, color: '#E05252' },
-  { name: 'Argentina',   pct: 10.9, color: '#74ACDF' },
-  { name: 'Spain',       pct: 9.6,  color: '#D45353' },
-  { name: 'Germany',     pct: 8.1,  color: '#aaaaaa' },
-  { name: 'Portugal',    pct: 7.3,  color: '#D45353' },
-  { name: 'Netherlands', pct: 5.8,  color: '#E07C2A' },
-];
+const _TEAM_COLORS = {
+  France: '#4F85D3', Brazil: '#3DB56A', England: '#E05252', Argentina: '#74ACDF',
+  Spain: '#D45353', Germany: '#aaaaaa', Portugal: '#c8434a', Netherlands: '#E07C2A',
+  Belgium: '#E08A2A', Uruguay: '#6ABFAD', Morocco: '#C4474A', Japan: '#E8384D',
+  Croatia: '#CC4444', Mexico: '#3DB56A', Colombia: '#F4D03F', Senegal: '#3DB56A',
+};
 
 function V4BracketHero() {
-  const max = WC_FAVS[0].pct;
+  const [favs, setFavs] = React.useState(null);
+  const [nSim, setNSim] = React.useState(null);
+
+  React.useEffect(() => {
+    fetchSimulation(50_000)
+      .then(data => {
+        const sorted = [...data.teams]
+          .sort((a, b) => b.win_pct - a.win_pct)
+          .slice(0, 8)
+          .map(t => ({
+            name: t.team,
+            pct: parseFloat(t.win_pct.toFixed(1)),
+            color: _TEAM_COLORS[t.team] || '#7B2EE3',
+          }));
+        setFavs(sorted);
+        setNSim(data.n_sim);
+      })
+      .catch(() => {});
+  }, []);
+
+  const rows = favs || [];
+  const max = rows[0]?.pct || 1;
+  const loading = favs === null;
+
   return (
     <div style={{
       position: 'relative', borderRadius: 14, overflow: 'hidden',
@@ -163,42 +177,57 @@ function V4BracketHero() {
         <span style={{
           color: v4.electric, fontFamily: mono, fontSize: 9, fontWeight: 700,
           background: 'rgba(0,255,135,0.08)', padding: '3px 8px', borderRadius: 6,
-        }}>50K SIMS</span>
+        }}>{nSim ? `${(nSim / 1000).toFixed(0)}K SIMS` : 'LIVE'}</span>
       </div>
 
       {/* Team bars */}
-      <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 11, flex: 1 }}>
-        {WC_FAVS.map((t, i) => (
-          <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ width: 16, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right' }}>{i + 1}</span>
-            <span style={{
-              width: 100, color: i === 0 ? v4.text : v4.textDim,
-              fontFamily: display, fontSize: 13, fontWeight: i === 0 ? 700 : 400,
-            }}>{t.name}</span>
-            <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden' }}>
-              <div style={{
-                width: `${(t.pct / max) * 100}%`, height: '100%', borderRadius: 999,
-                background: i === 0 ? v4.electric : t.color,
-                opacity: i === 0 ? 1 : 0.55,
-              }} />
-            </div>
-            <span style={{
-              width: 44, textAlign: 'right', fontFamily: mono, fontSize: 12, fontWeight: 700,
-              color: i === 0 ? v4.electric : v4.textDim,
-            }}>{t.pct}%</span>
-          </div>
-        ))}
+      <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 11, flex: 1, minHeight: 196 }}>
+        {loading
+          ? Array.from({ length: 8 }, (_, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 16, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right' }}>{i + 1}</span>
+                <div style={{ width: 90, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
+                <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 999 }} />
+                <div style={{ width: 36, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
+              </div>
+            ))
+          : rows.map((t, i) => (
+              <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 16, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right' }}>{i + 1}</span>
+                <span style={{
+                  width: 100, color: i === 0 ? v4.text : v4.textDim,
+                  fontFamily: display, fontSize: 13, fontWeight: i === 0 ? 700 : 400,
+                }}>{t.name}</span>
+                <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${(t.pct / max) * 100}%`, height: '100%', borderRadius: 999,
+                    background: i === 0 ? v4.electric : t.color,
+                    opacity: i === 0 ? 1 : 0.55,
+                  }} />
+                </div>
+                <span style={{
+                  width: 44, textAlign: 'right', fontFamily: mono, fontSize: 12, fontWeight: 700,
+                  color: i === 0 ? v4.electric : v4.textDim,
+                }}>{t.pct}%</span>
+              </div>
+            ))
+        }
       </div>
 
-      {/* Predicted final */}
+      {/* Tournament favourite */}
       <div style={{ margin: '0 14px 14px', padding: '12px 14px', background: 'rgba(0,255,135,0.06)', border: `1px solid rgba(0,255,135,0.18)`, borderRadius: 10 }}>
-        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Model's predicted final</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ color: v4.text, fontFamily: display, fontSize: 15, fontWeight: 700 }}>France</span>
-          <span style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 800, background: 'rgba(0,0,0,0.45)', padding: '3px 9px', borderRadius: 6 }}>57%</span>
-          <span style={{ color: v4.textDim, fontFamily: display, fontSize: 15 }}>Brazil</span>
-        </div>
-        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, marginTop: 6 }}>Updated June 2026 · Retrained after each matchday</div>
+        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Tournament favourite</div>
+        {loading
+          ? <div style={{ height: 20, width: 180, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
+          : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ color: v4.text, fontFamily: display, fontSize: 15, fontWeight: 700 }}>{rows[0]?.name}</span>
+              <span style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 800, background: 'rgba(0,0,0,0.45)', padding: '3px 9px', borderRadius: 6 }}>{rows[0]?.pct}%</span>
+              <span style={{ color: v4.textDim, fontFamily: display, fontSize: 13 }}>to win WC 2026</span>
+            </div>
+          )
+        }
+        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, marginTop: 6 }}>Live · Updated after each matchday</div>
       </div>
 
       <div style={{ position: 'absolute', bottom: 12, right: 18, color: 'rgba(255,255,255,0.2)', fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.06em' }}>
@@ -754,11 +783,92 @@ function V4SocialLink({ s }) {
   );
 }
 
+// ── FPL Section ───────────────────────────────────────────────────
+function V4FPLSection() {
+  const mobile = useIsMobile();
+  const tools = [
+    { icon: '⚡', title: 'GW Predictions',    body: 'Points projections for every Premier League player, every gameweek.' },
+    { icon: '©',  title: 'Captain Picks',      body: 'Top captain options ranked by expected points for your squad.' },
+    { icon: '↔',  title: 'Transfer Optimizer', body: 'Best transfers for your specific squad and remaining budget.' },
+    { icon: '📊', title: 'Fixture Ticker',     body: 'Colour-coded difficulty ratings for the next 8 gameweeks.' },
+  ];
+  return (
+    <div style={{ padding: mobile ? '64px 20px' : '100px 56px', background: v4.bg2, borderTop: `1px solid ${v4.border}` }}>
+      <div style={{ maxWidth: 1320, margin: '0 auto' }}>
+        <div style={{ marginBottom: 48 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+            <span style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono }}>Fantasy Premier League</span>
+            <span style={{ background: 'rgba(255,176,32,0.15)', color: v4.amber, fontFamily: mono, fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 6, letterSpacing: '0.08em' }}>AUG 2026</span>
+          </div>
+          <h2 style={{ color: v4.text, fontSize: mobile ? 32 : 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
+            FPL tools, powered<br/>by the same model.
+          </h2>
+          <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.55, marginTop: 14, maxWidth: 520 }}>
+            The 2026/27 Premier League season starts in August. The Dixon-Coles engine powering WC predictions will drive weekly FPL recommendations — captains, transfers, and fixture analysis.
+          </p>
+        </div>
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 16 }}>
+            {tools.map(t => (
+              <div key={t.title} style={{
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                border: `1px solid ${v4.border}`, borderRadius: 14, padding: 24,
+                opacity: 0.5,
+              }}>
+                <div style={{ fontSize: 22, marginBottom: 10 }}>{t.icon}</div>
+                <div style={{ color: v4.text, fontSize: 16, fontWeight: 700, fontFamily: display, marginBottom: 6 }}>{t.title}</div>
+                <div style={{ color: v4.textDim, fontSize: 13, lineHeight: 1.5 }}>{t.body}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(13,1,24,0.65)', backdropFilter: 'blur(4px)', borderRadius: 14,
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ color: v4.amber, fontFamily: mono, fontSize: 14, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Coming August 2026</div>
+              <div style={{ color: v4.textDim, fontFamily: display, fontSize: 14, marginTop: 8 }}>Launching with the new Premier League season</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Footer ────────────────────────────────────────────────────────
+const _FOOTER_LINKS = {
+  'World Cup 2026':    { scroll: 'home' },
+  'Score Predictor':   { scroll: 'predictor' },
+  'Bracket Builder':   { scroll: 'bracket' },
+  'Fantasy Squad':     { scroll: 'fantasy' },
+  'Match Predictions': { scroll: 'predictor' },
+  'FPL (Aug 2026)':   { scroll: 'fpl' },
+  'Track record':      { scroll: 'accuracy' },
+  'Updates':           { href: 'https://www.tiktok.com/@themodel.says', external: true },
+  'Contact':           { href: 'mailto:hello@themodelsays.com' },
+  'Privacy':           null,
+};
+
+function FooterLink({ label }) {
+  const link = _FOOTER_LINKS[label];
+  const linkStyle = { color: v4.textDim, fontSize: 14, textDecoration: 'none', cursor: link ? 'pointer' : 'default', fontFamily: display };
+  if (!link) return <span style={linkStyle}>{label}</span>;
+  if (link.scroll) {
+    function handleScroll(e) {
+      e.preventDefault();
+      if (link.scroll === 'home') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      document.getElementById(link.scroll)?.scrollIntoView({ behavior: 'smooth' });
+    }
+    return <a href={`#${link.scroll}`} onClick={handleScroll} style={linkStyle}>{label}</a>;
+  }
+  return <a href={link.href} target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener noreferrer' : undefined} style={linkStyle}>{label}</a>;
+}
+
 function V4Footer() {
   const mobile = useIsMobile();
   const cols = [
-    ['App',   ['World Cup 2026', 'Bracket Builder', 'Fantasy Squad', 'Match Predictions', 'FPL (Aug 2026)']],
+    ['App',   ['World Cup 2026', 'Score Predictor', 'Bracket Builder', 'Fantasy Squad', 'FPL (Aug 2026)']],
     ['Trust', ['Track record', 'Updates', 'Privacy', 'Contact']],
   ];
   return (
@@ -778,7 +888,7 @@ function V4Footer() {
             <div key={title}>
               <div style={{ color: v4.electric, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, fontWeight: 700, marginBottom: 16 }}>{title}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {items.map(it => <a key={it} style={{ color: v4.textDim, fontSize: 14, textDecoration: 'none', cursor: 'pointer', fontFamily: display }}>{it}</a>)}
+                {items.map(it => <FooterLink key={it} label={it} />)}
               </div>
             </div>
           ))}
@@ -803,13 +913,14 @@ function LandingV4Final() {
   return (
     <div style={{ background: v4.bg, color: v4.text, fontFamily: display, width: '100%', minHeight: '100%' }}>
       <V4Nav />
-      <V4Hero />
+      <div id="home"><V4Hero /></div>
       <V4Marquee />
       <div id="bracket"><TournamentBracket /></div>
       <div id="predictor"><WorldCupPredictor /></div>
       <div id="fantasy"><WCFantasySection /></div>
+      <div id="fpl"><V4FPLSection /></div>
       <V4Features />
-      <V4Accuracy />
+      <div id="accuracy"><V4Accuracy /></div>
       <V4Quote />
       <V4CTA />
       <V4Footer />
