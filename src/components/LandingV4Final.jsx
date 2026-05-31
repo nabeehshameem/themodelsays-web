@@ -109,8 +109,8 @@ function V4Nav() {
         <div style={{ display: 'flex', gap: 24, marginLeft: 8, fontFamily: display }}>
           {[
             ['World Cup 2026',  'home'],
-            ['Score Predictor', 'predictor'],
             ['Bracket',         'bracket'],
+            ['Score Predictor', 'predictor'],
             ['Fantasy',         'fantasy'],
             ['FPL',             'fpl'],
           ].map(([label, targetId]) => (
@@ -823,7 +823,7 @@ function V4FPLSection() {
           </div>
           <div style={{
             position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(13,1,24,0.65)', backdropFilter: 'blur(4px)', borderRadius: 14,
+            background: 'rgba(13,1,24,0.55)', backdropFilter: 'blur(1.5px)', borderRadius: 14,
           }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ color: v4.amber, fontFamily: mono, fontSize: 14, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Coming August 2026</div>
@@ -846,8 +846,7 @@ const _FOOTER_LINKS = {
   'FPL (Aug 2026)':   { scroll: 'fpl' },
   'Track record':      { scroll: 'accuracy' },
   'Updates':           { href: 'https://www.tiktok.com/@themodel.says', external: true },
-  'Contact':           { href: 'mailto:hello@themodelsays.com' },
-  'Privacy':           null,
+  'Contact':           { scroll: 'cta' },
 };
 
 function FooterLink({ label }) {
@@ -869,7 +868,7 @@ function V4Footer() {
   const mobile = useIsMobile();
   const cols = [
     ['App',   ['World Cup 2026', 'Score Predictor', 'Bracket Builder', 'Fantasy Squad', 'FPL (Aug 2026)']],
-    ['Trust', ['Track record', 'Updates', 'Privacy', 'Contact']],
+    ['Trust', ['Track record', 'Updates', 'Contact']],
   ];
   return (
     <div style={{ borderTop: `1px solid ${v4.border}`, padding: mobile ? '48px 20px 28px' : '72px 56px 36px', background: v4.bg }}>
@@ -922,7 +921,7 @@ function LandingV4Final() {
       <V4Features />
       <div id="accuracy"><V4Accuracy /></div>
       <V4Quote />
-      <V4CTA />
+      <div id="cta"><V4CTA /></div>
       <V4Footer />
     </div>
   );
