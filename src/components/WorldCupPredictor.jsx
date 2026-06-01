@@ -238,13 +238,14 @@ export default function WorldCupPredictor() {
               </div>
               <div style={{ textAlign: 'center' }}>
                 {(() => {
-                  const [hs, as_] = result.predicted_score.split('-').map(Number);
-                  const isDraw = hs === as_;
-                  const koWin = result.ko_win_pct != null;
-                  // In knockout mode with a draw score, show winner via ET/pens
-                  const winnerName = koWin && isDraw
-                    ? (result.ko_win_pct > result.ko_loss_pct ? result.home_name : result.away_name)
-                    : null;
+                  const isKnockout = result.ko_win_pct != null;
+                  // In knockout mode, show the most likely decisive (non-draw) scoreline
+                  // so we never imply the match must go to pens
+                  let displayScore = result.predicted_score;
+                  if (isKnockout) {
+                    const decisive = result.most_likely.find(s => s.home_goals !== s.away_goals);
+                    if (decisive) displayScore = `${decisive.home_goals}-${decisive.away_goals}`;
+                  }
                   return (
                     <>
                       <div style={{
@@ -252,18 +253,11 @@ export default function WorldCupPredictor() {
                         letterSpacing: '-0.04em', lineHeight: 1,
                         textShadow: `0 0 30px rgba(0,255,135,0.35)`,
                       }}>
-                        {result.predicted_score}
+                        {displayScore}
                       </div>
-                      {winnerName ? (
-                        <div style={{ marginTop: 8 }}>
-                          <div style={{ color: v4.amber, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em' }}>A.E.T. / PENS</div>
-                          <div style={{ color: v4.electric, fontFamily: display, fontSize: 13, fontWeight: 700, marginTop: 4 }}>
-                            {winnerName} win on pens
-                          </div>
-                        </div>
-                      ) : (
-                        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>MOST LIKELY</div>
-                      )}
+                      <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>
+                        {isKnockout ? 'MOST LIKELY RESULT' : 'MOST LIKELY'}
+                      </div>
                     </>
                   );
                 })()}
