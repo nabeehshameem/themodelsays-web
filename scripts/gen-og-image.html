@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>OG Image Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #111; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 40px; font-family: sans-serif; }
+  canvas { border: 1px solid #333; }
+  button { padding: 12px 28px; background: #00FF87; color: #0d0118; border: 0; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1200" height="630"></canvas>
+<button onclick="download()">Download og-image.png</button>
+<script>
+const C = document.getElementById('c');
+const ctx = C.getContext('2d');
+
+function draw() {
+  const W = 1200, H = 630;
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0,   '#0d0118');
+  bg.addColorStop(0.5, '#15032a');
+  bg.addColorStop(1,   '#1f0a3d');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Glow orb top-right
+  const orb = ctx.createRadialGradient(950, 80, 0, 950, 80, 340);
+  orb.addColorStop(0,   'rgba(123,46,227,0.35)');
+  orb.addColorStop(0.5, 'rgba(123,46,227,0.10)');
+  orb.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = orb;
+  ctx.fillRect(0, 0, W, H);
+
+  // Bottom-left green glow
+  const glw = ctx.createRadialGradient(100, H, 0, 100, H, 280);
+  glw.addColorStop(0,   'rgba(0,255,135,0.18)');
+  glw.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = glw;
+  ctx.fillRect(0, 0, W, H);
+
+  // Top electric border line
+  ctx.fillStyle = '#00FF87';
+  ctx.fillRect(0, 0, W, 3);
+
+  // Tag
+  ctx.font = '700 18px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#00FF87';
+  ctx.letterSpacing = '3px';
+  ctx.fillText('WORLD CUP 2026', 80, 96);
+  ctx.letterSpacing = '0px';
+
+  // Main headline
+  ctx.font = '700 88px "Space Grotesk", sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('Who does the', 80, 220);
+
+  // "model" in electric green
+  const measure1 = ctx.measureText('Who does the ');
+  ctx.fillStyle = '#00FF87';
+  ctx.fillText('model', 80, 320);
+
+  // " back?" in white
+  const measureModel = ctx.measureText('model');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(' back?', 80 + measureModel.width, 320);
+
+  // Subline
+  ctx.font = '500 26px "Space Grotesk", sans-serif';
+  ctx.fillStyle = '#b9aed0';
+  ctx.fillText('Dixon-Coles Poisson model · 48 teams · WC2026 predictions', 80, 390);
+
+  // Divider
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillRect(80, 430, 500, 1);
+
+  // URL pill
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(80, 452, 310, 44, 22);
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.font = '700 15px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#796a93';
+  ctx.fillText('themodelsays.com', 108, 480);
+
+  // Right side — stat cards
+  const cards = [
+    { label: 'TEAMS', value: '48', color: '#00FF87' },
+    { label: 'MODEL',  value: 'DC',  color: '#7B2EE3' },
+    { label: 'GROUPS', value: '12', color: '#FF2882' },
+  ];
+  cards.forEach((card, i) => {
+    const x = 780 + i * 148;
+    const y = 240;
+    const w = 128, h = 130;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 14);
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.font = `700 42px "Space Grotesk", sans-serif`;
+    ctx.fillStyle = card.color;
+    ctx.textAlign = 'center';
+    ctx.fillText(card.value, x + w / 2, y + 66);
+
+    ctx.font = '700 11px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#796a93';
+    ctx.letterSpacing = '2px';
+    ctx.fillText(card.label, x + w / 2, y + 96);
+    ctx.letterSpacing = '0px';
+    ctx.textAlign = 'left';
+  });
+
+  // Bottom right — "Free · Open Beta"
+  ctx.font = '700 13px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#796a93';
+  ctx.textAlign = 'right';
+  ctx.fillText('FREE · OPEN BETA', W - 80, H - 48);
+  ctx.textAlign = 'left';
+}
+
+// Wait for fonts to load before drawing
+document.fonts.ready.then(() => {
+  draw();
+});
+
+function download() {
+  C.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'og-image.png';
+    a.click();
+  }, 'image/png');
+}
+</script>
+</body>
+</html>
