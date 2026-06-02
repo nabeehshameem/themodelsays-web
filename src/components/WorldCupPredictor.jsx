@@ -242,10 +242,10 @@ export default function WorldCupPredictor() {
                   letterSpacing: '-0.04em', lineHeight: 1,
                   textShadow: `0 0 30px rgba(0,255,135,0.35)`,
                 }}>
-                  {result.predicted_score}
+                  {Math.round(result.home_xg)}–{Math.round(result.away_xg)}
                 </div>
                 <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>
-                  {result.ko_win_pct != null ? 'MOST LIKELY 90 MIN' : 'MOST LIKELY'}
+                  {result.ko_win_pct != null ? 'EXPECTED 90 MIN' : 'EXPECTED SCORE'}
                 </div>
               </div>
               <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
