@@ -114,6 +114,7 @@ export default function WorldCupPredictor() {
   const [status,   setStatus]   = React.useState('idle');   // idle | loading | success | error
   const [result,   setResult]   = React.useState(null);
   const [errMsg,   setErrMsg]   = React.useState('');
+  const [copied,   setCopied]   = React.useState(false);
 
   React.useEffect(() => {
     fetchWcTeams()
@@ -122,6 +123,19 @@ export default function WorldCupPredictor() {
   }, []);
 
   const canPredict = home && away && home !== away && status !== 'loading';
+
+  function handleShare() {
+    if (!result) return;
+    const h = Math.round(result.home_xg);
+    const a = Math.round(result.away_xg);
+    const winPct = result.ko_win_pct != null ? result.ko_win_pct : result.win_pct;
+    const mode = result.ko_win_pct != null ? ' (knockout)' : '';
+    const text = `The model predicts: ${result.home_name} ${h}–${a} ${result.away_name}${mode}\n${winPct.toFixed(0)}% chance of a ${result.home_name} win\n\nthemodelsays.com`;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   async function handlePredict() {
     setStatus('loading');
@@ -299,6 +313,24 @@ export default function WorldCupPredictor() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* share */}
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <button
+                onClick={handleShare}
+                style={{
+                  background: copied ? 'rgba(0,255,135,0.15)' : v4.surface,
+                  border: `1px solid ${copied ? 'rgba(0,255,135,0.4)' : v4.borderHi}`,
+                  borderRadius: 10, padding: '10px 24px',
+                  color: copied ? v4.electric : v4.textDim,
+                  fontFamily: mono, fontSize: 12, fontWeight: 700,
+                  letterSpacing: '0.06em', cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {copied ? 'COPIED ✓' : 'SHARE THIS PREDICTION'}
+              </button>
             </div>
 
             {/* disclaimer */}

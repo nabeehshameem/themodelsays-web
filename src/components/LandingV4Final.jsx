@@ -4,6 +4,7 @@ import { subscribeEmail, fetchSimulation } from '../lib/api.js';
 import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
 import TournamentBracket from './TournamentBracket.jsx';
+import GroupStandings from './GroupStandings.jsx';
 
 const v4 = {
   bg:          '#0d0118',
@@ -110,6 +111,7 @@ function V4Nav() {
           {[
             ['World Cup 2026',  'home'],
             ['Bracket',         'bracket'],
+            ['Groups',          'groups'],
             ['Score Predictor', 'predictor'],
             ['Fantasy',         'fantasy'],
             ['FPL',             'fpl'],
@@ -915,6 +917,7 @@ function LandingV4Final() {
       <div id="home"><V4Hero /></div>
       <V4Marquee />
       <div id="bracket"><TournamentBracket /></div>
+      <div id="groups"><GroupStandings /></div>
       <div id="predictor"><WorldCupPredictor /></div>
       <div id="fantasy"><WCFantasySection /></div>
       <div id="fpl"><V4FPLSection /></div>
