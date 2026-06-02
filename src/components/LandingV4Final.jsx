@@ -530,33 +530,61 @@ function WidgetWCMatches() {
 }
 
 function WidgetBracket() {
-  const knockouts = [
-    { round: 'QF',    a: 'France',  b: 'Spain',     score: '2-1', winner: 'France' },
-    { round: 'QF',    a: 'Brazil',  b: 'England',   score: '1-1', winner: 'Brazil' },
-    { round: 'SF',    a: 'France',  b: 'Brazil',    score: '2-0', winner: 'France' },
-    { round: 'FINAL', a: 'France',  b: 'Argentina', score: '2-1', winner: 'France' },
-  ];
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      {knockouts.map((k, i) => {
-        const last = i === knockouts.length - 1;
-        return (
-          <div key={i} style={{
-            display: 'grid', gridTemplateColumns: '40px 1fr auto 1fr', gap: 10, alignItems: 'center',
-            padding: '5px 8px', borderRadius: 8,
-            background: last ? 'rgba(0,255,135,0.07)' : 'transparent',
-            border: last ? `1px solid rgba(0,255,135,0.2)` : '1px solid transparent',
-          }}>
-            <span style={{ color: last ? v4.electric : v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 800, letterSpacing: '0.05em' }}>{k.round}</span>
-            <span style={{ color: k.winner === k.a ? v4.text : v4.textDim, fontFamily: display, fontWeight: k.winner === k.a ? 700 : 400, fontSize: 12, textAlign: 'right' }}>{k.a}</span>
-            <span style={{ color: v4.electric, fontFamily: mono, fontSize: 11, fontWeight: 700, padding: '2px 7px', background: 'rgba(0,0,0,0.4)', borderRadius: 8 }}>{k.score}</span>
-            <span style={{ color: k.winner === k.b ? v4.text : v4.textDim, fontFamily: display, fontWeight: k.winner === k.b ? 700 : 400, fontSize: 12 }}>{k.b}</span>
+  const [teams, setTeams] = React.useState(null);
+
+  React.useEffect(() => {
+    fetchSimulation(50_000)
+      .then(data => {
+        const sorted = [...data.teams]
+          .sort((a, b) => b.win_pct - a.win_pct)
+          .slice(0, 5)
+          .map(t => ({ name: t.team, win: parseFloat(t.win_pct.toFixed(1)), final: parseFloat(t.final_pct.toFixed(1)) }));
+        setTeams(sorted);
+      })
+      .catch(() => {});
+  }, []);
+
+  if (!teams) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {[0,1,2,3,4].map(i => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 16, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }} />
+            <div style={{ width: 80, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }} />
+            <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 999 }} />
+            <div style={{ width: 32, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }} />
           </div>
-        );
-      })}
-      <div style={{ marginTop: 4, fontSize: 11, color: v4.textVeryDim, fontFamily: mono, display: 'flex', justifyContent: 'space-between' }}>
-        <span>FRANCE</span>
-        <span>14.2% win prob</span>
+        ))}
+      </div>
+    );
+  }
+
+  const max = teams[0]?.win || 1;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {teams.map((t, i) => (
+        <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ width: 14, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
+          <span style={{
+            width: 88, color: i === 0 ? v4.text : v4.textDim,
+            fontFamily: display, fontSize: 12, fontWeight: i === 0 ? 700 : 400,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 0,
+          }}>{t.name}</span>
+          <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden' }}>
+            <div style={{
+              width: `${(t.win / max) * 100}%`, height: '100%', borderRadius: 999,
+              background: i === 0 ? v4.electric : _TEAM_COLORS[t.name] || v4.purple,
+              opacity: i === 0 ? 1 : 0.55,
+            }} />
+          </div>
+          <span style={{
+            width: 38, textAlign: 'right', fontFamily: mono, fontSize: 11, fontWeight: 700, flexShrink: 0,
+            color: i === 0 ? v4.electric : v4.textDim,
+          }}>{t.win}%</span>
+        </div>
+      ))}
+      <div style={{ marginTop: 2, fontSize: 10, color: v4.textVeryDim, fontFamily: mono }}>
+        % chance to win WC 2026 · 50K sims
       </div>
     </div>
   );
