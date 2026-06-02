@@ -237,30 +237,16 @@ export default function WorldCupPredictor() {
                 <div style={{ color: v4.textDim, fontFamily: mono, fontSize: 12, marginTop: 6 }}>xG {result.home_xg.toFixed(2)}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                {(() => {
-                  const isKnockout = result.ko_win_pct != null;
-                  // In knockout mode, show the most likely decisive (non-draw) scoreline
-                  // so we never imply the match must go to pens
-                  let displayScore = result.predicted_score;
-                  if (isKnockout) {
-                    const decisive = result.most_likely.find(s => s.home_goals !== s.away_goals);
-                    if (decisive) displayScore = `${decisive.home_goals}-${decisive.away_goals}`;
-                  }
-                  return (
-                    <>
-                      <div style={{
-                        color: v4.electric, fontFamily: display, fontSize: isMobile ? 48 : 56, fontWeight: 700,
-                        letterSpacing: '-0.04em', lineHeight: 1,
-                        textShadow: `0 0 30px rgba(0,255,135,0.35)`,
-                      }}>
-                        {displayScore}
-                      </div>
-                      <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>
-                        {isKnockout ? 'MOST LIKELY RESULT' : 'MOST LIKELY'}
-                      </div>
-                    </>
-                  );
-                })()}
+                <div style={{
+                  color: v4.electric, fontFamily: display, fontSize: isMobile ? 48 : 56, fontWeight: 700,
+                  letterSpacing: '-0.04em', lineHeight: 1,
+                  textShadow: `0 0 30px rgba(0,255,135,0.35)`,
+                }}>
+                  {result.predicted_score}
+                </div>
+                <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>
+                  {result.ko_win_pct != null ? 'MOST LIKELY 90 MIN' : 'MOST LIKELY'}
+                </div>
               </div>
               <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
                 <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 8 }}>Away</div>
