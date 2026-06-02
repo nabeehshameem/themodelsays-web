@@ -1,6 +1,6 @@
 import React from 'react';
 import { FPL_DATA, TEAM_COLORS } from '../data.js';
-import { subscribeEmail, fetchSimulation } from '../lib/api.js';
+import { subscribeEmail, fetchSimulation, predictWorldCupMatch, wcFantasy } from '../lib/api.js';
 import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
 import TournamentBracket from './TournamentBracket.jsx';
@@ -456,24 +456,39 @@ function V4WidgetBox({ label, stat, children }) {
 
 // ── Widgets ────────────────────────────────────────────────────────
 function WidgetCaptain() {
-  const rows = [
-    ['Mbappe',   9.4, v4.electric, '(C)'],
-    ['Vinicius', 8.1, v4.text,     ''],
-    ['Bellingham', 7.2, v4.textDim, ''],
-    ['Salah',    5.9, v4.textVeryDim, ''],
-  ];
-  const max = rows[0][1];
+  const [picks, setPicks] = React.useState(null);
+
+  React.useEffect(() => {
+    wcFantasy.captains(4).then(data => setPicks(data.picks)).catch(() => {});
+  }, []);
+
+  if (!picks) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+        {[0,1,2,3].map(i => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 96, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
+            <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.04)', borderRadius: 999 }} />
+            <div style={{ width: 32, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  const max = picks[0]?.projected_pts || 1;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-      {rows.map(([n, p, c, mark]) => (
-        <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 96, fontSize: 13, color: v4.text, fontWeight: 600, fontFamily: display }}>
-            {n}{mark && <span style={{ color: v4.electric, fontFamily: mono, marginLeft: 5, fontSize: 10, fontWeight: 800 }}>{mark}</span>}
+      {picks.map((p, i) => (
+        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 96, fontSize: 13, color: v4.text, fontWeight: i === 0 ? 700 : 400, fontFamily: display, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {p.name.split(' ').slice(-1)[0]}
+            {i === 0 && <span style={{ color: v4.electric, fontFamily: mono, marginLeft: 5, fontSize: 10, fontWeight: 800 }}>(C)</span>}
           </div>
           <div style={{ flex: 1, height: 6, background: v4.border, borderRadius: 999, overflow: 'hidden' }}>
-            <div style={{ width: `${(p / max) * 100}%`, height: '100%', background: c, borderRadius: 999 }} />
+            <div style={{ width: `${(p.projected_pts / max) * 100}%`, height: '100%', background: i === 0 ? v4.electric : v4.textDim, borderRadius: 999, opacity: i === 0 ? 1 : 0.5 }} />
           </div>
-          <div style={{ width: 48, textAlign: 'right', fontFamily: mono, fontSize: 12, color: c === v4.electric ? v4.electric : v4.textDim, fontWeight: 700 }}>{p.toFixed(1)}</div>
+          <div style={{ width: 48, textAlign: 'right', fontFamily: mono, fontSize: 12, color: i === 0 ? v4.electric : v4.textDim, fontWeight: 700 }}>{p.projected_pts.toFixed(1)}</div>
         </div>
       ))}
     </div>
@@ -506,25 +521,52 @@ function WidgetPlanner() {
   );
 }
 
+const _SAMPLE_MATCHUPS = [
+  { home: 'France',   away: 'Brazil'    },
+  { home: 'England',  away: 'Argentina' },
+  { home: 'Spain',    away: 'Germany'   },
+];
+
 function WidgetWCMatches() {
-  const fixtures = [
-    { home: 'ENG', away: 'ARG', group: 'L', pick: 'ENG 2-1' },
-    { home: 'FRA', away: 'BRA', group: 'I', pick: 'Draw 1-1' },
-    { home: 'ESP', away: 'GER', group: 'H', pick: 'ESP 2-0' },
-  ];
+  const [results, setResults] = React.useState(null);
+
+  React.useEffect(() => {
+    Promise.all(
+      _SAMPLE_MATCHUPS.map(m => predictWorldCupMatch({ home: m.home, away: m.away }))
+    ).then(setResults).catch(() => {});
+  }, []);
+
+  if (!results) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {[0,1,2].map(i => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center', padding: '7px 0', borderBottom: i < 2 ? `1px solid ${v4.border}` : 'none' }}>
+            <div style={{ height: 10, width: '70%', background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
+            <div style={{ width: 56, height: 22, background: 'rgba(255,255,255,0.04)', borderRadius: 8 }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {fixtures.map((f, i) => (
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center', padding: '7px 0', borderBottom: i < fixtures.length - 1 ? `1px solid ${v4.border}` : 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <span style={{ color: v4.text, fontFamily: mono, fontSize: 11, fontWeight: 700 }}>{f.home}</span>
-            <span style={{ color: v4.textVeryDim, fontSize: 10 }}>vs</span>
-            <span style={{ color: v4.text, fontFamily: mono, fontSize: 11, fontWeight: 700 }}>{f.away}</span>
-            <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, marginLeft: 4 }}>Grp {f.group}</span>
+      {results.map((r, i) => {
+        const h = Math.round(r.home_xg);
+        const a = Math.round(r.away_xg);
+        const label = h > a ? `${r.home_name.split(' ')[0]} ${h}–${a}` : h < a ? `${r.away_name.split(' ')[0]} ${a}–${h}` : `Draw ${h}–${a}`;
+        return (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center', padding: '7px 0', borderBottom: i < results.length - 1 ? `1px solid ${v4.border}` : 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span style={{ color: v4.text, fontFamily: mono, fontSize: 11, fontWeight: 700 }}>{r.home_name.split(' ')[0].toUpperCase()}</span>
+              <span style={{ color: v4.textVeryDim, fontSize: 10 }}>vs</span>
+              <span style={{ color: v4.text, fontFamily: mono, fontSize: 11, fontWeight: 700 }}>{r.away_name.split(' ')[0].toUpperCase()}</span>
+              <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, marginLeft: 4 }}>{r.win_pct.toFixed(0)}%</span>
+            </div>
+            <div style={{ background: 'rgba(0,255,135,0.08)', color: v4.electric, padding: '3px 8px', borderRadius: 8, fontFamily: mono, fontSize: 11, fontWeight: 700 }}>{label}</div>
           </div>
-          <div style={{ background: 'rgba(0,255,135,0.08)', color: v4.electric, padding: '3px 8px', borderRadius: 8, fontFamily: mono, fontSize: 11, fontWeight: 700 }}>{f.pick}</div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
