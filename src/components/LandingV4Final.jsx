@@ -141,7 +141,7 @@ function V4BracketHero() {
   const [nSim, setNSim] = React.useState(null);
 
   React.useEffect(() => {
-    fetchSimulation(50_000)
+    fetchSimulation(10_000)
       .then(data => {
         const sorted = [...data.teams]
           .sort((a, b) => b.win_pct - a.win_pct)
@@ -575,7 +575,7 @@ function WidgetBracket() {
   const [teams, setTeams] = React.useState(null);
 
   React.useEffect(() => {
-    fetchSimulation(50_000)
+    fetchSimulation(10_000)
       .then(data => {
         const sorted = [...data.teams]
           .sort((a, b) => b.win_pct - a.win_pct)

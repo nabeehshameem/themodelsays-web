@@ -54,11 +54,11 @@ export function predictWorldCupMatch({ home, away, knockout = false }) {
   });
 }
 
-// GET /api/wc/simulate?n_sim=50000 → {
+// GET /api/wc/simulate?n_sim=10000 → {
 //   teams: [{ team, group, r32_pct, qf_pct, sf_pct, final_pct, win_pct }],
 //   n_sim: number
 // }
-export function fetchSimulation(nSim = 50_000) {
+export function fetchSimulation(nSim = 10_000) {
   return request(`/api/wc/simulate?n_sim=${nSim}`);
 }
 

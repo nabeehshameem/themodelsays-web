@@ -141,7 +141,7 @@ export default function GroupStandings() {
   const [nSim,   setNSim]   = React.useState(null);
 
   React.useEffect(() => {
-    fetchSimulation(50_000).then(data => {
+    fetchSimulation(10_000).then(data => {
       const map = {};
       for (const t of data.teams) {
         const g = t.group || '?';
