@@ -23,6 +23,7 @@ async function request(path, { method = 'GET', body, signal } = {}) {
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
     signal,
+    cache: 'no-store',
   });
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;

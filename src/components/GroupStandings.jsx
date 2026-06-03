@@ -137,8 +137,9 @@ function SkeletonCard() {
 
 export default function GroupStandings() {
   const isMobile = useIsMobile();
-  const [groups, setGroups] = React.useState(null);
-  const [nSim,   setNSim]   = React.useState(null);
+  const [groups,      setGroups]      = React.useState(null);
+  const [nSim,        setNSim]        = React.useState(null);
+  const [lastUpdated, setLastUpdated] = React.useState(null);
 
   React.useEffect(() => {
     fetchSimulation(10_000).then(data => {
@@ -150,6 +151,7 @@ export default function GroupStandings() {
       }
       setGroups(map);
       setNSim(data.n_sim);
+      if (data.last_updated) setLastUpdated(data.last_updated);
     }).catch(() => {});
   }, []);
 
@@ -199,7 +201,8 @@ export default function GroupStandings() {
         </div>
 
         <p style={{ color: v4.textVeryDim, fontSize: 11, fontFamily: mono, textAlign: 'center', marginTop: 28, lineHeight: 1.6 }}>
-          Percentages represent probability of advancing from the group stage across {nSim ? `${nSim.toLocaleString()}` : '50,000'} simulated tournaments. Updated daily after the 06:00 UTC model retrain.
+          Percentages represent probability of advancing from the group stage across {nSim ? `${nSim.toLocaleString()}` : '10,000'} simulated tournaments.{' '}
+          {lastUpdated ? `Model last updated ${new Date(lastUpdated).toUTCString()}.` : 'Updated daily at 06:00 UTC.'}
         </p>
       </div>
     </div>
