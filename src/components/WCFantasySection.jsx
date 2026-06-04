@@ -14,6 +14,14 @@ const mono    = 'JetBrains Mono, monospace';
 
 const POS_COLOR = { GK: '#FFB020', DEF: '#02EFFF', MID: '#7B2EE3', FWD: '#FF2882' };
 
+const BOOSTERS = [
+  { id: null,                     label: 'No booster',            short: 'None',       color: '#796a93', desc: 'Standard optimal squad.' },
+  { id: 'wildcard',               label: 'Wildcard',              short: 'Wildcard',   color: '#7B2EE3', desc: 'Unlimited transfers (MD2+ only). Builds your ideal fresh squad.' },
+  { id: '12th_man',               label: '12th Man',              short: '12th Man',   color: '#00FF87', desc: 'Pick 1 extra player outside your squad — no budget or team cap.' },
+  { id: 'max_captain',            label: 'Maximum Captain',       short: 'Max Cap',    color: '#FFB020', desc: 'Auto-assigns captaincy to your highest scorer. Ranks your XI by ceiling.' },
+  { id: 'qualification_booster',  label: 'Qualification Booster', short: 'Qual +2',    color: '#FF2882', desc: '+2 pts per starting XI player whose team advances from the round. R32+ only.' },
+];
+
 function PosBadge({ pos }) {
   return (
     <span style={{
@@ -98,19 +106,162 @@ function SquadSection({ label, players, color }) {
   );
 }
 
+// ── Booster picker ───────────────────────────────────────────────────────────
+
+function BoosterPicker({ value, onChange }) {
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: v4.textVeryDim, textTransform: 'uppercase', marginBottom: 8 }}>
+        Booster
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {BOOSTERS.map(b => {
+          const active = value === b.id;
+          return (
+            <button
+              key={String(b.id)}
+              onClick={() => onChange(b.id)}
+              title={b.desc}
+              style={{
+                padding: '5px 11px',
+                background: active ? `${b.color}22` : 'transparent',
+                border: `1px solid ${active ? b.color : v4.border}`,
+                borderRadius: 6,
+                color: active ? b.color : v4.textDim,
+                fontFamily: mono, fontSize: 10, fontWeight: 700,
+                letterSpacing: '0.05em', cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              {b.short}
+            </button>
+          );
+        })}
+      </div>
+      {value !== null && (
+        <div style={{ marginTop: 7, fontFamily: mono, fontSize: 10, color: v4.textVeryDim, lineHeight: 1.5 }}>
+          {BOOSTERS.find(b => b.id === value)?.desc}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Booster result panels ────────────────────────────────────────────────────
+
+function TwelfthManPanel({ player }) {
+  if (!player) return null;
+  const color = v4.electric;
+  return (
+    <div style={{ marginTop: 16, padding: '14px 16px', background: `${color}0d`, border: `1px solid ${color}33`, borderRadius: 12 }}>
+      <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color, textTransform: 'uppercase', marginBottom: 10 }}>
+        12th Man — recommended pick
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <PosBadge pos={player.pos} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: display, fontSize: 14, fontWeight: 700, color: v4.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.name}</div>
+          <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, marginTop: 1 }}>{player.team}</div>
+        </div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontFamily: mono, fontSize: 16, fontWeight: 700, color }}>{player.projected_pts.toFixed(1)} <span style={{ fontSize: 10, color: v4.textVeryDim, fontWeight: 400 }}>pts</span></div>
+          <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim }}>${player.price_m.toFixed(1)}m</div>
+        </div>
+      </div>
+      <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, color: v4.textVeryDim, lineHeight: 1.5 }}>
+        No budget or team-cap restrictions apply. This player cannot be captained, subbed, or transferred.
+      </div>
+    </div>
+  );
+}
+
+function MaxCapPanel({ candidates, expectedPts }) {
+  if (!candidates?.length) return null;
+  const color = v4.amber;
+  return (
+    <div style={{ marginTop: 16, padding: '14px 16px', background: `${color}0d`, border: `1px solid ${color}33`, borderRadius: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color, textTransform: 'uppercase' }}>
+          Max Captain — auto-assign candidates
+        </div>
+        {expectedPts != null && (
+          <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color }}>
+            ~{expectedPts.toFixed(1)} <span style={{ fontSize: 9, color: v4.textVeryDim, fontWeight: 400 }}>exp. cap pts</span>
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {candidates.map((p, i) => (
+          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: i === 0 ? `${color}22` : 'rgba(255,255,255,0.04)', border: `1px solid ${i === 0 ? color : v4.border}`, fontSize: 9, fontFamily: mono, fontWeight: 700, color: i === 0 ? color : v4.textVeryDim }}>
+              {i + 1}
+            </div>
+            <PosBadge pos={p.pos} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: display, fontSize: 13, fontWeight: 600, color: v4.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+              <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim }}>{p.team}</div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontFamily: mono, fontSize: 13, fontWeight: 700, color: i === 0 ? color : v4.textDim }}>{p.pts_per_match.toFixed(1)}<span style={{ fontSize: 9, color: v4.textVeryDim, fontWeight: 400 }}>/match</span></div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, color: v4.textVeryDim, lineHeight: 1.5 }}>
+        Ranked by single-match ceiling. Captaincy auto-fires on whoever scores most — no decision needed.
+      </div>
+    </div>
+  );
+}
+
+function QualBoosterPanel({ breakdown, total }) {
+  if (!breakdown?.length) return null;
+  const color = v4.pink;
+  const sorted = [...breakdown].sort((a, b) => b.qual_bonus - a.qual_bonus);
+  return (
+    <div style={{ marginTop: 16, padding: '14px 16px', background: `${color}0d`, border: `1px solid ${color}33`, borderRadius: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color, textTransform: 'uppercase' }}>
+          Qualification Booster — expected +2 bonus
+        </div>
+        {total != null && (
+          <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color }}>
+            +{total.toFixed(2)} <span style={{ fontSize: 9, color: v4.textVeryDim, fontWeight: 400 }}>exp. pts</span>
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {sorted.map(p => (
+          <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <PosBadge pos={p.pos} />
+            <div style={{ flex: 1, fontFamily: display, fontSize: 12, color: v4.textDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+            <div style={{ fontFamily: mono, fontSize: 11, color: p.qual_bonus > 0.5 ? color : v4.textVeryDim, fontWeight: 700, flexShrink: 0 }}>
+              +{p.qual_bonus.toFixed(2)}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, color: v4.textVeryDim, lineHeight: 1.5 }}>
+        +2 pts per starter whose team wins their knockout match. Captain's +2 is not doubled. R32+ only.
+      </div>
+    </div>
+  );
+}
+
 // ── Squad Optimizer ──────────────────────────────────────────────────────────
 
 function SquadOptimizer() {
-  const [status, setStatus] = React.useState('idle');
-  const [result, setResult] = React.useState(null);
-  const [errMsg, setErrMsg] = React.useState('');
+  const [status,  setStatus]  = React.useState('idle');
+  const [result,  setResult]  = React.useState(null);
+  const [errMsg,  setErrMsg]  = React.useState('');
+  const [booster, setBooster] = React.useState(null);
 
   async function handleOptimise() {
     setStatus('loading');
     setResult(null);
     setErrMsg('');
     try {
-      const data = await wcFantasy.optimise({ budget: 1000 });
+      const data = await wcFantasy.optimise({ budget: 1000, booster });
       setResult(data);
       setStatus('success');
     } catch (e) {
@@ -120,24 +271,32 @@ function SquadOptimizer() {
   }
 
   const byPos = (pos) => (result?.squad || []).filter(p => p.pos === pos);
+  const activeBooster = BOOSTERS.find(b => b.id === booster);
+  const btnColor = booster ? activeBooster.color : v4.electric;
 
   return (
     <div>
+      <BoosterPicker value={booster} onChange={(b) => { setBooster(b); setResult(null); setStatus('idle'); }} />
+
       <button
         onClick={handleOptimise}
         disabled={status === 'loading'}
         style={{
           width: '100%', padding: '13px 0',
-          background: status !== 'loading' ? v4.electric : 'rgba(0,255,135,0.15)',
-          color: status !== 'loading' ? v4.bg : v4.textVeryDim,
+          background: status !== 'loading' ? btnColor : `${btnColor}33`,
+          color: status !== 'loading' ? (booster ? v4.bg : v4.bg) : v4.textVeryDim,
           border: 0, borderRadius: 10,
           fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
           fontFamily: display, cursor: status !== 'loading' ? 'pointer' : 'not-allowed',
-          boxShadow: status !== 'loading' ? '0 4px 20px rgba(0,255,135,0.28)' : 'none',
+          boxShadow: status !== 'loading' ? `0 4px 20px ${btnColor}44` : 'none',
           transition: 'all 0.2s ease',
         }}
       >
-        {status === 'loading' ? 'Optimising…' : 'Optimise squad →'}
+        {status === 'loading'
+          ? 'Optimising…'
+          : booster
+            ? `Optimise with ${activeBooster.short} →`
+            : 'Optimise squad →'}
       </button>
 
       {status === 'loading' && <Spinner />}
@@ -153,12 +312,12 @@ function SquadOptimizer() {
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             padding: '12px 16px', marginBottom: 12,
-            background: 'rgba(0,255,135,0.06)', border: `1px solid rgba(0,255,135,0.2)`,
+            background: `${btnColor}0f`, border: `1px solid ${btnColor}33`,
             borderRadius: 10,
           }}>
             <div>
               <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Projected points</div>
-              <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: v4.electric }}>{result.total_pts.toFixed(1)}</div>
+              <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: btnColor }}>{result.total_pts.toFixed(1)}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Total cost</div>
@@ -167,11 +326,16 @@ function SquadOptimizer() {
           </div>
 
           <div style={{ border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
-            <SquadSection label="Forwards"   players={byPos('FWD')} color={v4.pink}    />
-            <SquadSection label="Midfielders" players={byPos('MID')} color={v4.purple}  />
-            <SquadSection label="Defenders"  players={byPos('DEF')} color={v4.green}   />
-            <SquadSection label="Goalkeepers" players={byPos('GK')}  color={v4.amber}   />
+            <SquadSection label="Forwards"    players={byPos('FWD')} color={v4.pink}   />
+            <SquadSection label="Midfielders" players={byPos('MID')} color={v4.purple} />
+            <SquadSection label="Defenders"   players={byPos('DEF')} color={v4.green}  />
+            <SquadSection label="Goalkeepers" players={byPos('GK')}  color={v4.amber}  />
           </div>
+
+          {/* Booster panels */}
+          <TwelfthManPanel player={result.twelfth_man} />
+          <MaxCapPanel candidates={result.max_cap_candidates} expectedPts={result.expected_max_cap_pts} />
+          <QualBoosterPanel breakdown={result.qual_booster_breakdown} total={result.qual_booster_total} />
 
           <p style={{ color: v4.textVeryDim, fontSize: 11, fontFamily: mono, textAlign: 'center', lineHeight: 1.6, margin: '14px 0 0' }}>
             Model projections for 3 group-stage matches · C = recommended captain · estimated prices

@@ -64,6 +64,7 @@ export function fetchSimulation(nSim = 10_000) {
 }
 
 // ── WC Fantasy ───────────────────────────────────────────────────
+// booster: "wildcard" | "12th_man" | "max_captain" | "qualification_booster" | null
 export const wcFantasy = {
   optimise:   (body) => request('/api/wc/fantasy/optimise', { method: 'POST', body }),
   captains:   (top_n = 10, matchday = null) =>
