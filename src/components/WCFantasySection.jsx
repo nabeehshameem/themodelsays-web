@@ -471,6 +471,421 @@ function CaptainPicks() {
   );
 }
 
+// ── Team Builder ─────────────────────────────────────────────────────────────
+
+const SQUAD_LIMITS = { GK: 2, DEF: 5, MID: 5, FWD: 3 };
+const BUDGET_TOTAL = 1000;
+
+function canAddPlayer(player, locked) {
+  if (locked.find(p => p.id === player.id)) return { ok: false, reason: 'Already in squad' };
+  if (locked.length >= 15)                  return { ok: false, reason: 'Squad full (15)' };
+  const posCount = locked.filter(p => p.pos === player.pos).length;
+  if (posCount >= SQUAD_LIMITS[player.pos]) return { ok: false, reason: `${player.pos} slots full` };
+  const teamCount = locked.filter(p => p.team === player.team).length;
+  if (teamCount >= 3)                       return { ok: false, reason: 'Max 3 per nation' };
+  const spent = locked.reduce((s, p) => s + p.price, 0);
+  if (spent + player.price > BUDGET_TOTAL)  return { ok: false, reason: 'Over budget' };
+  return { ok: true };
+}
+
+function BudgetBar({ locked }) {
+  const spent   = locked.reduce((s, p) => s + p.price, 0);
+  const pct     = Math.min(100, (spent / BUDGET_TOTAL) * 100);
+  const rem     = BUDGET_TOTAL - spent;
+  const low     = rem < 100;
+  const barColor = low ? v4.red : v4.electric;
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+        <span style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Budget</span>
+        <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: low ? v4.red : v4.electric }}>
+          ${(rem / 10).toFixed(1)}m left
+        </span>
+      </div>
+      <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, background: barColor, transition: 'width 0.2s ease' }} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+        <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim }}>${(spent / 10).toFixed(1)}m spent</span>
+        <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim }}>${(BUDGET_TOTAL / 10).toFixed(1)}m total</span>
+      </div>
+    </div>
+  );
+}
+
+function SlotSummary({ locked }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+      {Object.entries(SQUAD_LIMITS).map(([pos, max]) => {
+        const count = locked.filter(p => p.pos === pos).length;
+        const full  = count >= max;
+        return (
+          <div key={pos} style={{
+            padding: '3px 9px', borderRadius: 5,
+            background: full ? `${POS_COLOR[pos]}22` : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${full ? POS_COLOR[pos] + '55' : v4.border}`,
+            fontFamily: mono, fontSize: 10, fontWeight: 700,
+            color: full ? POS_COLOR[pos] : v4.textVeryDim,
+          }}>
+            {pos} {count}/{max}
+          </div>
+        );
+      })}
+      <div style={{
+        padding: '3px 9px', borderRadius: 5,
+        background: locked.length === 15 ? 'rgba(0,255,135,0.1)' : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${locked.length === 15 ? 'rgba(0,255,135,0.3)' : v4.border}`,
+        fontFamily: mono, fontSize: 10, fontWeight: 700,
+        color: locked.length === 15 ? v4.electric : v4.textVeryDim,
+      }}>
+        {locked.length}/15
+      </div>
+    </div>
+  );
+}
+
+function LockedPlayerRow({ player, onRemove, isModelPick }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8,
+      padding: '8px 12px', borderBottom: `1px solid ${v4.border}`,
+      background: isModelPick ? 'transparent' : 'rgba(0,255,135,0.04)',
+    }}>
+      <PosBadge pos={player.pos} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontFamily: display, fontSize: 13, fontWeight: 600, color: isModelPick ? v4.textDim : v4.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {player.name}
+          </span>
+          {!isModelPick && (
+            <span style={{ fontFamily: mono, fontSize: 8, color: v4.electric, background: 'rgba(0,255,135,0.12)', border: '1px solid rgba(0,255,135,0.25)', padding: '1px 5px', borderRadius: 3, letterSpacing: '0.06em', flexShrink: 0 }}>YOU</span>
+          )}
+          {player.is_captain && (
+            <span style={{ fontFamily: mono, fontSize: 8, color: v4.amber, background: 'rgba(255,176,32,0.12)', border: '1px solid rgba(255,176,32,0.25)', padding: '1px 5px', borderRadius: 3, letterSpacing: '0.06em', flexShrink: 0 }}>C</span>
+          )}
+        </div>
+        <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, marginTop: 1 }}>{player.team}</div>
+      </div>
+      <div style={{ textAlign: 'right', flexShrink: 0, marginRight: onRemove ? 8 : 0 }}>
+        <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: player.is_captain ? v4.amber : (isModelPick ? v4.textDim : v4.text) }}>
+          {player.projected_pts?.toFixed(1)}<span style={{ fontSize: 9, color: v4.textVeryDim, fontWeight: 400 }}> pts</span>
+        </div>
+        <div style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim }}>${player.price_m?.toFixed(1)}m</div>
+      </div>
+      {onRemove && (
+        <button onClick={() => onRemove(player.id)} style={{
+          width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+          background: 'rgba(255,85,119,0.1)', border: '1px solid rgba(255,85,119,0.2)',
+          color: v4.red, fontFamily: mono, fontSize: 12, fontWeight: 700,
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          lineHeight: 1,
+        }}>×</button>
+      )}
+    </div>
+  );
+}
+
+function PlayerBrowserRow({ player, locked, onAdd }) {
+  const { ok, reason } = canAddPlayer(player, locked);
+  const alreadyIn = !!locked.find(p => p.id === player.id);
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8,
+      padding: '8px 12px', borderBottom: `1px solid ${v4.border}`,
+      opacity: alreadyIn ? 0.4 : 1,
+    }}>
+      <PosBadge pos={player.pos} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: display, fontSize: 13, fontWeight: 600, color: v4.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.name}</div>
+        <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, marginTop: 1 }}>{player.team}</div>
+      </div>
+      <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 8 }}>
+        <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: v4.text }}>{player.projected_pts?.toFixed(1)}<span style={{ fontSize: 9, color: v4.textVeryDim, fontWeight: 400 }}> pts</span></div>
+        <div style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim }}>${player.price_m?.toFixed(1)}m</div>
+      </div>
+      <button
+        onClick={() => ok && onAdd(player)}
+        title={ok ? `Add ${player.name}` : reason}
+        disabled={!ok}
+        style={{
+          width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+          background: ok ? 'rgba(0,255,135,0.1)' : 'rgba(255,255,255,0.04)',
+          border: `1px solid ${ok ? 'rgba(0,255,135,0.3)' : v4.border}`,
+          color: ok ? v4.electric : v4.textVeryDim,
+          fontFamily: mono, fontSize: 14, fontWeight: 700,
+          cursor: ok ? 'pointer' : 'not-allowed',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          lineHeight: 1,
+        }}
+      >+</button>
+    </div>
+  );
+}
+
+function WCTeamBuilder({ isMobile }) {
+  const [allPlayers,    setAllPlayers]    = React.useState([]);
+  const [loadingPool,   setLoadingPool]   = React.useState(true);
+  const [locked,        setLocked]        = React.useState([]);
+  const [posFilter,     setPosFilter]     = React.useState('ALL');
+  const [search,        setSearch]        = React.useState('');
+  const [status,        setStatus]        = React.useState('idle');
+  const [result,        setResult]        = React.useState(null);
+  const [errMsg,        setErrMsg]        = React.useState('');
+
+  React.useEffect(() => {
+    wcFantasy.players()
+      .then(d => { setAllPlayers(d.players); setLoadingPool(false); })
+      .catch(() => setLoadingPool(false));
+  }, []);
+
+  const lockedIds = new Set(locked.map(p => p.id));
+
+  function addPlayer(player) {
+    setLocked(prev => [...prev, player]);
+    setResult(null); setStatus('idle');
+  }
+  function removePlayer(id) {
+    setLocked(prev => prev.filter(p => p.id !== id));
+    setResult(null); setStatus('idle');
+  }
+  function clearAll() {
+    setLocked([]); setResult(null); setStatus('idle');
+  }
+
+  async function handleFill() {
+    setStatus('loading'); setResult(null); setErrMsg('');
+    try {
+      const data = await wcFantasy.optimise({ budget: BUDGET_TOTAL, locked_player_ids: locked.map(p => p.id) });
+      setResult(data);
+      setStatus('success');
+    } catch (e) {
+      setErrMsg(e.message || 'Optimisation failed — try again.');
+      setStatus('error');
+    }
+  }
+
+  // Filtered player pool
+  const filtered = allPlayers.filter(p => {
+    if (posFilter !== 'ALL' && p.pos !== posFilter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q);
+    }
+    return true;
+  });
+
+  // Result squad grouped by position
+  const resultByPos = pos => (result?.squad || []).filter(p => p.pos === pos);
+
+  // Squad to show in left panel
+  const displaySquad = result
+    ? result.squad
+    : locked;
+
+  const displayByPos = pos => displaySquad.filter(p => p.pos === pos);
+
+  const canFill  = locked.length > 0 && locked.length < 15 && status !== 'loading';
+  const canFull  = locked.length === 15 && status !== 'loading';
+
+  return (
+    <div style={{ marginTop: 48 }}>
+      {/* Section header */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ color: v4.purple, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 10 }}>
+          Squad Builder
+        </div>
+        <h3 style={{ color: v4.text, fontSize: isMobile ? 24 : 32, fontWeight: 700, letterSpacing: '-0.025em', margin: 0, fontFamily: display }}>
+          Pick your players, let the model fill the gaps
+        </h3>
+        <p style={{ color: v4.textDim, fontSize: 14, marginTop: 10, maxWidth: 560, lineHeight: 1.55 }}>
+          Choose any players you want — the optimizer locks them in and builds the best possible squad around them within budget and squad rules.
+        </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20, alignItems: 'start' }}>
+
+        {/* Left — My Squad */}
+        <div style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
+          border: `1px solid ${v4.border}`, borderRadius: 20, padding: 22,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: v4.purple, textTransform: 'uppercase' }}>
+              My Squad {locked.length > 0 && `· ${locked.length} picked`}
+            </div>
+            {locked.length > 0 && !result && (
+              <button onClick={clearAll} style={{ background: 'none', border: 'none', color: v4.textVeryDim, fontFamily: mono, fontSize: 10, cursor: 'pointer', padding: 0, letterSpacing: '0.05em' }}>
+                Clear all
+              </button>
+            )}
+            {result && (
+              <button onClick={clearAll} style={{ background: 'none', border: 'none', color: v4.textVeryDim, fontFamily: mono, fontSize: 10, cursor: 'pointer', padding: 0, letterSpacing: '0.05em' }}>
+                Start over
+              </button>
+            )}
+          </div>
+
+          <BudgetBar locked={result ? result.squad : locked} />
+          <SlotSummary locked={result ? result.squad : locked} />
+
+          {/* Result summary bar */}
+          {result && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', marginBottom: 12, background: 'rgba(123,46,227,0.08)', border: '1px solid rgba(123,46,227,0.25)', borderRadius: 10 }}>
+              <div>
+                <div style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>Projected pts</div>
+                <div style={{ fontFamily: mono, fontSize: 20, fontWeight: 700, color: v4.purple }}>{result.total_pts.toFixed(1)}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>Cost</div>
+                <div style={{ fontFamily: mono, fontSize: 20, fontWeight: 700, color: v4.text }}>${result.total_cost_m.toFixed(1)}m</div>
+              </div>
+            </div>
+          )}
+
+          {/* Squad grouped by position */}
+          {['FWD', 'MID', 'DEF', 'GK'].map(pos => {
+            const players = displayByPos(pos);
+            if (!players.length && !result) return null;
+            return (
+              <div key={pos} style={{ marginBottom: 6 }}>
+                <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: POS_COLOR[pos], textTransform: 'uppercase', padding: '5px 12px', background: `${POS_COLOR[pos]}0d` }}>
+                  {pos === 'GK' ? 'Goalkeepers' : pos === 'DEF' ? 'Defenders' : pos === 'MID' ? 'Midfielders' : 'Forwards'} ({players.length})
+                </div>
+                <div style={{ border: `1px solid ${v4.border}`, borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
+                  {players.map(p => (
+                    <LockedPlayerRow
+                      key={p.id}
+                      player={p}
+                      onRemove={!result ? removePlayer : null}
+                      isModelPick={result ? !lockedIds.has(p.id) : false}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {displaySquad.length === 0 && (
+            <div style={{ padding: '28px 16px', textAlign: 'center', color: v4.textVeryDim, fontFamily: mono, fontSize: 11, lineHeight: 1.6 }}>
+              Search for players on the right and add them to your squad.
+            </div>
+          )}
+
+          {/* Action button */}
+          {!result && (
+            <div style={{ marginTop: 16 }}>
+              {canFill && (
+                <button onClick={handleFill} style={{
+                  width: '100%', padding: '12px 0',
+                  background: v4.purple, color: '#fff',
+                  border: 0, borderRadius: 10,
+                  fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                  fontFamily: display, cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(123,46,227,0.35)', transition: 'opacity 0.2s',
+                }}>
+                  {status === 'loading' ? 'Filling…' : `Fill remaining ${15 - locked.length} slots →`}
+                </button>
+              )}
+              {canFull && (
+                <button onClick={handleFill} style={{
+                  width: '100%', padding: '12px 0',
+                  background: v4.electric, color: v4.bg,
+                  border: 0, borderRadius: 10,
+                  fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                  fontFamily: display, cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(0,255,135,0.28)', transition: 'opacity 0.2s',
+                }}>
+                  Analyse my squad →
+                </button>
+              )}
+              {locked.length === 0 && (
+                <div style={{ textAlign: 'center', fontFamily: mono, fontSize: 10, color: v4.textVeryDim, lineHeight: 1.6 }}>
+                  Add at least 1 player to get started.
+                </div>
+              )}
+              {status === 'loading' && <Spinner />}
+              {status === 'error' && (
+                <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(255,85,119,0.1)', border: '1px solid rgba(255,85,119,0.3)', borderRadius: 8, color: v4.red, fontFamily: mono, fontSize: 11 }}>
+                  {errMsg}
+                </div>
+              )}
+            </div>
+          )}
+
+          {result && (
+            <p style={{ color: v4.textVeryDim, fontSize: 10, fontFamily: mono, textAlign: 'center', lineHeight: 1.6, marginTop: 14 }}>
+              Green "YOU" = your picks · Grey = model-filled · C = recommended captain
+            </p>
+          )}
+        </div>
+
+        {/* Right — Player Browser */}
+        <div style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
+          border: `1px solid ${v4.border}`, borderRadius: 20, padding: 22,
+        }}>
+          <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: v4.textVeryDim, textTransform: 'uppercase', marginBottom: 14 }}>
+            Player Pool
+          </div>
+
+          {/* Position filter */}
+          <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
+            {['ALL', 'GK', 'DEF', 'MID', 'FWD'].map(pos => {
+              const active = pos === posFilter;
+              const col    = pos === 'ALL' ? v4.textDim : POS_COLOR[pos];
+              return (
+                <button key={pos} onClick={() => setPosFilter(pos)} style={{
+                  flex: 1, padding: '5px 0',
+                  background: active ? `${col}22` : 'transparent',
+                  border: `1px solid ${active ? col : v4.border}`,
+                  borderRadius: 6, color: active ? col : v4.textVeryDim,
+                  fontFamily: mono, fontSize: 9, fontWeight: 700,
+                  letterSpacing: '0.05em', cursor: 'pointer', transition: 'all 0.15s',
+                }}>
+                  {pos}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search */}
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search player or team…"
+            style={{
+              width: '100%', padding: '9px 12px', boxSizing: 'border-box',
+              background: 'rgba(255,255,255,0.04)', border: `1px solid ${v4.border}`,
+              borderRadius: 8, color: v4.text, fontFamily: mono, fontSize: 12,
+              outline: 'none', marginBottom: 10,
+            }}
+          />
+
+          {/* Player list */}
+          {loadingPool ? (
+            <Spinner />
+          ) : (
+            <div style={{ maxHeight: 480, overflowY: 'auto', border: `1px solid ${v4.border}`, borderRadius: 10, overflowX: 'hidden' }}>
+              {filtered.length === 0 ? (
+                <div style={{ padding: '24px 16px', textAlign: 'center', color: v4.textVeryDim, fontFamily: mono, fontSize: 11 }}>No players match.</div>
+              ) : (
+                filtered.map(p => (
+                  <PlayerBrowserRow key={p.id} player={p} locked={locked} onAdd={addPlayer} />
+                ))
+              )}
+            </div>
+          )}
+
+          <p style={{ color: v4.textVeryDim, fontSize: 10, fontFamily: mono, textAlign: 'center', lineHeight: 1.6, marginTop: 12 }}>
+            Sorted by projected pts · max 3 per nation · $100m budget
+          </p>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
 function useIsMobile() {
   const [mobile, setMobile] = React.useState(() => typeof window !== 'undefined' && window.innerWidth < 640);
   React.useEffect(() => {
@@ -530,6 +945,9 @@ export default function WCFantasySection() {
           </div>
 
         </div>
+
+        <WCTeamBuilder isMobile={isMobile} />
+
       </div>
     </div>
   );
