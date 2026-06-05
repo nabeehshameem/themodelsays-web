@@ -605,7 +605,7 @@ function PitchView({ locked, result, lockedIds, onRemove }) {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#1a5533 0%,#1f6b3d 35%,#1c6238 65%,#175030 100%)' }} />
         {/* Pitch markings */}
         <svg viewBox="0 0 300 354" preserveAspectRatio="xMidYMid slice"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'scaleY(-1)' }}>
           {/* Alternating grass stripes */}
           {[0,1,2,3,4,5].map(i =>
             <rect key={i} x="0" y={i*59} width="300" height="59" fill={i%2===0?'rgba(255,255,255,0.025)':'transparent'} />
@@ -629,7 +629,7 @@ function PitchView({ locked, result, lockedIds, onRemove }) {
           {/* Centre spot */}
           <circle cx="150" cy="349" r="2.5" fill="rgba(255,255,255,0.32)"/>
         </svg>
-        {/* Player rows: FWD → MID → DEF → GK (attacking end at top) */}
+        {/* Player rows: FWD at top → GK at bottom (SVG flipped so GK penalty area is at bottom) */}
         <div style={row(14)}>{renderRow('FWD')}</div>
         <div style={row(38)}>{renderRow('MID')}</div>
         <div style={row(62)}>{renderRow('DEF')}</div>
