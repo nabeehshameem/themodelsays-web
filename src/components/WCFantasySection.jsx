@@ -488,6 +488,157 @@ function canAddPlayer(player, locked) {
   return { ok: true };
 }
 
+// ── Pitch view helpers ──────────────────────────────────────────────────────
+
+function shortName(fullName) {
+  const parts = fullName.trim().split(/\s+/);
+  return parts[parts.length - 1];
+}
+
+function circleText(fullName) {
+  return shortName(fullName).slice(0, 4).toUpperCase();
+}
+
+// ── Pitch token ─────────────────────────────────────────────────────────────
+
+function PitchToken({ player, pos, isModelPick, onRemove, isEmpty }) {
+  const col = POS_COLOR[pos || player?.pos];
+
+  if (isEmpty) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, minWidth: 0, flex: 1 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          border: '2px dashed rgba(255,255,255,0.18)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto',
+        }}>
+          <span style={{ color: 'rgba(255,255,255,0.14)', fontSize: 18, lineHeight: 1 }}>+</span>
+        </div>
+        <div style={{ fontFamily: mono, fontSize: 8, color: 'rgba(255,255,255,0.18)', letterSpacing: '0.05em', textAlign: 'center' }}>{pos}</div>
+      </div>
+    );
+  }
+
+  const isYou = !isModelPick;
+  const isCap = player.is_captain;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, minWidth: 0, flex: 1 }}>
+      <div style={{ position: 'relative', margin: '0 auto' }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: isYou ? `${col}2e` : 'rgba(0,0,0,0.42)',
+          border: `2px solid ${isYou ? col : 'rgba(255,255,255,0.28)'}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: isYou ? `0 0 12px ${col}55` : 'none',
+        }}>
+          <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: isYou ? '#fff' : 'rgba(255,255,255,0.5)', letterSpacing: '0.01em', userSelect: 'none' }}>
+            {circleText(player.name)}
+          </span>
+        </div>
+        {isCap && (
+          <div style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: v4.amber, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontFamily: mono, fontWeight: 700, color: '#000', zIndex: 2 }}>C</div>
+        )}
+        {isYou && !isCap && (
+          <div style={{ position: 'absolute', top: -4, right: -4, width: 12, height: 12, borderRadius: '50%', background: v4.electric, zIndex: 2 }} />
+        )}
+        {onRemove && (
+          <button onClick={() => onRemove(player.id)} style={{
+            position: 'absolute', top: -4, left: -4, width: 16, height: 16, borderRadius: '50%',
+            background: 'rgba(255,40,130,0.85)', border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontFamily: mono, fontWeight: 700, color: '#fff',
+            cursor: 'pointer', padding: 0, lineHeight: 1, zIndex: 2,
+          }}>×</button>
+        )}
+      </div>
+      <div style={{
+        fontFamily: display, fontSize: 9, fontWeight: isYou ? 700 : 400,
+        color: isYou ? '#fff' : 'rgba(255,255,255,0.45)',
+        textAlign: 'center', lineHeight: 1,
+        maxWidth: 60, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        textShadow: '0 1px 4px rgba(0,0,0,0.9)',
+      }}>{shortName(player.name)}</div>
+      <div style={{ fontFamily: mono, fontSize: 8, fontWeight: 700, color: isYou ? col : 'rgba(255,255,255,0.35)', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+        {player.projected_pts?.toFixed(1)}
+      </div>
+    </div>
+  );
+}
+
+// ── Pitch view ──────────────────────────────────────────────────────────────
+
+function PitchView({ locked, result, lockedIds, onRemove }) {
+  const squad  = result ? result.squad : locked;
+  const canRem = !result ? onRemove : null;
+
+  function renderRow(pos) {
+    const players = squad.filter(p => p.pos === pos);
+    const total   = SQUAD_LIMITS[pos];
+    const tokens  = [];
+    for (let i = 0; i < total; i++) {
+      if (i < players.length) {
+        const p = players[i];
+        tokens.push(
+          <PitchToken key={p.id} player={p} pos={pos}
+            isModelPick={result ? !lockedIds.has(p.id) : false}
+            onRemove={canRem} />
+        );
+      } else {
+        tokens.push(<PitchToken key={`empty-${pos}-${i}`} pos={pos} isEmpty />);
+      }
+    }
+    return tokens;
+  }
+
+  const row = (topPct) => ({
+    position: 'absolute', left: '3%', right: '3%', top: `${topPct}%`,
+    transform: 'translateY(-50%)',
+    display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start',
+  });
+
+  return (
+    <div style={{ position: 'relative', width: '100%', paddingBottom: '118%', borderRadius: 10, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0 }}>
+        {/* Grass */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#1a5533 0%,#1f6b3d 35%,#1c6238 65%,#175030 100%)' }} />
+        {/* Pitch markings */}
+        <svg viewBox="0 0 300 354" preserveAspectRatio="xMidYMid slice"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+          {/* Alternating grass stripes */}
+          {[0,1,2,3,4,5].map(i =>
+            <rect key={i} x="0" y={i*59} width="300" height="59" fill={i%2===0?'rgba(255,255,255,0.025)':'transparent'} />
+          )}
+          {/* Outer border */}
+          <rect x="8" y="5" width="284" height="344" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1.5"/>
+          {/* Penalty box */}
+          <rect x="72" y="5" width="156" height="82" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+          {/* Goal box */}
+          <rect x="113" y="5" width="74" height="27" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+          {/* Goal */}
+          <rect x="124" y="1" width="52" height="6" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.28)" strokeWidth="1"/>
+          {/* Penalty spot */}
+          <circle cx="150" cy="71" r="2.5" fill="rgba(255,255,255,0.32)"/>
+          {/* Penalty arc */}
+          <path d="M 106,87 A 44,44 0 0 0 194,87" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5"/>
+          {/* Halfway line */}
+          <line x1="8" y1="349" x2="292" y2="349" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+          {/* Centre circle half */}
+          <path d="M 108,349 A 42,42 0 0 1 192,349" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5"/>
+          {/* Centre spot */}
+          <circle cx="150" cy="349" r="2.5" fill="rgba(255,255,255,0.32)"/>
+        </svg>
+        {/* Player rows: FWD → MID → DEF → GK (attacking end at top) */}
+        <div style={row(14)}>{renderRow('FWD')}</div>
+        <div style={row(38)}>{renderRow('MID')}</div>
+        <div style={row(62)}>{renderRow('DEF')}</div>
+        <div style={row(83)}>{renderRow('GK')}</div>
+      </div>
+    </div>
+  );
+}
+
 function BudgetBar({ locked }) {
   const spent   = locked.reduce((s, p) => s + p.price, 0);
   const pct     = Math.min(100, (spent / BUDGET_TOTAL) * 100);
@@ -742,34 +893,7 @@ function WCTeamBuilder({ isMobile }) {
             </div>
           )}
 
-          {/* Squad grouped by position */}
-          {['FWD', 'MID', 'DEF', 'GK'].map(pos => {
-            const players = displayByPos(pos);
-            if (!players.length && !result) return null;
-            return (
-              <div key={pos} style={{ marginBottom: 6 }}>
-                <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: POS_COLOR[pos], textTransform: 'uppercase', padding: '5px 12px', background: `${POS_COLOR[pos]}0d` }}>
-                  {pos === 'GK' ? 'Goalkeepers' : pos === 'DEF' ? 'Defenders' : pos === 'MID' ? 'Midfielders' : 'Forwards'} ({players.length})
-                </div>
-                <div style={{ border: `1px solid ${v4.border}`, borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
-                  {players.map(p => (
-                    <LockedPlayerRow
-                      key={p.id}
-                      player={p}
-                      onRemove={!result ? removePlayer : null}
-                      isModelPick={result ? !lockedIds.has(p.id) : false}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-
-          {displaySquad.length === 0 && (
-            <div style={{ padding: '28px 16px', textAlign: 'center', color: v4.textVeryDim, fontFamily: mono, fontSize: 11, lineHeight: 1.6 }}>
-              Search for players on the right and add them to your squad.
-            </div>
-          )}
+          <PitchView locked={locked} result={result} lockedIds={lockedIds} onRemove={removePlayer} />
 
           {/* Action button */}
           {!result && (
