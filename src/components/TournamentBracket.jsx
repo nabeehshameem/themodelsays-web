@@ -940,6 +940,7 @@ export default function TournamentBracket() {
   const [tab,        setTab]       = React.useState('groups');
   const [simData,    setSimData]   = React.useState(null);
   const [simLoading, setSimLoading]= React.useState(false);
+  const [simError,   setSimError]  = React.useState(false);
 
   const [groupPicks, setGroupPicks] = React.useState(
     _urlState?.groupPicks ?? Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]]))
@@ -957,7 +958,7 @@ export default function TournamentBracket() {
     setSimLoading(true);
     fetchSimulation(20_000)
       .then(d => setSimData(d))
-      .catch(() => {})
+      .catch(() => setSimError(true))
       .finally(() => setSimLoading(false));
   }, []);
 
@@ -996,7 +997,6 @@ export default function TournamentBracket() {
       Object.keys(GROUPS).map(g => [g, modelGroupOrder(simData, g)])
     );
     setGroupPicks(newGroups);
-    if (tab === 'groups') return;
 
     const p = {};
 
@@ -1087,13 +1087,14 @@ export default function TournamentBracket() {
               onClick={fillWithModel}
               disabled={!simData}
               style={{
-                background: 'rgba(123,46,227,0.15)', color: simData ? v4.purple : v4.textVeryDim,
-                border: `1px solid ${simData ? 'rgba(123,46,227,0.4)' : v4.border}`,
+                background: simError ? 'rgba(255,85,119,0.1)' : 'rgba(123,46,227,0.15)',
+                color: simData ? v4.purple : simError ? '#ff5577' : v4.textVeryDim,
+                border: `1px solid ${simData ? 'rgba(123,46,227,0.4)' : simError ? 'rgba(255,85,119,0.3)' : v4.border}`,
                 borderRadius: 8, padding: '8px 14px', fontSize: 12.5, fontWeight: 700,
                 fontFamily: display, cursor: simData ? 'pointer' : 'not-allowed',
               }}
             >
-              Use model picks
+              {simError ? 'Model unavailable' : simLoading ? 'Loading model…' : 'Use model picks'}
             </button>
             <button
               onClick={shareUrl}
