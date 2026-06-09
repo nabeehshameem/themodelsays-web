@@ -381,6 +381,76 @@ function V4Marquee() {
   );
 }
 
+// ── Mini League Banner ───────────────────────────────────────────────
+const MINI_LEAGUE_CODE = '64T3EKYD';
+
+function V4MiniLeagueBanner() {
+  const mobile = useIsMobile();
+  const [copied, setCopied] = React.useState(false);
+
+  function handleCopy() {
+    navigator.clipboard?.writeText(MINI_LEAGUE_CODE).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(0,255,135,0.07) 0%, rgba(123,46,227,0.1) 100%)',
+      borderBottom: `1px solid rgba(0,255,135,0.18)`,
+      padding: mobile ? '20px 20px' : '22px 56px',
+    }}>
+      <div style={{
+        maxWidth: 1180, margin: '0 auto',
+        display: 'flex', flexDirection: mobile ? 'column' : 'row',
+        alignItems: mobile ? 'flex-start' : 'center',
+        gap: mobile ? 16 : 0,
+        justifyContent: 'space-between',
+      }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: v4.electric, animation: 'tmsPulse 1.6s ease infinite', flexShrink: 0 }} />
+            <span style={{ color: v4.electric, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>WC Fantasy Mini League</span>
+          </div>
+          <div style={{ color: v4.text, fontFamily: display, fontSize: mobile ? 15 : 17, fontWeight: 700 }}>
+            Compete against everyone using the model's picks
+          </div>
+          <div style={{ color: v4.textDim, fontFamily: display, fontSize: 13, marginTop: 3 }}>
+            Join the TheModelSays league and see how the model's squad performs against yours.
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+          <div style={{
+            background: 'rgba(0,0,0,0.45)',
+            border: `1px solid rgba(0,255,135,0.28)`,
+            borderRadius: 10, padding: '10px 20px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+          }}>
+            <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>League code</span>
+            <span style={{ color: v4.electric, fontFamily: mono, fontSize: 24, fontWeight: 800, letterSpacing: '0.1em' }}>{MINI_LEAGUE_CODE}</span>
+          </div>
+          <button
+            onClick={handleCopy}
+            style={{
+              background: copied ? 'rgba(0,255,135,0.18)' : 'rgba(255,255,255,0.05)',
+              border: `1px solid ${copied ? 'rgba(0,255,135,0.5)' : v4.borderHi}`,
+              borderRadius: 10, padding: '10px 18px',
+              color: copied ? v4.electric : v4.textDim,
+              fontFamily: mono, fontSize: 11, fontWeight: 700,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+              cursor: 'pointer', transition: 'all 150ms ease', whiteSpace: 'nowrap',
+            }}
+          >
+            {copied ? '✓ Copied' : 'Copy code'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Features — 3 tool cards ──────────────────────────────────────────
 function V4FeatureCard({ tag, title, body, widget, widgetLabel, widgetStat }) {
   return (
@@ -981,6 +1051,7 @@ function LandingV4Final() {
       <V4Nav />
       <div id="home"><V4Hero /></div>
       <V4Marquee />
+      <V4MiniLeagueBanner />
       <div id="bracket"><TournamentBracket /></div>
       <div id="groups"><GroupStandings /></div>
       <div id="predictor"><WorldCupPredictor /></div>
