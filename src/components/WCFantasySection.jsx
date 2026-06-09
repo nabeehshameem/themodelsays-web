@@ -490,13 +490,30 @@ function canAddPlayer(player, locked) {
 
 // ── Pitch view helpers ──────────────────────────────────────────────────────
 
-function shortName(fullName) {
-  const parts = fullName.trim().split(/\s+/);
-  return parts[parts.length - 1];
-}
+const TEAM_FLAG = {
+  "Argentina": "🇦🇷", "Australia": "🇦🇺", "Austria": "🇦🇹",
+  "Belgium": "🇧🇪", "Bolivia": "🇧🇴", "Brazil": "🇧🇷",
+  "Cameroon": "🇨🇲", "Canada": "🇨🇦", "Chile": "🇨🇱",
+  "Colombia": "🇨🇴", "Costa Rica": "🇨🇷", "Croatia": "🇭🇷",
+  "Czech Republic": "🇨🇿", "Denmark": "🇩🇰", "Ecuador": "🇪🇨",
+  "Egypt": "🇪🇬", "England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "France": "🇫🇷",
+  "Germany": "🇩🇪", "Ghana": "🇬🇭", "Honduras": "🇭🇳",
+  "Hungary": "🇭🇺", "Indonesia": "🇮🇩", "Iran": "🇮🇷",
+  "Italy": "🇮🇹", "Ivory Coast": "🇨🇮", "Jamaica": "🇯🇲",
+  "Japan": "🇯🇵", "Kenya": "🇰🇪", "Mali": "🇲🇱",
+  "Mexico": "🇲🇽", "Morocco": "🇲🇦", "Netherlands": "🇳🇱",
+  "New Zealand": "🇳🇿", "Nigeria": "🇳🇬", "Norway": "🇳🇴",
+  "Panama": "🇵🇦", "Paraguay": "🇵🇾", "Peru": "🇵🇪",
+  "Poland": "🇵🇱", "Portugal": "🇵🇹", "Qatar": "🇶🇦",
+  "Romania": "🇷🇴", "Saudi Arabia": "🇸🇦", "Senegal": "🇸🇳",
+  "Serbia": "🇷🇸", "Slovenia": "🇸🇮", "South Korea": "🇰🇷",
+  "Spain": "🇪🇸", "Switzerland": "🇨🇭", "Turkey": "🇹🇷",
+  "Ukraine": "🇺🇦", "United States": "🇺🇸", "Uruguay": "🇺🇾",
+  "Venezuela": "🇻🇪", "Wales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+};
 
-function circleText(fullName) {
-  return shortName(fullName).slice(0, 4).toUpperCase();
+function teamFlag(team) {
+  return TEAM_FLAG[team] || "⚽";
 }
 
 // ── Pitch token ─────────────────────────────────────────────────────────────
@@ -533,8 +550,8 @@ function PitchToken({ player, pos, isModelPick, onRemove, isEmpty }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: isYou ? `0 0 12px ${col}55` : 'none',
         }}>
-          <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: isYou ? '#fff' : 'rgba(255,255,255,0.5)', letterSpacing: '0.01em', userSelect: 'none' }}>
-            {circleText(player.name)}
+          <span style={{ fontSize: 20, lineHeight: 1, userSelect: 'none' }}>
+            {teamFlag(player.team)}
           </span>
         </div>
         {isCap && (
