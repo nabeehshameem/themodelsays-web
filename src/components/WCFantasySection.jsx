@@ -490,6 +490,11 @@ function canAddPlayer(player, locked) {
 
 // ── Pitch view helpers ──────────────────────────────────────────────────────
 
+function shortName(fullName) {
+  const parts = fullName.trim().split(/\s+/);
+  return parts[parts.length - 1];
+}
+
 const TEAM_FLAG = {
   "Argentina": "🇦🇷", "Australia": "🇦🇺", "Austria": "🇦🇹",
   "Belgium": "🇧🇪", "Bolivia": "🇧🇴", "Brazil": "🇧🇷",
