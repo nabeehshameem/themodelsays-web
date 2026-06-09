@@ -495,30 +495,66 @@ function shortName(fullName) {
   return parts[parts.length - 1];
 }
 
-const TEAM_FLAG = {
-  "Argentina": "🇦🇷", "Australia": "🇦🇺", "Austria": "🇦🇹",
-  "Belgium": "🇧🇪", "Bolivia": "🇧🇴", "Brazil": "🇧🇷",
-  "Cameroon": "🇨🇲", "Canada": "🇨🇦", "Chile": "🇨🇱",
-  "Colombia": "🇨🇴", "Costa Rica": "🇨🇷", "Croatia": "🇭🇷",
-  "Czech Republic": "🇨🇿", "Denmark": "🇩🇰", "Ecuador": "🇪🇨",
-  "Egypt": "🇪🇬", "England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "France": "🇫🇷",
-  "Germany": "🇩🇪", "Ghana": "🇬🇭", "Honduras": "🇭🇳",
-  "Hungary": "🇭🇺", "Indonesia": "🇮🇩", "Iran": "🇮🇷",
-  "Italy": "🇮🇹", "Ivory Coast": "🇨🇮", "Jamaica": "🇯🇲",
-  "Japan": "🇯🇵", "Kenya": "🇰🇪", "Mali": "🇲🇱",
-  "Mexico": "🇲🇽", "Morocco": "🇲🇦", "Netherlands": "🇳🇱",
-  "New Zealand": "🇳🇿", "Nigeria": "🇳🇬", "Norway": "🇳🇴",
-  "Panama": "🇵🇦", "Paraguay": "🇵🇾", "Peru": "🇵🇪",
-  "Poland": "🇵🇱", "Portugal": "🇵🇹", "Qatar": "🇶🇦",
-  "Romania": "🇷🇴", "Saudi Arabia": "🇸🇦", "Senegal": "🇸🇳",
-  "Serbia": "🇷🇸", "Slovenia": "🇸🇮", "South Korea": "🇰🇷",
-  "Spain": "🇪🇸", "Switzerland": "🇨🇭", "Turkey": "🇹🇷",
-  "Ukraine": "🇺🇦", "United States": "🇺🇸", "Uruguay": "🇺🇾",
-  "Venezuela": "🇻🇪", "Wales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+// FIFA 3-letter codes + national kit color for each country
+const TEAM_META = {
+  "Argentina":    { code: "ARG", color: "#74ACDF" },
+  "Australia":    { code: "AUS", color: "#FFD700" },
+  "Austria":      { code: "AUT", color: "#ED2939" },
+  "Belgium":      { code: "BEL", color: "#E8384D" },
+  "Bolivia":      { code: "BOL", color: "#D52B1E" },
+  "Brazil":       { code: "BRA", color: "#3DB56A" },
+  "Cameroon":     { code: "CMR", color: "#007A5E" },
+  "Canada":       { code: "CAN", color: "#FF0000" },
+  "Chile":        { code: "CHI", color: "#D52B1E" },
+  "Colombia":     { code: "COL", color: "#FCD116" },
+  "Costa Rica":   { code: "CRC", color: "#002B7F" },
+  "Croatia":      { code: "CRO", color: "#CC3333" },
+  "Denmark":      { code: "DEN", color: "#C60C30" },
+  "Ecuador":      { code: "ECU", color: "#FFD100" },
+  "Egypt":        { code: "EGY", color: "#CE1126" },
+  "England":      { code: "ENG", color: "#FFFFFF" },
+  "France":       { code: "FRA", color: "#002395" },
+  "Germany":      { code: "GER", color: "#AAAAAA" },
+  "Ghana":        { code: "GHA", color: "#FFFFFF" },
+  "Honduras":     { code: "HON", color: "#0F47AF" },
+  "Indonesia":    { code: "IDN", color: "#CE1126" },
+  "Iran":         { code: "IRN", color: "#239F40" },
+  "Japan":        { code: "JPN", color: "#003087" },
+  "Jamaica":      { code: "JAM", color: "#FFD700" },
+  "Mali":         { code: "MLI", color: "#14B53A" },
+  "Mexico":       { code: "MEX", color: "#006847" },
+  "Morocco":      { code: "MAR", color: "#C1272D" },
+  "Netherlands":  { code: "NED", color: "#FF6600" },
+  "New Zealand":  { code: "NZL", color: "#000000" },
+  "Nigeria":      { code: "NGA", color: "#008751" },
+  "Norway":       { code: "NOR", color: "#EF2B2D" },
+  "Panama":       { code: "PAN", color: "#DA121A" },
+  "Paraguay":     { code: "PAR", color: "#D52B1E" },
+  "Peru":         { code: "PER", color: "#D91023" },
+  "Poland":       { code: "POL", color: "#FFFFFF" },
+  "Portugal":     { code: "POR", color: "#006600" },
+  "Qatar":        { code: "QAT", color: "#8D153A" },
+  "Romania":      { code: "ROU", color: "#002B7F" },
+  "Saudi Arabia": { code: "KSA", color: "#006C35" },
+  "Senegal":      { code: "SEN", color: "#00853F" },
+  "Serbia":       { code: "SRB", color: "#C6363C" },
+  "Slovenia":     { code: "SVN", color: "#003DA5" },
+  "South Korea":  { code: "KOR", color: "#CD2E3A" },
+  "Spain":        { code: "ESP", color: "#AA151B" },
+  "Switzerland":  { code: "SUI", color: "#FF0000" },
+  "Turkey":       { code: "TUR", color: "#E30A17" },
+  "Ukraine":      { code: "UKR", color: "#005BBB" },
+  "United States":{ code: "USA", color: "#002868" },
+  "Uruguay":      { code: "URU", color: "#5EB6E4" },
+  "Venezuela":    { code: "VEN", color: "#CF142B" },
+  "Wales":        { code: "WAL", color: "#C8102E" },
 };
 
-function teamFlag(team) {
-  return TEAM_FLAG[team] || "⚽";
+function teamCode(team) {
+  return TEAM_META[team]?.code ?? team?.slice(0, 3).toUpperCase() ?? "???";
+}
+function teamColor(team) {
+  return TEAM_META[team]?.color ?? "#888888";
 }
 
 // ── Pitch token ─────────────────────────────────────────────────────────────
@@ -555,8 +591,8 @@ function PitchToken({ player, pos, isModelPick, onRemove, isEmpty }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: isYou ? `0 0 12px ${col}55` : 'none',
         }}>
-          <span style={{ fontSize: 20, lineHeight: 1, userSelect: 'none' }}>
-            {teamFlag(player.team)}
+          <span style={{ fontFamily: mono, fontSize: 8, fontWeight: 800, letterSpacing: '0.04em', color: teamColor(player.team), userSelect: 'none', lineHeight: 1 }}>
+            {teamCode(player.team)}
           </span>
         </div>
         {isCap && (
