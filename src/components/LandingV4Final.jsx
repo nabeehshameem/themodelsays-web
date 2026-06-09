@@ -241,11 +241,11 @@ function V4BracketHero() {
 
 // ── Hero ────────────────────────────────────────────────────────────
 const SAYINGS = [
-  'France lift the trophy.',
-  'Mbappe: Golden Boot.',
-  'England reach the final.',
-  'Brazil beat Argentina.',
-  'Spain win Group H.',
+  'Spain lift the trophy.',
+  'France reach the final.',
+  'England: knocked out on penalties.',
+  'Argentina fall short in the quarters.',
+  'Germany crash out in the groups.',
 ];
 
 function V4Hero() {
@@ -650,16 +650,11 @@ function V4Accuracy() {
         <div>
           <div style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>track record</div>
           <h2 style={{ color: v4.text, fontSize: mobile ? 36 : 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
-            The model beats FPL's own forecasts.
+            Built on a proven forecasting engine.
           </h2>
           <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.5, marginTop: 16, maxWidth: 420 }}>
-            Beat FPL's official forecast in six of the last six gameweeks last season.
+            Our Dixon-Coles model outperformed FPL's own forecasts in six consecutive gameweeks last season — the same engine now predicts every WC 2026 fixture.
           </p>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20,
-            color: v4.textVeryDim, fontFamily: display, fontWeight: 700, fontSize: 13,
-            letterSpacing: '0.02em', cursor: 'not-allowed', opacity: 0.45,
-          }}>Track record coming soon</span>
         </div>
 
         <div style={{ background: v4.surface, border: `1px solid ${v4.border}`, borderRadius: 14, padding: 28 }}>
@@ -745,12 +740,12 @@ function V4CTA() {
     <div style={{ padding: mobile ? '80px 20px' : '120px 56px', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${v4.border}` }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 65%, rgba(123,46,227,0.22), transparent 52%)' }} />
       <div style={{ position: 'relative', maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ color: v4.electric, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 20 }}>WC 2026 KICKS OFF JUNE 11</div>
+        <div style={{ color: v4.electric, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 20 }}>WC 2026 · GROUP STAGE UNDERWAY</div>
         <h2 style={{ color: v4.text, fontSize: mobile ? 48 : 72, fontWeight: 700, letterSpacing: '-0.045em', lineHeight: 0.95, margin: 0, fontFamily: display }}>
           Follow every<br/>call live.
         </h2>
         <p style={{ color: v4.textDim, fontSize: 16, marginTop: 20, marginBottom: 36, lineHeight: 1.5 }}>
-          Get the model's picks for the group stage draw the moment they're ready.
+          Get the model's predictions for every group stage match delivered to your inbox.
         </p>
         {!done ? (
           <>
