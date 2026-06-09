@@ -1022,13 +1022,84 @@ function useIsMobile() {
 
 // ── Main section ─────────────────────────────────────────────────────────────
 
+const MINI_LEAGUE_CODE = '64T3EKYD';
+
+function MiniLeagueBanner({ isMobile }) {
+  const [copied, setCopied] = React.useState(false);
+
+  function handleCopy() {
+    navigator.clipboard?.writeText(MINI_LEAGUE_CODE).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div style={{
+      marginBottom: 40,
+      background: 'linear-gradient(135deg, rgba(0,255,135,0.08) 0%, rgba(123,46,227,0.12) 100%)',
+      border: `1px solid rgba(0,255,135,0.25)`,
+      borderRadius: 16,
+      padding: isMobile ? '20px 20px' : '20px 28px',
+      display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
+      alignItems: isMobile ? 'flex-start' : 'center',
+      gap: isMobile ? 16 : 24,
+    }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          <span style={{ width: 7, height: 7, borderRadius: 999, background: v4.electric, flexShrink: 0 }} />
+          <span style={{ color: v4.electric, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Mini League</span>
+        </div>
+        <div style={{ color: v4.text, fontFamily: display, fontSize: isMobile ? 15 : 16, fontWeight: 700, lineHeight: 1.4 }}>
+          Compete against everyone using the model's picks
+        </div>
+        <div style={{ color: v4.textDim, fontFamily: display, fontSize: 13, marginTop: 4 }}>
+          Join the TheModelSays WC Fantasy mini league — see how you stack up.
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        <div style={{
+          background: 'rgba(0,0,0,0.4)',
+          border: `1px solid rgba(0,255,135,0.3)`,
+          borderRadius: 10,
+          padding: '10px 18px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+        }}>
+          <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>League code</span>
+          <span style={{ color: v4.electric, fontFamily: mono, fontSize: 22, fontWeight: 800, letterSpacing: '0.08em' }}>{MINI_LEAGUE_CODE}</span>
+        </div>
+
+        <button
+          onClick={handleCopy}
+          style={{
+            background: copied ? 'rgba(0,255,135,0.2)' : 'rgba(0,255,135,0.1)',
+            border: `1px solid ${copied ? 'rgba(0,255,135,0.6)' : 'rgba(0,255,135,0.3)'}`,
+            borderRadius: 10,
+            padding: '10px 16px',
+            color: copied ? v4.electric : v4.textDim,
+            fontFamily: mono, fontSize: 11, fontWeight: 700,
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+            cursor: 'pointer',
+            transition: 'all 150ms ease',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {copied ? '✓ Copied' : 'Copy code'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function WCFantasySection() {
   const isMobile = useIsMobile();
   return (
     <div style={{ padding: isMobile ? '60px 16px' : '100px 56px', background: v4.bg, borderTop: `1px solid ${v4.border}`, borderBottom: `1px solid ${v4.border}` }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
 
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{ color: v4.amber, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>wc2026 fantasy</div>
           <h2 style={{ color: v4.text, fontSize: isMobile ? 32 : 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
             Let the model pick your team
@@ -1037,6 +1108,8 @@ export default function WCFantasySection() {
             Dixon-Coles team ratings drive every projection. Set your budget, get an optimal squad — then see who to captain.
           </p>
         </div>
+
+        <MiniLeagueBanner isMobile={isMobile} />
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24, alignItems: 'start' }}>
 

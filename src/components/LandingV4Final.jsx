@@ -362,7 +362,7 @@ function V4Tag({ children, accent }) {
 
 // ── Marquee ────────────────────────────────────────────────────────
 function V4Marquee() {
-  const items = ['WORLD CUP 2026', '48 TEAMS · 104 MATCHES', 'LIVE PREDICTIONS', 'BRACKET BUILDER', '50K SIMULATIONS', 'FANTASY OPTIMIZER', 'FREE OPEN BETA', 'JUNE 11 · USA MEXICO CANADA'];
+  const items = ['WORLD CUP 2026', '48 TEAMS · 104 MATCHES', 'LIVE PREDICTIONS', 'BRACKET BUILDER', '50K SIMULATIONS', 'FANTASY OPTIMIZER', 'FREE OPEN BETA', 'JUNE 11 · USA MEXICO CANADA', 'MINI LEAGUE · CODE: 64T3EKYD'];
   const all = [...items, ...items, ...items];
   return (
     <div style={{
