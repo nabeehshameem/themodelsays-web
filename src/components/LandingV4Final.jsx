@@ -1,6 +1,5 @@
 import React from 'react';
-import { FPL_DATA, TEAM_COLORS } from '../data.js';
-import { subscribeEmail, fetchSimulation, predictWorldCupMatch, wcFantasy } from '../lib/api.js';
+import { fetchSimulation, predictWorldCupMatch, wcFantasy } from '../lib/api.js';
 import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
 import TournamentBracket from './TournamentBracket.jsx';
@@ -55,14 +54,21 @@ if (typeof document !== 'undefined' && !document.getElementById('tms-anim')) {
   document.head.appendChild(s);
 }
 
+// Single resize listener shared across all components in this file.
+const _mobileListeners = new Set();
+let _isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+if (typeof window !== 'undefined') {
+  window.addEventListener('resize', () => {
+    const m = window.innerWidth < 768;
+    if (m !== _isMobile) { _isMobile = m; _mobileListeners.forEach(fn => fn(m)); }
+  }, { passive: true });
+}
+
 function useIsMobile() {
-  const [mobile, setMobile] = React.useState(
-    typeof window !== 'undefined' && window.innerWidth < 768
-  );
+  const [mobile, setMobile] = React.useState(_isMobile);
   React.useEffect(() => {
-    const handler = () => setMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
+    _mobileListeners.add(setMobile);
+    return () => _mobileListeners.delete(setMobile);
   }, []);
   return mobile;
 }
@@ -128,6 +134,13 @@ function V4Nav() {
   );
 }
 
+// Shared promise so both V4BracketHero and WidgetBracket fire only one request.
+let _simPromise = null;
+function getSimulation() {
+  if (!_simPromise) _simPromise = fetchSimulation(10_000);
+  return _simPromise;
+}
+
 // ── WC Favourites hero widget ────────────────────────────────────────
 const _TEAM_COLORS = {
   France: '#4F85D3', Brazil: '#3DB56A', England: '#E05252', Argentina: '#74ACDF',
@@ -141,7 +154,7 @@ function V4BracketHero() {
   const [nSim, setNSim] = React.useState(null);
 
   React.useEffect(() => {
-    fetchSimulation(10_000)
+    getSimulation()
       .then(data => {
         const sorted = [...data.teams]
           .sort((a, b) => b.win_pct - a.win_pct)
@@ -311,15 +324,6 @@ function V4Hero() {
             <span style={{ color: v4.text, fontWeight: 500 }}>Free, open beta.</span>
           </p>
 
-          <div style={{ marginTop: 36 }}>
-            <span style={{
-              background: 'rgba(0,255,135,0.12)', color: v4.textVeryDim, borderRadius: 999,
-              padding: '15px 24px', fontSize: 14.5, fontWeight: 700, cursor: 'not-allowed',
-              letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: display,
-              display: 'inline-block', opacity: 0.55,
-            }}>App coming soon</span>
-          </div>
-
           {/* Stats */}
           <div style={{ display: 'flex', gap: 32, marginTop: 52, alignItems: 'center' }}>
             <div>
@@ -343,20 +347,6 @@ function V4Hero() {
         <V4BracketHero />
       </div>
     </div>
-  );
-}
-
-function V4Tag({ children, accent }) {
-  return (
-    <span style={{
-      background: accent ? 'rgba(0,255,135,0.12)' : 'rgba(0,0,0,0.5)',
-      color: accent ? v4.electric : v4.text,
-      backdropFilter: 'blur(8px)',
-      border: `1px solid ${accent ? 'rgba(0,255,135,0.25)' : v4.borderHi}`,
-      borderRadius: 8, padding: '6px 10px',
-      fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
-      fontFamily: mono,
-    }}>{children}</span>
   );
 }
 
@@ -565,32 +555,6 @@ function WidgetCaptain() {
   );
 }
 
-function WidgetPlanner() {
-  const phases = [
-    { label: 'Group', dates: 'Jun 11–26', ev: '+9.4', hot: true },
-    { label: 'R32',   dates: 'Jun 27–Jul 2', ev: '+5.2', hot: false },
-    { label: 'QF',    dates: 'Jul 4–5', ev: '+3.1', hot: false },
-    { label: 'SF',    dates: 'Jul 8–9', ev: '+2.8', hot: false },
-    { label: 'Final', dates: 'Jul 19', ev: '+1.9', hot: false },
-  ];
-  return (
-    <div style={{ display: 'flex', gap: 5 }}>
-      {phases.map(g => (
-        <div key={g.label} style={{ flex: 1, background: v4.bg, border: `1px solid ${g.hot ? 'rgba(0,255,135,0.35)' : v4.border}`, borderRadius: 8, padding: '7px 5px', position: 'relative' }}>
-          <div style={{ fontSize: 9, color: v4.textVeryDim, fontFamily: mono, fontWeight: 600 }}>{g.label}</div>
-          <div style={{ fontSize: 9, color: v4.text, fontWeight: 600, marginTop: 2, fontFamily: display, lineHeight: 1.2 }}>{g.dates}</div>
-          <div style={{ fontSize: 10, color: v4.electric, fontFamily: mono, fontWeight: 700, marginTop: 5 }}>{g.ev}</div>
-          {g.hot && (
-            <div style={{ position: 'absolute', top: -7, right: -3, padding: '1px 4px', background: v4.electric, color: v4.bg, fontSize: 7, fontWeight: 800, borderRadius: 8, fontFamily: mono, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-              HOT
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 const _SAMPLE_MATCHUPS = [
   { home: 'France',   away: 'Brazil'    },
   { home: 'England',  away: 'Argentina' },
@@ -645,7 +609,7 @@ function WidgetBracket() {
   const [teams, setTeams] = React.useState(null);
 
   React.useEffect(() => {
-    fetchSimulation(10_000)
+    getSimulation()
       .then(data => {
         const sorted = [...data.teams]
           .sort((a, b) => b.win_pct - a.win_pct)
@@ -788,24 +752,7 @@ function V4Quote() {
 
 // ── CTA ────────────────────────────────────────────────────────────
 function V4CTA() {
-  const [email,  setEmail]  = React.useState('');
-  const [status, setStatus] = React.useState('idle'); // idle | loading | success | error | duplicate
   const mobile = useIsMobile();
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!email.trim() || status === 'loading') return;
-    setStatus('loading');
-    try {
-      const res = await subscribeEmail(email.trim());
-      setStatus(res?.status === 'already_subscribed' ? 'duplicate' : 'success');
-    } catch {
-      setStatus('error');
-    }
-  }
-
-  const done = status === 'success' || status === 'duplicate';
-
   return (
     <div style={{ padding: mobile ? '80px 20px' : '120px 56px', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${v4.border}` }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 65%, rgba(123,46,227,0.22), transparent 52%)' }} />
@@ -814,60 +761,26 @@ function V4CTA() {
         <h2 style={{ color: v4.text, fontSize: mobile ? 48 : 72, fontWeight: 700, letterSpacing: '-0.045em', lineHeight: 0.95, margin: 0, fontFamily: display }}>
           Follow every<br/>call live.
         </h2>
-        <p style={{ color: v4.textDim, fontSize: 16, marginTop: 20, marginBottom: 36, lineHeight: 1.5 }}>
-          Get the model's predictions for every group stage match delivered to your inbox.
+        <p style={{ color: v4.textDim, fontSize: 16, marginTop: 20, marginBottom: 40, lineHeight: 1.5 }}>
+          Match predictions, squad picks, and bracket updates — every matchday on TikTok and YouTube.
         </p>
-        {!done ? (
-          <>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <input
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              disabled={status === 'loading'}
-              style={{
-                background: 'rgba(255,255,255,0.06)', color: v4.text,
-                border: `1px solid ${status === 'error' ? 'rgba(255,85,119,0.5)' : v4.borderHi}`,
-                borderRadius: 999,
-                padding: '13px 20px', fontSize: 14, fontFamily: display,
-                outline: 'none', width: 260, minWidth: 0,
-                opacity: status === 'loading' ? 0.6 : 1,
-              }}
-            />
-            <button
-              type="submit"
-              disabled={status === 'loading'}
-              style={{
-                background: v4.electric, color: v4.bg, border: 0, borderRadius: 999,
-                padding: '13px 24px', fontSize: 14, fontWeight: 700,
-                letterSpacing: '0.02em',
-                cursor: status === 'loading' ? 'not-allowed' : 'pointer',
-                fontFamily: display, opacity: status === 'loading' ? 0.7 : 1,
-              }}
-            >
-              {status === 'loading' ? 'Saving…' : 'Notify me'}
-            </button>
-            {status === 'error' && (
-              <div style={{ width: '100%', color: '#ff5577', fontFamily: mono, fontSize: 12, marginTop: 4 }}>
-                Something went wrong — try again.
-              </div>
-            )}
-          </form>
-          <p style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11, marginTop: 14, lineHeight: 1.65, maxWidth: 420, marginInline: 'auto' }}>
-            We'll only use your email to send launch updates and major announcements. To remove your address at any time, email <a href="mailto:unsubscribe@themodelsays.com" style={{ color: 'inherit' }}>unsubscribe@themodelsays.com</a>. We never share your data with third parties.
-          </p>
-          </>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-            <div style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 700, letterSpacing: '0.08em' }}>
-              {status === 'duplicate' ? 'ALREADY ON THE LIST ✓' : 'YOU\'RE ON THE LIST ✓'}
-            </div>
-            <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11 }}>
-              We'll email you when match predictions go live.
-            </div>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {SOCIALS.map(s => (
+            <a key={s.name} href={s.href} target="_blank" rel="noopener noreferrer" style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: 'rgba(255,255,255,0.05)', border: `1px solid ${v4.border}`,
+              borderRadius: 12, padding: '12px 20px',
+              color: v4.text, textDecoration: 'none', fontFamily: display, fontSize: 14, fontWeight: 600,
+              transition: 'border-color 140ms ease',
+            }}>
+              <span style={{ color: v4.electric }}>{s.icon}</span>
+              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+                <span>{s.name}</span>
+                <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10 }}>{s.handle}</span>
+              </span>
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   );

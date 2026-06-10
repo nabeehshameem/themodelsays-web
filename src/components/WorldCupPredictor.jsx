@@ -124,10 +124,17 @@ export default function WorldCupPredictor() {
 
   const canPredict = home && away && home !== away && status !== 'loading';
 
+  function handleToggleKnockout() {
+    setKnockout(k => !k);
+    setResult(null);
+    setStatus('idle');
+    setErrMsg('');
+  }
+
   function handleShare() {
     if (!result) return;
-    const h = Math.round(result.home_xg);
-    const a = Math.round(result.away_xg);
+    const h = result.most_likely[0].home_goals;
+    const a = result.most_likely[0].away_goals;
     const winPct = result.ko_win_pct != null ? result.ko_win_pct : result.win_pct;
     const mode = result.ko_win_pct != null ? ' (knockout)' : '';
     const text = `The model predicts: ${result.home_name} ${h}–${a} ${result.away_name}${mode}\n${winPct.toFixed(0)}% chance of a ${result.home_name} win\n\nthemodelsays.com`;
@@ -185,7 +192,7 @@ export default function WorldCupPredictor() {
 
           {/* knockout toggle */}
           <div
-            onClick={() => setKnockout(k => !k)}
+            onClick={handleToggleKnockout}
             style={{
               display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16,
               cursor: 'pointer', userSelect: 'none',
@@ -256,7 +263,7 @@ export default function WorldCupPredictor() {
                   letterSpacing: '-0.04em', lineHeight: 1,
                   textShadow: `0 0 30px rgba(0,255,135,0.35)`,
                 }}>
-                  {Math.round(result.home_xg)}–{Math.round(result.away_xg)}
+                  {result.most_likely[0].home_goals}–{result.most_likely[0].away_goals}
                 </div>
                 <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>
                   {result.ko_win_pct != null ? 'EXPECTED 90 MIN' : 'EXPECTED SCORE'}
