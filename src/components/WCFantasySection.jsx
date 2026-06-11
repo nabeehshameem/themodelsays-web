@@ -164,13 +164,51 @@ function TwelfthManPanel({ player }) {
           <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, marginTop: 1 }}>{player.team}</div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ fontFamily: mono, fontSize: 16, fontWeight: 700, color }}>{player.projected_pts.toFixed(1)} <span style={{ fontSize: 10, color: v4.textVeryDim, fontWeight: 400 }}>pts</span></div>
+          <div style={{ fontFamily: mono, fontSize: 16, fontWeight: 700, color }}>{player.pts_per_match.toFixed(1)} <span style={{ fontSize: 10, color: v4.textVeryDim, fontWeight: 400 }}>est. pts MD1</span></div>
           <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim }}>${player.price_m.toFixed(1)}m</div>
         </div>
       </div>
       <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, color: v4.textVeryDim, lineHeight: 1.5 }}>
         No budget or team-cap restrictions apply. This player cannot be captained, subbed, or transferred.
       </div>
+    </div>
+  );
+}
+
+function WildcardPanel({ recommendation, starters, bench, totalPts }) {
+  if (!recommendation) return null;
+  const color = v4.purple;
+  return (
+    <div style={{ marginTop: 16, padding: '14px 16px', background: `${color}0d`, border: `1px solid ${color}33`, borderRadius: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color, textTransform: 'uppercase' }}>
+          Wildcard — Matchday 3 squad
+        </div>
+        {totalPts != null && (
+          <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color }}>
+            {totalPts.toFixed(1)} <span style={{ fontSize: 9, color: v4.textVeryDim, fontWeight: 400 }}>proj. pts</span>
+          </div>
+        )}
+      </div>
+      <div style={{ fontFamily: mono, fontSize: 11, color: v4.textDim, marginBottom: 14, lineHeight: 1.5 }}>
+        {recommendation}
+      </div>
+      {starters?.length > 0 && (
+        <>
+          <div style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '4px 0', marginBottom: 4, borderBottom: `1px solid ${v4.border}` }}>
+            Starting XI
+          </div>
+          {starters.map(p => <PlayerRow key={p.id} player={p} />)}
+          {bench?.length > 0 && (
+            <>
+              <div style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '4px 0', margin: '8px 0 4px', borderBottom: `1px solid ${v4.border}` }}>
+                Bench
+              </div>
+              {bench.map(p => <PlayerRow key={p.id} player={p} />)}
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -261,7 +299,7 @@ function SquadOptimizer() {
     setResult(null);
     setErrMsg('');
     try {
-      const data = await wcFantasy.optimise({ budget: 1000, booster });
+      const data = await wcFantasy.optimise({ budget: 1000, booster, matchdays: [1, 2] });
       setResult(data);
       setStatus('success');
     } catch (e) {
@@ -333,12 +371,13 @@ function SquadOptimizer() {
           </div>
 
           {/* Booster panels */}
+          <WildcardPanel recommendation={result.wildcard_recommendation} starters={result.wildcard_starters} bench={result.wildcard_bench} totalPts={result.wildcard_total_pts} />
           <TwelfthManPanel player={result.twelfth_man} />
           <MaxCapPanel candidates={result.max_cap_candidates} expectedPts={result.expected_max_cap_pts} />
           <QualBoosterPanel breakdown={result.qual_booster_breakdown} total={result.qual_booster_total} />
 
           <p style={{ color: v4.textVeryDim, fontSize: 11, fontFamily: mono, textAlign: 'center', lineHeight: 1.6, margin: '14px 0 0' }}>
-            Model projections for 3 group-stage matches · C = recommended captain · estimated prices
+            Model projections for MD1+MD2 · C = recommended captain · estimated prices
           </p>
         </div>
       )}
@@ -864,7 +903,7 @@ function WCTeamBuilder({ isMobile }) {
   async function handleFill() {
     setStatus('loading'); setResult(null); setErrMsg('');
     try {
-      const data = await wcFantasy.optimise({ budget: BUDGET_TOTAL, locked_player_ids: locked.map(p => p.id) });
+      const data = await wcFantasy.optimise({ budget: BUDGET_TOTAL, locked_player_ids: locked.map(p => p.id), matchdays: [1, 2] });
       setResult(data);
       setStatus('success');
     } catch (e) {
