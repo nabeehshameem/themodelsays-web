@@ -347,34 +347,38 @@ function SquadOptimizer() {
 
       {status === 'success' && result && (
         <div style={{ marginTop: 20 }}>
-          <div style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '12px 16px', marginBottom: 12,
-            background: `${btnColor}0f`, border: `1px solid ${btnColor}33`,
-            borderRadius: 10,
-          }}>
-            <div>
-              <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Projected points</div>
-              <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: btnColor }}>{result.total_pts.toFixed(1)}</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Total cost</div>
-              <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: v4.text }}>${result.total_cost_m.toFixed(1)}m</div>
-            </div>
-          </div>
+          {booster !== 'wildcard' && (
+            <>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '12px 16px', marginBottom: 12,
+                background: `${btnColor}0f`, border: `1px solid ${btnColor}33`,
+                borderRadius: 10,
+              }}>
+                <div>
+                  <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Projected points</div>
+                  <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: btnColor }}>{result.total_pts.toFixed(1)}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Total cost</div>
+                  <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: v4.text }}>${result.total_cost_m.toFixed(1)}m</div>
+                </div>
+              </div>
 
-          <div style={{ border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
-            <SquadSection label="Forwards"    players={byPos('FWD')} color={v4.pink}   />
-            <SquadSection label="Midfielders" players={byPos('MID')} color={v4.purple} />
-            <SquadSection label="Defenders"   players={byPos('DEF')} color={v4.green}  />
-            <SquadSection label="Goalkeepers" players={byPos('GK')}  color={v4.amber}  />
-          </div>
+              <div style={{ border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
+                <SquadSection label="Forwards"    players={byPos('FWD')} color={v4.pink}   />
+                <SquadSection label="Midfielders" players={byPos('MID')} color={v4.purple} />
+                <SquadSection label="Defenders"   players={byPos('DEF')} color={v4.green}  />
+                <SquadSection label="Goalkeepers" players={byPos('GK')}  color={v4.amber}  />
+              </div>
+            </>
+          )}
 
           {/* Booster panels */}
           <WildcardPanel recommendation={result.wildcard_recommendation} starters={result.wildcard_starters} bench={result.wildcard_bench} totalPts={result.wildcard_total_pts} />
-          <TwelfthManPanel player={result.twelfth_man} />
-          <MaxCapPanel candidates={result.max_cap_candidates} expectedPts={result.expected_max_cap_pts} />
-          <QualBoosterPanel breakdown={result.qual_booster_breakdown} total={result.qual_booster_total} />
+          {booster !== 'wildcard' && <TwelfthManPanel player={result.twelfth_man} />}
+          {booster !== 'wildcard' && <MaxCapPanel candidates={result.max_cap_candidates} expectedPts={result.expected_max_cap_pts} />}
+          {booster !== 'wildcard' && <QualBoosterPanel breakdown={result.qual_booster_breakdown} total={result.qual_booster_total} />}
 
           <p style={{ color: v4.textVeryDim, fontSize: 11, fontFamily: mono, textAlign: 'center', lineHeight: 1.6, margin: '14px 0 0' }}>
             Model projections for MD1+MD2 · C = recommended captain · estimated prices
