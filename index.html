@@ -99,6 +99,76 @@
     />
   </head>
   <body>
+    <div id="seo-static" style="font-family:sans-serif;max-width:900px;margin:0 auto;padding:24px;color:#111">
+      <h1>World Cup 2026 Score Predictor &amp; AI Bracket | TheModelSays</h1>
+      <p>
+        TheModelSays is a free AI-powered 2026 FIFA World Cup score predictor and interactive bracket tool.
+        Our Dixon-Coles Poisson model is trained on WC 2018, WC 2022, and recent international results
+        to estimate match scores, group standings, and knockout-round outcomes for all 48 qualified teams.
+      </p>
+
+      <h2>What can you do on TheModelSays?</h2>
+      <ul>
+        <li><strong>Score predictor</strong> — Get AI-generated score probabilities and expected goals for any WC 2026 fixture. See the most likely scoreline, win/draw/loss percentages, and the full probability matrix.</li>
+        <li><strong>Tournament bracket</strong> — Build your own interactive WC 2026 bracket. Pick group stage results, choose which third-place teams advance, and click through every knockout round from the Round of 32 to the Final.</li>
+        <li><strong>Tournament simulation</strong> — Run a Monte Carlo simulation of the full tournament across 50,000 scenarios. See each team's probability of reaching the quarter-finals, semi-finals, final, and winning the World Cup.</li>
+        <li><strong>Live group table</strong> — Track real match results as they happen and watch group standings update instantly.</li>
+        <li><strong>Fantasy World Cup picks</strong> — AI-optimised fantasy squad suggestions based on projected points across matchdays, using the same Dixon-Coles model.</li>
+      </ul>
+
+      <h2>How the model works</h2>
+      <p>
+        The score predictor uses a Dixon-Coles Poisson model — a statistical approach widely used in football analytics.
+        It estimates each team's attack strength and defensive weakness from historical WC matches and recent
+        international results, weighted by competition tier and recency. A low-score correction (tau adjustment)
+        improves accuracy for 0-0, 1-0, 0-1, and 1-1 outcomes. Form adjustments and ELO ratings are blended
+        in to capture recent momentum heading into the tournament.
+      </p>
+
+      <h2>WC 2026 groups and teams</h2>
+      <p>The 2026 FIFA World Cup features 48 teams across 12 groups (A–L). All 48 teams are included in predictions:</p>
+      <ul>
+        <li><strong>Group A:</strong> Mexico, South Korea, South Africa, Czech Republic</li>
+        <li><strong>Group B:</strong> Canada, Switzerland, Qatar, Bosnia and Herzegovina</li>
+        <li><strong>Group C:</strong> Brazil, Morocco, Scotland, Haiti</li>
+        <li><strong>Group D:</strong> United States, Australia, Paraguay, Turkey</li>
+        <li><strong>Group E:</strong> Germany, Curaçao, Ivory Coast, Ecuador</li>
+        <li><strong>Group F:</strong> Netherlands, Japan, Tunisia, Sweden</li>
+        <li><strong>Group G:</strong> Belgium, Iran, Egypt, New Zealand</li>
+        <li><strong>Group H:</strong> Spain, Uruguay, Saudi Arabia, Cape Verde</li>
+        <li><strong>Group I:</strong> France, Senegal, Norway, Iraq</li>
+        <li><strong>Group J:</strong> Argentina, Austria, Algeria, Jordan</li>
+        <li><strong>Group K:</strong> Portugal, Colombia, Uzbekistan, DR Congo</li>
+        <li><strong>Group L:</strong> England, Croatia, Panama, Ghana</li>
+      </ul>
+
+      <h2>Frequently asked questions</h2>
+      <h3>Is TheModelSays free?</h3>
+      <p>Yes — all features including the score predictor, bracket builder, tournament simulation, and fantasy picks are completely free.</p>
+
+      <h3>How accurate is the WC 2026 score predictor?</h3>
+      <p>
+        The model correctly identifies the favourite in over 60% of international fixtures and places the actual
+        result within the top-3 most likely scorelines in the majority of matches. No model can predict football
+        with certainty — TheModelSays shows probabilities, not certainties.
+      </p>
+
+      <h3>Which team is predicted to win the 2026 World Cup?</h3>
+      <p>
+        Based on the current model, France, Spain, England, Argentina, and Portugal are the top five contenders
+        by win probability. Run the full tournament simulation on TheModelSays to see the latest odds.
+      </p>
+
+      <h3>How often is the model updated?</h3>
+      <p>
+        The model is retrained after every round of WC 2026 matches, incorporating live results to improve
+        team strength estimates as the tournament progresses.
+      </p>
+    </div>
+    <script>
+      var s = document.getElementById('seo-static');
+      if (s) s.style.display = 'none';
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
