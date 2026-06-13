@@ -2,9 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "redirects": [
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.themodelsays.com" }], "destination": "https://themodelsays.com/:path*", "permanent": true }
-  ],
   "rewrites": [
     { "source": "/ads.txt", "destination": "/ads.txt" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
