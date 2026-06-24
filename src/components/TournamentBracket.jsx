@@ -1,5 +1,5 @@
 import React from 'react';
-import { fetchSimulation } from '../lib/api.js';
+import { fetchSimulation, fetchStandings } from '../lib/api.js';
 
 const v4 = {
   bg:          '#0d0118',
@@ -333,12 +333,19 @@ function BracketColumn({ label, matches, groupPicks, picks, onPick, simData, hei
 const RANK_COLORS = [v4.electric, 'rgba(0,255,135,0.55)', v4.textDim, v4.textVeryDim];
 const RANK_BGS    = ['rgba(0,255,135,0.18)', 'rgba(0,255,135,0.08)', 'rgba(255,255,255,0.04)', 'rgba(255,255,255,0.02)'];
 
-function GroupCard({ letter, order, onReorder, simData }) {
+function GroupCard({ letter, order, onReorder, simData, lockedData }) {
   const mobile = useIsMobile();
   const [dragIdx,  setDragIdx]  = React.useState(null);
   const [dragOver, setDragOver] = React.useState(null);
 
+  const lockMap = React.useMemo(
+    () => Object.fromEntries((lockedData || []).map(t => [t.team, t])),
+    [lockedData]
+  );
+  const isLocked = team => lockMap[team]?.pos_locked ?? false;
+
   function handleDragStart(e, idx) {
+    if (isLocked(order[idx])) return;
     setDragIdx(idx);
     e.dataTransfer.effectAllowed = 'move';
   }
@@ -349,30 +356,32 @@ function GroupCard({ letter, order, onReorder, simData }) {
   function handleDrop(e, targetIdx) {
     e.preventDefault();
     if (dragIdx !== null && dragIdx !== targetIdx) {
-      const next = [...order];
-      const [moved] = next.splice(dragIdx, 1);
-      next.splice(targetIdx, 0, moved);
-      onReorder(next);
+      if (!isLocked(order[targetIdx]) && !isLocked(order[dragIdx])) {
+        const next = [...order];
+        const [moved] = next.splice(dragIdx, 1);
+        next.splice(targetIdx, 0, moved);
+        onReorder(next);
+      }
     }
     setDragIdx(null); setDragOver(null);
   }
   function handleDragEnd() { setDragIdx(null); setDragOver(null); }
 
   function promoteToFirst(idx) {
-    if (idx === 0) return;
+    if (idx === 0 || isLocked(order[idx]) || isLocked(order[0])) return;
     const next = [...order];
     const [moved] = next.splice(idx, 1);
     next.unshift(moved);
     onReorder(next);
   }
   function moveUp(idx) {
-    if (idx === 0) return;
+    if (idx === 0 || isLocked(order[idx]) || isLocked(order[idx - 1])) return;
     const next = [...order];
     [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
     onReorder(next);
   }
   function moveDown(idx) {
-    if (idx >= order.length - 1) return;
+    if (idx >= order.length - 1 || isLocked(order[idx]) || isLocked(order[idx + 1])) return;
     const next = [...order];
     [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
     onReorder(next);
@@ -393,23 +402,26 @@ function GroupCard({ letter, order, onReorder, simData }) {
       </div>
       {order.map((team, idx) => {
         const advPct       = simFor(simData, team)?.r32_pct;
+        const locked       = isLocked(team);
         const isDragging   = dragIdx === idx;
-        const isDragTarget = dragOver === idx && dragIdx !== null && dragIdx !== idx;
+        const isDragTarget = dragOver === idx && dragIdx !== null && dragIdx !== idx && !locked;
+        const upBlocked    = idx === 0 || isLocked(order[idx - 1]);
+        const downBlocked  = idx >= order.length - 1 || isLocked(order[idx + 1]);
         return (
           <div
             key={team}
-            draggable={!mobile}
-            onDragStart={!mobile ? e => handleDragStart(e, idx) : undefined}
+            draggable={!mobile && !locked}
+            onDragStart={!mobile && !locked ? e => handleDragStart(e, idx) : undefined}
             onDragOver={!mobile  ? e => handleDragOver(e, idx)  : undefined}
             onDrop={!mobile      ? e => handleDrop(e, idx)      : undefined}
             onDragEnd={!mobile   ? handleDragEnd                : undefined}
-            onClick={() => !mobile && promoteToFirst(idx)}
+            onClick={() => !mobile && !locked && promoteToFirst(idx)}
             style={{
               padding: '8px 10px 8px 12px',
               borderBottom: idx < order.length - 1 ? `1px solid ${v4.border}` : 'none',
-              borderLeft: isDragTarget ? `2px solid ${v4.electric}` : '2px solid transparent',
+              borderLeft: isDragTarget ? `2px solid ${v4.electric}` : locked ? `2px solid rgba(0,255,135,0.3)` : '2px solid transparent',
               display: 'flex', alignItems: 'center', gap: 6,
-              cursor: mobile ? 'default' : 'grab',
+              cursor: mobile || locked ? 'default' : 'grab',
               background: isDragTarget
                 ? 'rgba(0,255,135,0.1)'
                 : idx === 0 ? 'rgba(0,255,135,0.06)'
@@ -443,29 +455,34 @@ function GroupCard({ letter, order, onReorder, simData }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
                 <button
                   onClick={e => { e.stopPropagation(); moveUp(idx); }}
-                  disabled={idx === 0}
+                  disabled={locked || upBlocked}
                   style={{
                     width: 18, height: 14, padding: 0, border: 'none', borderRadius: 3,
-                    background: idx === 0 ? 'transparent' : 'rgba(255,255,255,0.1)',
-                    color: idx === 0 ? 'transparent' : v4.textDim,
-                    fontSize: 7, cursor: idx === 0 ? 'default' : 'pointer',
+                    background: locked || upBlocked ? 'transparent' : 'rgba(255,255,255,0.1)',
+                    color: locked || upBlocked ? 'transparent' : v4.textDim,
+                    fontSize: 7, cursor: locked || upBlocked ? 'default' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
                 >▲</button>
                 <button
                   onClick={e => { e.stopPropagation(); moveDown(idx); }}
-                  disabled={idx >= order.length - 1}
+                  disabled={locked || downBlocked}
                   style={{
                     width: 18, height: 14, padding: 0, border: 'none', borderRadius: 3,
-                    background: idx >= order.length - 1 ? 'transparent' : 'rgba(255,255,255,0.1)',
-                    color: idx >= order.length - 1 ? 'transparent' : v4.textDim,
-                    fontSize: 7, cursor: idx >= order.length - 1 ? 'default' : 'pointer',
+                    background: locked || downBlocked ? 'transparent' : 'rgba(255,255,255,0.1)',
+                    color: locked || downBlocked ? 'transparent' : v4.textDim,
+                    fontSize: 7, cursor: locked || downBlocked ? 'default' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
                 >▼</button>
               </div>
             ) : (
-              <span style={{ fontSize: 11, color: v4.textVeryDim, opacity: 0.4, flexShrink: 0, userSelect: 'none' }}>⠿</span>
+              <span style={{ fontSize: 11, flexShrink: 0, userSelect: 'none',
+                color: locked ? v4.electric : v4.textVeryDim,
+                opacity: locked ? 0.7 : 0.4,
+              }}>
+                {locked ? '🔒' : '⠿'}
+              </span>
             )}
           </div>
         );
@@ -474,15 +491,15 @@ function GroupCard({ letter, order, onReorder, simData }) {
   );
 }
 
-function GroupStageView({ groupPicks, onGroupReorder, simData, onContinue }) {
+function GroupStageView({ groupPicks, onGroupReorder, simData, standingsData, onContinue }) {
   const mobile = useIsMobile();
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
         <p style={{ color: v4.textDim, fontSize: 13.5, margin: 0, fontFamily: display }}>
           {mobile
-            ? <>Use <span style={{ color: v4.electric }}>▲▼</span> to reorder all 4 teams. Green % = model advance probability.</>
-            : <>Drag rows or click a team to promote to <span style={{ color: v4.electric }}>1st</span>. Green % = model advance probability.</>
+            ? <>Use <span style={{ color: v4.electric }}>▲▼</span> to reorder teams. 🔒 = position locked by results.</>
+            : <>Drag or click to reorder. <span style={{ color: v4.electric }}>🔒</span> = mathematically locked. Green % = model advance probability.</>
           }
         </p>
         <button
@@ -504,6 +521,7 @@ function GroupStageView({ groupPicks, onGroupReorder, simData, onContinue }) {
             order={groupPicks[letter]}
             onReorder={newOrder => onGroupReorder(letter, newOrder)}
             simData={simData}
+            lockedData={standingsData?.groups?.[letter]}
           />
         ))}
       </div>
@@ -937,10 +955,11 @@ function MobileKnockoutView({ groupPicks, picks, onPick, simData, thirdSelected,
 // ── Main component ─────────────────────────────────────────────────
 export default function TournamentBracket() {
   const mobile = useIsMobile();
-  const [tab,        setTab]       = React.useState('groups');
-  const [simData,    setSimData]   = React.useState(null);
-  const [simLoading, setSimLoading]= React.useState(false);
-  const [simError,   setSimError]  = React.useState(false);
+  const [tab,           setTab]          = React.useState('groups');
+  const [simData,       setSimData]      = React.useState(null);
+  const [simLoading,    setSimLoading]   = React.useState(false);
+  const [simError,      setSimError]     = React.useState(false);
+  const [standingsData, setStandingsData]= React.useState(null);
 
   const [groupPicks, setGroupPicks] = React.useState(
     _urlState?.groupPicks ?? Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]]))
@@ -960,6 +979,21 @@ export default function TournamentBracket() {
       .then(d => setSimData(d))
       .catch(() => setSimError(true))
       .finally(() => setSimLoading(false));
+
+    // Fetch live standings to lock positions and seed correct group order
+    fetchStandings()
+      .then(d => {
+        setStandingsData(d);
+        // Only override groupPicks if user didn't arrive via a shared URL
+        if (!_urlState) {
+          setGroupPicks(
+            Object.fromEntries(
+              Object.entries(d.groups).map(([letter, teams]) => [letter, teams.map(t => t.team)])
+            )
+          );
+        }
+      })
+      .catch(() => {}); // silently fail — falls back to original draw order
   }, []);
 
   function handleGroupReorder(letter, newOrder) {
@@ -1151,6 +1185,7 @@ export default function TournamentBracket() {
           groupPicks={groupPicks}
           onGroupReorder={handleGroupReorder}
           simData={simData}
+          standingsData={standingsData}
           onContinue={() => setTab('knockout')}
         />
       ) : mobile ? (

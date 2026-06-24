@@ -63,6 +63,13 @@ export function fetchSimulation(nSim = 10_000) {
   return request(`/api/wc/simulate?n_sim=${nSim}`);
 }
 
+// GET /api/wc/standings → {
+//   groups: { [A-L]: [{ team, pos, pts, gd, pos_locked, qualified_locked, top2_locked_out }] }
+// }
+export function fetchStandings() {
+  return request('/api/wc/standings');
+}
+
 // ── WC Fantasy ───────────────────────────────────────────────────
 // booster: "wildcard" | "12th_man" | "max_captain" | "qualification_booster" | null
 // locked_player_ids: number[] — squad builder picks forced into the solution
