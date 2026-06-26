@@ -823,7 +823,18 @@ function KnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThi
                 width: '100%',
                 boxSizing: 'border-box',
               }}>
-                <div style={{ fontSize: 32, animation: 'trophySpin 0.7s cubic-bezier(0.2,0.8,0.3,1) 0.4s both', display: 'inline-block', marginBottom: 6 }}>🏆</div>
+                <div style={{ fontSize: 32, animation: 'trophySpin 0.7s cubic-bezier(0.2,0.8,0.3,1) 0.4s both', display: 'inline-block', marginBottom: 10 }}>🏆</div>
+                {TEAM_FLAGS[picks['F']] && (
+                  <div style={{ marginBottom: 10 }}>
+                    <img
+                      src={`https://flagcdn.com/80x60/${TEAM_FLAGS[picks['F']]}.png`}
+                      width={80}
+                      height={60}
+                      alt={picks['F']}
+                      style={{ display: 'block', margin: '0 auto', borderRadius: 5, boxShadow: '0 0 18px rgba(255,208,32,0.35)' }}
+                    />
+                  </div>
+                )}
                 <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: v4.amber, textTransform: 'uppercase', marginBottom: 7 }}>
                   World Champion 2026
                 </div>
@@ -978,7 +989,16 @@ function MobileKnockoutView({ groupPicks, picks, onPick, simData, thirdSelected,
           border: '1px solid rgba(255,176,32,0.35)', borderRadius: 16,
           animation: 'champFadeIn 0.45s cubic-bezier(0.2,0.8,0.3,1) both, champPulse 2.8s ease-in-out 0.5s infinite',
         }}>
-          <div style={{ fontSize: 32, animation: 'trophySpin 0.7s cubic-bezier(0.2,0.8,0.3,1) 0.4s both', display: 'inline-block', marginBottom: 6 }}>🏆</div>
+          <div style={{ fontSize: 32, animation: 'trophySpin 0.7s cubic-bezier(0.2,0.8,0.3,1) 0.4s both', display: 'inline-block', marginBottom: 10 }}>🏆</div>
+          {TEAM_FLAGS[champion] && (
+            <div style={{ marginBottom: 10 }}>
+              <img
+                src={`https://flagcdn.com/80x60/${TEAM_FLAGS[champion]}.png`}
+                width={80} height={60} alt={champion}
+                style={{ display: 'block', margin: '0 auto', borderRadius: 5, boxShadow: '0 0 18px rgba(255,208,32,0.35)' }}
+              />
+            </div>
+          )}
           <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: v4.amber, textTransform: 'uppercase', marginBottom: 7 }}>World Champion 2026</div>
           <div style={{ fontFamily: display, fontSize: 22, fontWeight: 800, color: '#FFD060', letterSpacing: '-0.02em', textShadow: '0 0 20px rgba(255,208,32,0.55)' }}>
             {champion}
