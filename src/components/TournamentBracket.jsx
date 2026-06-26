@@ -60,39 +60,50 @@ const GROUPS = {
 };
 
 // ── Bracket structure (official FIFA WC 2026 schedule) ────────────
-// Left half: matches 73-80 → R16 R1-R4 → QF Q1-Q2 → SF S1
-// Right half: matches 81-88 → R16 R5-R8 → QF Q3-Q4 → SF S2
+// SF-101 ← QF-97 (R32: 73,74,75,77) + QF-98 (R32: 81,82,83,84) → left display side
+// SF-102 ← QF-99 (R32: 76,78,79,80) + QF-100 (R32: 85,86,87,88) → right display side
+//
+// R32 ordering within each side groups adjacent pairs that feed the same R16 match:
+//   Left positions 1-2: M73+M75 → R16-90 (W73 v W75)
+//   Left positions 3-4: M74+M77 → R16-89 (W74 v W77)  → QF-97 → SF-101
+//   Left positions 5-6: M83+M84 → R16-93 (W83 v W84)
+//   Left positions 7-8: M81+M82 → R16-94 (W81 v W82)  → QF-98 → SF-101
+//
+//   Right positions 1-2: M76+M78 → R16-91 (W76 v W78)
+//   Right positions 3-4: M79+M80 → R16-92 (W79 v W80)  → QF-99 → SF-102
+//   Right positions 5-6: M86+M88 → R16-95 (W86 v W88)
+//   Right positions 7-8: M85+M87 → R16-96 (W85 v W87)  → QF-100 → SF-102
 const R32_L = [
-  { id: '73', t1: '2A', t2: '2B' },
-  { id: '74', t1: '1E', t2: '3rd_ABCDF' },
-  { id: '75', t1: '1F', t2: '2C' },
-  { id: '76', t1: '1C', t2: '2F' },
-  { id: '77', t1: '1I', t2: '3rd_CDFGH' },
-  { id: '78', t1: '2E', t2: '2I' },
-  { id: '79', t1: '1A', t2: '3rd_CEFHI' },
-  { id: '80', t1: '1L', t2: '3rd_EHIJK' },
+  { id: '73', t1: '2A',  t2: '2B' },
+  { id: '75', t1: '1F',  t2: '2C' },
+  { id: '74', t1: '1E',  t2: '3rd_ABCDF' },
+  { id: '77', t1: '1I',  t2: '3rd_CDFGH' },
+  { id: '83', t1: '2K',  t2: '2L' },
+  { id: '84', t1: '1H',  t2: '2J' },
+  { id: '81', t1: '1D',  t2: '3rd_BEFIJ' },
+  { id: '82', t1: '1G',  t2: '3rd_AEHIJ' },
 ];
 const R32_R = [
-  { id: '81', t1: '1D', t2: '3rd_BEFIJ' },
-  { id: '82', t1: '1G', t2: '3rd_AEHIJ' },
-  { id: '83', t1: '2K', t2: '2L' },
-  { id: '84', t1: '1H', t2: '2J' },
-  { id: '85', t1: '1B', t2: '3rd_EFGIJ' },
-  { id: '86', t1: '1J', t2: '2H' },
-  { id: '87', t1: '1K', t2: '3rd_DEIJL' },
-  { id: '88', t1: '2D', t2: '2G' },
+  { id: '76', t1: '1C',  t2: '2F' },
+  { id: '78', t1: '2E',  t2: '2I' },
+  { id: '79', t1: '1A',  t2: '3rd_CEFHI' },
+  { id: '80', t1: '1L',  t2: '3rd_EHIJK' },
+  { id: '86', t1: '1J',  t2: '2H' },
+  { id: '88', t1: '2D',  t2: '2G' },
+  { id: '85', t1: '1B',  t2: '3rd_EFGIJ' },
+  { id: '87', t1: '1K',  t2: '3rd_DEIJL' },
 ];
 const R16_L = [
-  { id: 'R1', t1: 'W73', t2: 'W74' },
-  { id: 'R2', t1: 'W75', t2: 'W76' },
-  { id: 'R3', t1: 'W77', t2: 'W78' },
-  { id: 'R4', t1: 'W79', t2: 'W80' },
+  { id: 'R1', t1: 'W73', t2: 'W75' },  // R16-90
+  { id: 'R2', t1: 'W74', t2: 'W77' },  // R16-89
+  { id: 'R3', t1: 'W83', t2: 'W84' },  // R16-93
+  { id: 'R4', t1: 'W81', t2: 'W82' },  // R16-94
 ];
 const R16_R = [
-  { id: 'R5', t1: 'W81', t2: 'W82' },
-  { id: 'R6', t1: 'W83', t2: 'W84' },
-  { id: 'R7', t1: 'W85', t2: 'W86' },
-  { id: 'R8', t1: 'W87', t2: 'W88' },
+  { id: 'R5', t1: 'W76', t2: 'W78' },  // R16-91
+  { id: 'R6', t1: 'W79', t2: 'W80' },  // R16-92
+  { id: 'R7', t1: 'W86', t2: 'W88' },  // R16-95
+  { id: 'R8', t1: 'W85', t2: 'W87' },  // R16-96
 ];
 const QF_L  = [{ id: 'Q1', t1: 'WR1', t2: 'WR2' }, { id: 'Q2', t1: 'WR3', t2: 'WR4' }];
 const QF_R  = [{ id: 'Q3', t1: 'WR5', t2: 'WR6' }, { id: 'Q4', t1: 'WR7', t2: 'WR8' }];
