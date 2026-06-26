@@ -16,6 +16,21 @@ const v4 = {
 const display = 'Space Grotesk, sans-serif';
 const mono    = 'JetBrains Mono, monospace';
 
+function useBracketScale(naturalWidth) {
+  const sectionPad = 56 * 2; // padding: '72px 56px' → 56px each side
+  const compute = () =>
+    typeof window !== 'undefined'
+      ? Math.min(1, (Math.min(window.innerWidth, 1440) - sectionPad) / naturalWidth)
+      : 1;
+  const [scale, setScale] = React.useState(compute);
+  React.useEffect(() => {
+    const handler = () => setScale(compute());
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, [naturalWidth]);
+  return scale;
+}
+
 function useIsMobile() {
   const [mobile, setMobile] = React.useState(
     typeof window !== 'undefined' && window.innerWidth < 768
@@ -173,8 +188,36 @@ function modelWinner(simData, t1, t2) {
   return (simFor(simData, t1)?.win_pct ?? 0) >= (simFor(simData, t2)?.win_pct ?? 0) ? t1 : t2;
 }
 
+// ── Country flag codes → flagcdn.com ISO codes ─────────────────────
+const TEAM_FLAGS = {
+  'Mexico':                 'mx', 'South Africa':          'za',
+  'South Korea':            'kr', 'Czech Republic':        'cz',
+  'Canada':                 'ca', 'Bosnia and Herzegovina':'ba',
+  'Qatar':                  'qa', 'Switzerland':           'ch',
+  'Brazil':                 'br', 'Morocco':               'ma',
+  'Haiti':                  'ht', 'Scotland':              'gb-sct',
+  'United States':          'us', 'Paraguay':              'py',
+  'Australia':              'au', 'Turkey':                'tr',
+  'Germany':                'de', 'Ivory Coast':           'ci',
+  'Curaçao':                'cw', 'Ecuador':               'ec',
+  'Netherlands':            'nl', 'Japan':                 'jp',
+  'Sweden':                 'se', 'Tunisia':               'tn',
+  'Belgium':                'be', 'Egypt':                 'eg',
+  'Iran':                   'ir', 'New Zealand':           'nz',
+  'Spain':                  'es', 'Saudi Arabia':          'sa',
+  'Cape Verde':             'cv', 'Uruguay':               'uy',
+  'France':                 'fr', 'Senegal':               'sn',
+  'Iraq':                   'iq', 'Norway':                'no',
+  'Argentina':              'ar', 'Austria':               'at',
+  'Algeria':                'dz', 'Jordan':                'jo',
+  'Portugal':               'pt', 'Colombia':              'co',
+  'DR Congo':               'cd', 'Uzbekistan':            'uz',
+  'England':                'gb-eng', 'Croatia':           'hr',
+  'Ghana':                  'gh', 'Panama':                'pa',
+};
+
 // ── Match card ─────────────────────────────────────────────────────
-const CARD_W = 122;
+const CARD_W = 158;
 
 function MatchCard({ match, t1, t2, winner, onPick, simData, flip, fillWidth }) {
   const canPick = !!(t1 && t2);
@@ -190,15 +233,16 @@ function MatchCard({ match, t1, t2, winner, onPick, simData, flip, fillWidth }) 
   const slot = (team, src, isTop, pct) => {
     const won  = winner === team;
     const lost = winner && !won && !!team;
+    const flag = team ? (TEAM_FLAGS[team] ?? null) : null;
     return (
       <div
         onClick={() => canPick && team && onPick(team)}
         style={{
-          padding: '6px 8px',
+          padding: '7px 9px',
           borderTop: isTop ? 'none' : `1px solid ${v4.border}`,
           display: 'flex',
           alignItems: 'center',
-          gap: 4,
+          gap: 6,
           cursor: canPick && team ? 'pointer' : 'default',
           background: won ? 'rgba(0,255,135,0.1)' : 'transparent',
           opacity: lost ? 0.4 : 1,
@@ -206,19 +250,31 @@ function MatchCard({ match, t1, t2, winner, onPick, simData, flip, fillWidth }) 
           minWidth: 0,
         }}
       >
-        <span style={{ width: 10, flexShrink: 0, fontSize: 8.5, color: v4.electric }}>
+        {/* winner tick — collapses to 0 width when not needed */}
+        <span style={{ width: won ? 10 : 0, flexShrink: 0, fontSize: 8.5, color: v4.electric, overflow: 'hidden', transition: 'width 0.1s' }}>
           {won ? '✓' : ''}
         </span>
+        {/* flag — primary visual identifier */}
+        {flag ? (
+          <img
+            src={`https://flagcdn.com/32x24/${flag}.png`}
+            width={32}
+            height={24}
+            alt=""
+            style={{ flexShrink: 0, display: 'block', borderRadius: 2, objectFit: 'cover' }}
+          />
+        ) : null}
+        {/* name — secondary, truncates for long names */}
         <span style={{
-          flex: 1, fontSize: 10.5, fontWeight: 600, minWidth: 0,
-          color: won ? v4.electric : team ? v4.text : v4.textVeryDim,
+          flex: 1, fontSize: team ? 11.5 : 11, fontWeight: team ? 500 : 600, minWidth: 0,
+          color: won ? v4.electric : team ? v4.textDim : v4.textVeryDim,
           fontFamily: display,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {team ?? slotLabel(src)}
         </span>
         {pct != null && team && (
-          <span style={{ fontSize: 8.5, color: v4.textVeryDim, fontFamily: mono, flexShrink: 0 }}>
+          <span style={{ fontSize: 10, color: v4.textVeryDim, fontFamily: mono, flexShrink: 0 }}>
             {pct}%
           </span>
         )}
@@ -617,8 +673,12 @@ function ThirdPlacePicker({ onPick, groupPicks, simData, selected, onSelectionCh
 
 // ── Symmetric knockout bracket ─────────────────────────────────────
 function KnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThirdSelectionChange }) {
-  const H  = 800; // bracket height in px
-  const GAP = 14;  // connector width
+  const H   = 800;
+  const GAP = 14;
+  const NATURAL_W = CARD_W * 9 + GAP * 8 + 40;
+  const LABEL_H   = 28; // approx height of round-label row
+
+  const scale = useBracketScale(NATURAL_W);
 
   const colProps = { groupPicks, picks, onPick, simData, height: H };
 
@@ -655,12 +715,19 @@ function KnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThi
       <ThirdPlacePicker onPick={onPick} groupPicks={groupPicks} simData={simData}
         selected={thirdSelected} onSelectionChange={onThirdSelectionChange} />
 
-      <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
+      {/* Scaled bracket — shrinks to fit container, never overflows horizontally */}
+      <div style={{ width: '100%' }}>
+        <div style={{ height: Math.round((H + LABEL_H) * scale), position: 'relative', overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0,
+          transform: `scale(${scale})`, transformOrigin: 'top left',
+          width: NATURAL_W,
+        }}>
         {/* Round labels row */}
         <div style={{
           display: 'flex', alignItems: 'flex-end', gap: 0,
           marginBottom: 0,
-          minWidth: (CARD_W * 9) + (GAP * 8) + 40,
+          width: NATURAL_W,
         }}>
           {/* Left labels */}
           {LEFT_LABELS.map(l => (
@@ -691,7 +758,7 @@ function KnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThi
           display: 'flex',
           alignItems: 'stretch',
           height: H,
-          minWidth: (CARD_W * 9) + (GAP * 8) + 40,
+          width: NATURAL_W,
         }}>
           {/* ── LEFT HALF: R32 → R16 → QF → SF ── */}
           <BracketColumn label="" matches={R32_L} {...colProps} />
@@ -810,6 +877,8 @@ function KnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThi
           <BracketColumn label="" matches={R16_R} {...colProps} flip />
           <BracketConnector from={8} height={H} flip />
           <BracketColumn label="" matches={R32_R} {...colProps} flip />
+        </div>
+        </div>
         </div>
       </div>
 
