@@ -1084,13 +1084,25 @@ export default function TournamentBracket() {
     fetchStandings()
       .then(d => {
         setStandingsData(d);
-        // Only override groupPicks if user didn't arrive via a shared URL
         if (!_urlState) {
+          // Fresh load: seed all groups from actual standings
           setGroupPicks(
             Object.fromEntries(
               Object.entries(d.groups).map(([letter, teams]) => [letter, teams.map(t => t.team)])
             )
           );
+        } else {
+          // Shared URL: only override groups where every position is mathematically locked
+          // (i.e. all 3 games played and standings are final facts, not predictions)
+          setGroupPicks(prev => {
+            const next = { ...prev };
+            for (const [letter, teams] of Object.entries(d.groups)) {
+              if (teams.every(t => t.pos_locked)) {
+                next[letter] = teams.map(t => t.team);
+              }
+            }
+            return next;
+          });
         }
       })
       .catch(() => {}); // silently fail — falls back to original draw order
@@ -1128,7 +1140,14 @@ export default function TournamentBracket() {
   function fillWithModel() {
     if (!simData) return;
     const newGroups = Object.fromEntries(
-      Object.keys(GROUPS).map(g => [g, modelGroupOrder(simData, g)])
+      Object.keys(GROUPS).map(g => {
+        // For fully locked groups, use actual standings (facts > model predictions)
+        const standing = standingsData?.groups?.[g];
+        if (standing && standing.every(t => t.pos_locked)) {
+          return [g, standing.map(t => t.team)];
+        }
+        return [g, modelGroupOrder(simData, g)];
+      })
     );
     setGroupPicks(newGroups);
 
