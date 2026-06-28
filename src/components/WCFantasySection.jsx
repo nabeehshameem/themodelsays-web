@@ -15,11 +15,11 @@ const mono    = 'JetBrains Mono, monospace';
 const POS_COLOR = { GK: '#FFB020', DEF: '#02EFFF', MID: '#7B2EE3', FWD: '#FF2882' };
 
 const BOOSTERS = [
-  { id: null,                     label: 'No booster',            short: 'None',       color: '#796a93', desc: 'Standard optimal squad.' },
-  { id: 'wildcard',               label: 'Wildcard',              short: 'Wildcard',   color: '#7B2EE3', desc: 'Unlimited transfers (MD2+ only). Builds your ideal fresh squad.' },
+  { id: null,                     label: 'No booster',            short: 'None',       color: '#796a93', desc: 'Optimal knockout squad. Unlimited transfers are active — rebuild freely.' },
   { id: '12th_man',               label: '12th Man',              short: '12th Man',   color: '#00FF87', desc: 'Pick 1 extra player outside your squad — no budget or team cap.' },
-  { id: 'max_captain',            label: 'Maximum Captain',       short: 'Max Cap',    color: '#FFB020', desc: 'Auto-assigns captaincy to your highest scorer. Ranks your XI by ceiling.' },
-  { id: 'qualification_booster',  label: 'Qualification Booster', short: 'Qual +2',    color: '#FF2882', desc: '+2 pts per starting XI player whose team advances from the round. R32+ only.' },
+  { id: 'max_captain',            label: 'Maximum Captain',       short: 'Max Cap',    color: '#FFB020', desc: 'Best saved for SF/Final. Auto-assigns captaincy. Model ranks your top candidates by single-match ceiling.' },
+  { id: 'qualification_booster',  label: 'Qualification Booster', short: 'Qual +2',    color: '#FF2882', desc: '+2 pts per starter whose team wins their knockout match. Use for R32.' },
+  { id: 'clean_sheet_shield',     label: 'Clean Sheet Shield',    short: 'CS Shield',  color: '#02EFFF', desc: 'Negates concede penalties for all GKs and DEFs for one matchday. Best when your defence faces attacking opposition.' },
 ];
 
 function PosBadge({ pos }) {
@@ -164,7 +164,7 @@ function TwelfthManPanel({ player }) {
           <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, marginTop: 1 }}>{player.team}</div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ fontFamily: mono, fontSize: 16, fontWeight: 700, color }}>{player.pts_per_match.toFixed(1)} <span style={{ fontSize: 10, color: v4.textVeryDim, fontWeight: 400 }}>est. pts MD1</span></div>
+          <div style={{ fontFamily: mono, fontSize: 16, fontWeight: 700, color }}>{player.pts_per_match.toFixed(1)} <span style={{ fontSize: 10, color: v4.textVeryDim, fontWeight: 400 }}>est. pts/match</span></div>
           <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim }}>${player.price_m.toFixed(1)}m</div>
         </div>
       </div>
@@ -286,6 +286,39 @@ function QualBoosterPanel({ breakdown, total }) {
   );
 }
 
+function CSShieldPanel({ breakdown, total }) {
+  if (!breakdown?.length) return null;
+  const color = v4.green;
+  return (
+    <div style={{ marginTop: 16, padding: '14px 16px', background: `${color}0d`, border: `1px solid ${color}33`, borderRadius: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color, textTransform: 'uppercase' }}>
+          Clean Sheet Shield — concede penalty saved
+        </div>
+        {total != null && (
+          <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color }}>
+            +{total.toFixed(1)} <span style={{ fontSize: 9, color: v4.textVeryDim, fontWeight: 400 }}>exp. pts</span>
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {breakdown.map(p => (
+          <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <PosBadge pos={p.pos} />
+            <div style={{ flex: 1, fontFamily: display, fontSize: 12, color: v4.textDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+            <div style={{ fontFamily: mono, fontSize: 11, color: p.concede_saved > 0.3 ? color : v4.textVeryDim, fontWeight: 700, flexShrink: 0 }}>
+              +{p.concede_saved.toFixed(2)}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 10, fontFamily: mono, fontSize: 10, color: v4.textVeryDim, lineHeight: 1.5 }}>
+        Negates concede penalties (−1 per goal beyond first) for all GKs and DEFs for one matchday.
+      </div>
+    </div>
+  );
+}
+
 // ── Squad Optimizer ──────────────────────────────────────────────────────────
 
 function SquadOptimizer() {
@@ -299,7 +332,7 @@ function SquadOptimizer() {
     setResult(null);
     setErrMsg('');
     try {
-      const data = await wcFantasy.optimise({ budget: 1000, booster, matchdays: [1, 2] });
+      const data = await wcFantasy.optimise({ budget: 1000, booster });
       setResult(data);
       setStatus('success');
     } catch (e) {
@@ -347,41 +380,37 @@ function SquadOptimizer() {
 
       {status === 'success' && result && (
         <div style={{ marginTop: 20 }}>
-          {booster !== 'wildcard' && (
-            <>
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '12px 16px', marginBottom: 12,
-                background: `${btnColor}0f`, border: `1px solid ${btnColor}33`,
-                borderRadius: 10,
-              }}>
-                <div>
-                  <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Projected points</div>
-                  <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: btnColor }}>{result.total_pts.toFixed(1)}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Total cost</div>
-                  <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: v4.text }}>${result.total_cost_m.toFixed(1)}m</div>
-                </div>
-              </div>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '12px 16px', marginBottom: 12,
+            background: `${btnColor}0f`, border: `1px solid ${btnColor}33`,
+            borderRadius: 10,
+          }}>
+            <div>
+              <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Projected points</div>
+              <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: btnColor }}>{result.total_pts.toFixed(1)}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: mono, fontSize: 10, color: v4.textVeryDim, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Total cost</div>
+              <div style={{ fontFamily: mono, fontSize: 24, fontWeight: 700, color: v4.text }}>${result.total_cost_m.toFixed(1)}m</div>
+            </div>
+          </div>
 
-              <div style={{ border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
-                <SquadSection label="Forwards"    players={byPos('FWD')} color={v4.pink}   />
-                <SquadSection label="Midfielders" players={byPos('MID')} color={v4.purple} />
-                <SquadSection label="Defenders"   players={byPos('DEF')} color={v4.green}  />
-                <SquadSection label="Goalkeepers" players={byPos('GK')}  color={v4.amber}  />
-              </div>
-            </>
-          )}
+          <div style={{ border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            <SquadSection label="Forwards"    players={byPos('FWD')} color={v4.pink}   />
+            <SquadSection label="Midfielders" players={byPos('MID')} color={v4.purple} />
+            <SquadSection label="Defenders"   players={byPos('DEF')} color={v4.green}  />
+            <SquadSection label="Goalkeepers" players={byPos('GK')}  color={v4.amber}  />
+          </div>
 
           {/* Booster panels */}
-          <WildcardPanel recommendation={result.wildcard_recommendation} starters={result.wildcard_starters} bench={result.wildcard_bench} totalPts={result.wildcard_total_pts} />
-          {booster !== 'wildcard' && <TwelfthManPanel player={result.twelfth_man} />}
-          {booster !== 'wildcard' && <MaxCapPanel candidates={result.max_cap_candidates} expectedPts={result.expected_max_cap_pts} />}
-          {booster !== 'wildcard' && <QualBoosterPanel breakdown={result.qual_booster_breakdown} total={result.qual_booster_total} />}
+          <TwelfthManPanel player={result.twelfth_man} />
+          <MaxCapPanel candidates={result.max_cap_candidates} expectedPts={result.expected_max_cap_pts} />
+          <QualBoosterPanel breakdown={result.qual_booster_breakdown} total={result.qual_booster_total} />
+          <CSShieldPanel breakdown={result.cs_shield_breakdown} total={result.cs_shield_total} />
 
           <p style={{ color: v4.textVeryDim, fontSize: 11, fontFamily: mono, textAlign: 'center', lineHeight: 1.6, margin: '14px 0 0' }}>
-            Model projections for MD1+MD2 · C = recommended captain · estimated prices
+            Knockout projections · C = recommended captain · estimated prices
           </p>
         </div>
       )}
@@ -391,122 +420,32 @@ function SquadOptimizer() {
 
 // ── Captain Picks ─────────────────────────────────────────────────────────────
 
-const MATCHDAYS = [
-  { id: null, label: 'All 3' },
-  { id: 1,    label: 'MD 1' },
-  { id: 2,    label: 'MD 2' },
-  { id: 3,    label: 'MD 3' },
-];
-
 function CaptainPicks() {
-  const [matchday,     setMatchday]     = React.useState(null);
-  const [status,       setStatus]       = React.useState('loading');
-  const [picks,        setPicks]        = React.useState([]);
-  const [liveStatus,   setLiveStatus]   = React.useState('idle');
-  const [liveData,     setLiveData]     = React.useState(null);
-  const [errMsg,       setErrMsg]       = React.useState('');
+  const [status, setStatus] = React.useState('loading');
+  const [picks,  setPicks]  = React.useState([]);
+  const [errMsg, setErrMsg] = React.useState('');
 
-  // Load captain picks whenever matchday tab changes
   React.useEffect(() => {
-    setStatus('loading');
-    setPicks([]);
-    wcFantasy.captains(10, matchday)
+    wcFantasy.captains(10)
       .then(d => { setPicks(d.picks); setStatus('success'); })
       .catch(e => { setErrMsg(e.message || 'Failed to load captain picks.'); setStatus('error'); });
-  }, [matchday]);
-
-  // Poll live advice whenever a specific matchday is selected
-  React.useEffect(() => {
-    if (matchday == null) { setLiveData(null); return; }
-    setLiveStatus('loading');
-    wcFantasy.liveAdvice(matchday)
-      .then(d => { setLiveData(d); setLiveStatus('done'); })
-      .catch(() => setLiveStatus('idle'));
-  }, [matchday]);
-
-  const isLive = liveData?.is_live;
+  }, []);
 
   return (
     <div>
-      {/* Matchday tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        {MATCHDAYS.map(({ id, label }) => {
-          const active = id === matchday;
-          return (
-            <button
-              key={String(id)}
-              onClick={() => setMatchday(id)}
-              style={{
-                flex: 1, padding: '6px 0',
-                background: active ? v4.amber : 'transparent',
-                color: active ? v4.bg : v4.textDim,
-                border: `1px solid ${active ? v4.amber : v4.border}`,
-                borderRadius: 7, fontSize: 11, fontWeight: 700,
-                fontFamily: mono, cursor: 'pointer', transition: 'all 0.15s',
-                letterSpacing: '0.05em',
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Live swap banner */}
-      {isLive && (
-        <div style={{
-          marginBottom: 14, padding: '10px 14px',
-          background: 'rgba(255,176,32,0.08)', border: '1px solid rgba(255,176,32,0.3)',
-          borderRadius: 10,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff4444', display: 'inline-block', boxShadow: '0 0 6px #ff4444' }} />
-            <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: v4.amber, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Matchday {matchday} live · {liveData.played_team_count / 2} of {(liveData.played_team_count + liveData.remaining_team_count) / 2} fixtures played
-            </span>
-          </div>
-          <div style={{ fontFamily: mono, fontSize: 10, color: v4.textDim, lineHeight: 1.5 }}>
-            {liveData.remaining_picks.length > 0
-              ? `Best still-to-play captain options ranked below ↓`
-              : 'All fixtures in this matchday have kicked off.'}
-          </div>
-        </div>
-      )}
-
       {status === 'loading' && <Spinner />}
       {status === 'error' && (
         <div style={{ padding: '12px 16px', background: 'rgba(255,85,119,0.1)', border: `1px solid rgba(255,85,119,0.3)`, borderRadius: 10, color: v4.red, fontFamily: mono, fontSize: 12 }}>
           {errMsg}
         </div>
       )}
-
       {status === 'success' && (
         <>
-          {/* If live: show remaining picks first, then full list */}
-          {isLive && liveData.remaining_picks.length > 0 ? (
-            <>
-              <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: v4.amber, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 14px', background: 'rgba(255,176,32,0.08)', borderRadius: '8px 8px 0 0', border: `1px solid ${v4.border}`, borderBottom: 'none' }}>
-                Still to play — swap candidates
-              </div>
-              <div style={{ border: `1px solid ${v4.border}`, borderRadius: '0 0 12px 12px', overflow: 'hidden', marginBottom: 14 }}>
-                {liveData.remaining_picks.map((p, i) => <PlayerRow key={p.id} player={p} rank={i + 1} />)}
-              </div>
-              <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 14px', background: v4.surface, borderRadius: '8px 8px 0 0', border: `1px solid ${v4.border}`, borderBottom: 'none' }}>
-                All picks — matchday {matchday}
-              </div>
-              <div style={{ border: `1px solid ${v4.border}`, borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
-                {picks.map((p, i) => <PlayerRow key={p.id} player={p} rank={i + 1} />)}
-              </div>
-            </>
-          ) : (
-            <div style={{ border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
-              {picks.map((p, i) => <PlayerRow key={p.id} player={p} rank={i + 1} />)}
-            </div>
-          )}
+          <div style={{ border: `1px solid ${v4.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            {picks.map((p, i) => <PlayerRow key={p.id} player={p} rank={i + 1} />)}
+          </div>
           <p style={{ color: v4.textVeryDim, fontSize: 11, fontFamily: mono, textAlign: 'center', lineHeight: 1.6, margin: '14px 0 0' }}>
-            {matchday == null
-              ? 'Ranked by 3-match projected points · DC model ratings + position share'
-              : `Matchday ${matchday} projected points · 1 match per player`}
+            Ranked by knockout projected points · DC model ratings + position share
           </p>
         </>
       )}
@@ -907,7 +846,7 @@ function WCTeamBuilder({ isMobile }) {
   async function handleFill() {
     setStatus('loading'); setResult(null); setErrMsg('');
     try {
-      const data = await wcFantasy.optimise({ budget: BUDGET_TOTAL, locked_player_ids: locked.map(p => p.id), matchdays: [1, 2] });
+      const data = await wcFantasy.optimise({ budget: BUDGET_TOTAL, locked_player_ids: locked.map(p => p.id) });
       setResult(data);
       setStatus('success');
     } catch (e) {
@@ -1222,7 +1161,7 @@ export default function WCFantasySection() {
             <div style={{ marginBottom: 20 }}>
               <div style={{ color: v4.electric, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 6 }}>Squad Optimizer</div>
               <div style={{ color: v4.textDim, fontSize: 13, fontFamily: display, lineHeight: 1.5 }}>
-                ILP solver picks 15 players — 2 GK, 5 DEF, 5 MID, 3 FWD — within budget, max 3 per nation.
+                Unlimited transfers active. ILP solver picks 15 players — 2 GK, 5 DEF, 5 MID, 3 FWD — optimised for teams projected to go deep.
               </div>
             </div>
             <SquadOptimizer />
@@ -1236,7 +1175,7 @@ export default function WCFantasySection() {
             <div style={{ marginBottom: 20 }}>
               <div style={{ color: v4.amber, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 6 }}>Captain Picks</div>
               <div style={{ color: v4.textDim, fontSize: 13, fontFamily: display, lineHeight: 1.5 }}>
-                Top 10 players per matchday. Switch to a live matchday to see who's still to play — and whether a captain change makes sense.
+                Top 10 players by knockout projected points. Model picks the best captain candidate for the R32 and beyond.
               </div>
             </div>
             <CaptainPicks />

@@ -105,16 +105,94 @@ function useIsMobile() {
   return mobile;
 }
 
+const POS_COLOR = { GK: '#FFB020', DEF: '#02EFFF', MID: '#7B2EE3', FWD: '#FF2882' };
+
+function FirstScorerSection({ result }) {
+  if (!result || (!result.home_scorers?.length && !result.away_scorers?.length)) return null;
+
+  const allScorers = [
+    ...(result.home_scorers || []).map(s => ({ ...s, side: 'home' })),
+    ...(result.away_scorers || []).map(s => ({ ...s, side: 'away' })),
+  ].sort((a, b) => b.first_scorer_pct - a.first_scorer_pct).slice(0, 6);
+
+  const homeName = result.home_name;
+  const awayName = result.away_name;
+
+  return (
+    <div style={{
+      background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
+      border: `1px solid ${v4.border}`, borderRadius: 16, padding: '20px 24px',
+      marginBottom: 16,
+    }}>
+      <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>
+        First to score
+      </div>
+
+      {/* First team to score */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {[
+          { label: homeName, pct: result.home_first_pct ?? 0, color: v4.electric },
+          { label: 'No goal', pct: result.no_goal_pct ?? 0, color: v4.textDim },
+          { label: awayName, pct: result.away_first_pct ?? 0, color: v4.pink },
+        ].map(({ label, pct, color }) => (
+          <div key={label} style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{
+              height: 3, background: v4.border, borderRadius: 99, marginBottom: 6, overflow: 'hidden',
+            }}>
+              <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', background: color, borderRadius: 99 }} />
+            </div>
+            <div style={{ fontFamily: mono, fontSize: 13, fontWeight: 700, color }}>{pct.toFixed(0)}%</div>
+            <div style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Top first scorers */}
+      {allScorers.length > 0 && (
+        <>
+          <div style={{ color: v4.textVeryDim, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 8 }}>
+            Most likely first scorer
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {allScorers.map((s, i) => (
+              <div key={`${s.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  background: `${POS_COLOR[s.pos] ?? v4.textDim}22`,
+                  border: `1px solid ${POS_COLOR[s.pos] ?? v4.textDim}55`,
+                  color: POS_COLOR[s.pos] ?? v4.textDim,
+                  fontFamily: mono, fontSize: 8, fontWeight: 700,
+                  letterSpacing: '0.08em', padding: '1px 5px', borderRadius: 3,
+                  textTransform: 'uppercase', flexShrink: 0,
+                }}>{s.pos}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontFamily: display, fontSize: 12, fontWeight: 600, color: i === 0 ? v4.text : v4.textDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{s.name}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  <div style={{ width: 60, height: 3, background: v4.border, borderRadius: 99, overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.min(100, s.first_scorer_pct * 5)}%`, height: '100%', background: s.side === 'home' ? v4.electric : v4.pink, borderRadius: 99 }} />
+                  </div>
+                  <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: i === 0 ? (s.side === 'home' ? v4.electric : v4.pink) : v4.textDim, minWidth: 36, textAlign: 'right' }}>
+                    {s.first_scorer_pct.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function WorldCupPredictor() {
   const isMobile = useIsMobile();
-  const [teams,    setTeams]    = React.useState([]);
-  const [home,     setHome]     = React.useState('');
-  const [away,     setAway]     = React.useState('');
-  const [knockout, setKnockout] = React.useState(false);
-  const [status,   setStatus]   = React.useState('idle');   // idle | loading | success | error
-  const [result,   setResult]   = React.useState(null);
-  const [errMsg,   setErrMsg]   = React.useState('');
-  const [copied,   setCopied]   = React.useState(false);
+  const [teams,  setTeams]  = React.useState([]);
+  const [home,   setHome]   = React.useState('');
+  const [away,   setAway]   = React.useState('');
+  const [status, setStatus] = React.useState('idle');   // idle | loading | success | error
+  const [result, setResult] = React.useState(null);
+  const [errMsg, setErrMsg] = React.useState('');
+  const [copied, setCopied] = React.useState(false);
 
   React.useEffect(() => {
     fetchWcTeams()
@@ -124,20 +202,11 @@ export default function WorldCupPredictor() {
 
   const canPredict = home && away && home !== away && status !== 'loading';
 
-  function handleToggleKnockout() {
-    setKnockout(k => !k);
-    setResult(null);
-    setStatus('idle');
-    setErrMsg('');
-  }
-
   function handleShare() {
     if (!result) return;
     const h = result.most_likely[0].home_goals;
     const a = result.most_likely[0].away_goals;
-    const winPct = result.ko_win_pct != null ? result.ko_win_pct : result.win_pct;
-    const mode = result.ko_win_pct != null ? ' (knockout)' : '';
-    const text = `The model predicts: ${result.home_name} ${h}–${a} ${result.away_name}${mode}\n${winPct.toFixed(0)}% chance of a ${result.home_name} win\n\nthemodelsays.com`;
+    const text = `The model predicts: ${result.home_name} ${h}–${a} ${result.away_name}\n${result.win_pct.toFixed(0)}% chance of a ${result.home_name} win\n\nthemodelsays.com`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -149,7 +218,7 @@ export default function WorldCupPredictor() {
     setResult(null);
     setErrMsg('');
     try {
-      const data = await predictWorldCupMatch({ home, away, knockout });
+      const data = await predictWorldCupMatch({ home, away });
       setResult(data);
       setStatus('success');
     } catch (e) {
@@ -188,32 +257,6 @@ export default function WorldCupPredictor() {
               <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 8 }}>Away team</div>
               <SelectTeam value={away} onChange={setAway} teams={teams} placeholder="Select team…" disabled={status === 'loading'} />
             </div>
-          </div>
-
-          {/* knockout toggle */}
-          <div
-            onClick={handleToggleKnockout}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16,
-              cursor: 'pointer', userSelect: 'none',
-            }}
-          >
-            <div style={{
-              width: 36, height: 20, borderRadius: 10, position: 'relative',
-              background: knockout ? v4.electric : v4.border,
-              transition: 'background 0.2s',
-              flexShrink: 0,
-            }}>
-              <div style={{
-                position: 'absolute', top: 3, left: knockout ? 19 : 3,
-                width: 14, height: 14, borderRadius: '50%',
-                background: knockout ? v4.bg : v4.textVeryDim,
-                transition: 'left 0.2s',
-              }} />
-            </div>
-            <span style={{ fontFamily: mono, fontSize: 12, color: knockout ? v4.electric : v4.textDim, letterSpacing: '0.06em' }}>
-              KNOCKOUT ROUND (resolves draws via ET + pens)
-            </span>
           </div>
 
           <button
@@ -266,7 +309,7 @@ export default function WorldCupPredictor() {
                   {result.most_likely[0].home_goals}–{result.most_likely[0].away_goals}
                 </div>
                 <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>
-                  {result.ko_win_pct != null ? 'EXPECTED 90 MIN' : 'EXPECTED SCORE'}
+                  EXPECTED SCORE
                 </div>
               </div>
               <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
@@ -283,25 +326,16 @@ export default function WorldCupPredictor() {
               display: 'flex', gap: 24, alignItems: 'flex-end',
               marginBottom: 16,
             }}>
-              {result.ko_win_pct != null ? (
-                <>
-                  <ProbBar label={`${result.home_name} win`} pct={result.ko_win_pct}  color={v4.electric} />
-                  <ProbBar label={`${result.away_name} win`} pct={result.ko_loss_pct} color={v4.pink}     />
-                </>
-              ) : (
-                <>
-                  <ProbBar label={`${result.home_name} win`} pct={result.win_pct}  color={v4.electric} />
-                  <ProbBar label="Draw"                      pct={result.draw_pct} color={v4.textDim}  />
-                  <ProbBar label={`${result.away_name} win`} pct={result.loss_pct} color={v4.pink}     />
-                </>
-              )}
+              <ProbBar label={`${result.home_name} win`} pct={result.win_pct}  color={v4.electric} />
+              <ProbBar label="Draw"                      pct={result.draw_pct} color={v4.textDim}  />
+              <ProbBar label={`${result.away_name} win`} pct={result.loss_pct} color={v4.pink}     />
             </div>
 
             {/* top scorelines */}
             <div style={{
               background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
               border: `1px solid ${v4.border}`, borderRadius: 16, padding: '20px 24px',
-              marginBottom: 20,
+              marginBottom: 16,
             }}>
               <div style={{ color: v4.textVeryDim, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>Top scorelines</div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -321,6 +355,9 @@ export default function WorldCupPredictor() {
                 ))}
               </div>
             </div>
+
+            {/* first scorer */}
+            <FirstScorerSection result={result} />
 
             {/* share */}
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
