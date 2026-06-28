@@ -332,7 +332,7 @@ function SquadOptimizer() {
     setResult(null);
     setErrMsg('');
     try {
-      const data = await wcFantasy.optimise({ budget: 1000, booster });
+      const data = await wcFantasy.optimise({ budget: BUDGET_TOTAL, booster });
       setResult(data);
       setStatus('success');
     } catch (e) {
@@ -456,7 +456,7 @@ function CaptainPicks() {
 // ── Team Builder ─────────────────────────────────────────────────────────────
 
 const SQUAD_LIMITS = { GK: 2, DEF: 5, MID: 5, FWD: 3 };
-const BUDGET_TOTAL = 1000;
+const BUDGET_TOTAL = 1050;
 
 function canAddPlayer(player, locked) {
   if (locked.find(p => p.id === player.id)) return { ok: false, reason: 'Already in squad' };

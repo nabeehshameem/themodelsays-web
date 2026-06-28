@@ -152,8 +152,10 @@ const _TEAM_COLORS = {
 function V4BracketHero() {
   const [favs, setFavs] = React.useState(null);
   const [nSim, setNSim] = React.useState(null);
+  const [err,  setErr]  = React.useState(false);
 
   React.useEffect(() => {
+    // Reset cached promise on error so a re-mount retries
     getSimulation()
       .then(data => {
         const sorted = [...data.teams]
@@ -167,12 +169,15 @@ function V4BracketHero() {
         setFavs(sorted);
         setNSim(data.n_sim);
       })
-      .catch(() => {});
+      .catch(() => {
+        _simPromise = null; // clear cache so next mount retries
+        setErr(true);
+      });
   }, []);
 
   const rows = favs || [];
   const max = rows[0]?.pct || 1;
-  const loading = favs === null;
+  const loading = favs === null && !err;
 
   return (
     <div style={{
@@ -197,7 +202,9 @@ function V4BracketHero() {
 
       {/* Team bars */}
       <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 11, flex: 1, minHeight: 196 }}>
-        {loading
+        {err
+          ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: v4.textVeryDim, fontFamily: mono, fontSize: 11 }}>Model unavailable — check back soon</div>
+          : loading
           ? Array.from({ length: 8 }, (_, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ width: 16, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right' }}>{i + 1}</span>
@@ -234,10 +241,12 @@ function V4BracketHero() {
         <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Tournament favourite</div>
         {loading
           ? <div style={{ height: 20, width: 180, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
+          : err || !rows[0]
+          ? <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11 }}>—</span>
           : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ color: v4.text, fontFamily: display, fontSize: 15, fontWeight: 700 }}>{rows[0]?.name}</span>
-              <span style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 800, background: 'rgba(0,0,0,0.45)', padding: '3px 9px', borderRadius: 6 }}>{rows[0]?.pct}%</span>
+              <span style={{ color: v4.text, fontFamily: display, fontSize: 15, fontWeight: 700 }}>{rows[0].name}</span>
+              <span style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 800, background: 'rgba(0,0,0,0.45)', padding: '3px 9px', borderRadius: 6 }}>{rows[0].pct}%</span>
               <span style={{ color: v4.textDim, fontFamily: display, fontSize: 13 }}>to win WC 2026</span>
             </div>
           )

@@ -683,7 +683,7 @@ function ThirdPlacePicker({ onPick, groupPicks, simData, selected, onSelectionCh
 }
 
 // ── Symmetric knockout bracket ─────────────────────────────────────
-function KnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThirdSelectionChange }) {
+function KnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThirdSelectionChange, hideThirdPicker }) {
   const H   = 800;
   const GAP = 14;
   const NATURAL_W = CARD_W * 9 + GAP * 8 + 40;
@@ -723,8 +723,28 @@ function KnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThi
 
   return (
     <div>
-      <ThirdPlacePicker onPick={onPick} groupPicks={groupPicks} simData={simData}
-        selected={thirdSelected} onSelectionChange={onThirdSelectionChange} />
+      {!hideThirdPicker && (
+        <ThirdPlacePicker onPick={onPick} groupPicks={groupPicks} simData={simData}
+          selected={thirdSelected} onSelectionChange={onThirdSelectionChange} />
+      )}
+      {hideThirdPicker && thirdSelected.size > 0 && (
+        <div style={{
+          background: v4.bg2, border: `1px solid ${v4.border}`,
+          borderRadius: 10, padding: '10px 14px', marginBottom: 14,
+          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+        }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: v4.electric, fontFamily: mono, letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
+            R32 QUALIFIERS (3RD PLACE)
+          </span>
+          {[...thirdSelected].map(team => (
+            <span key={team} style={{
+              background: 'rgba(0,255,135,0.08)', border: `1px solid rgba(0,255,135,0.2)`,
+              borderRadius: 5, padding: '3px 8px',
+              fontSize: 10.5, color: v4.text, fontFamily: display,
+            }}>{team}</span>
+          ))}
+        </div>
+      )}
 
       {/* Scaled bracket — shrinks to fit container, never overflows horizontally */}
       <div style={{ width: '100%' }}>
@@ -920,7 +940,7 @@ const MOBILE_ROUNDS = [
   { id: 'Final', label: 'Final', fullLabel: 'Final & 3rd Place',   matches: [...FINAL, ...THIRD_PLACE] },
 ];
 
-function MobileKnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThirdSelectionChange }) {
+function MobileKnockoutView({ groupPicks, picks, onPick, simData, thirdSelected, onThirdSelectionChange, hideThirdPicker }) {
   const [round, setRound] = React.useState('R32');
   const ridx     = MOBILE_ROUNDS.findIndex(r => r.id === round);
   const current  = MOBILE_ROUNDS[ridx];
@@ -943,8 +963,28 @@ function MobileKnockoutView({ groupPicks, picks, onPick, simData, thirdSelected,
 
   return (
     <div>
-      <ThirdPlacePicker onPick={onPick} groupPicks={groupPicks} simData={simData}
-        selected={thirdSelected} onSelectionChange={onThirdSelectionChange} />
+      {!hideThirdPicker && (
+        <ThirdPlacePicker onPick={onPick} groupPicks={groupPicks} simData={simData}
+          selected={thirdSelected} onSelectionChange={onThirdSelectionChange} />
+      )}
+      {hideThirdPicker && thirdSelected.size > 0 && (
+        <div style={{
+          background: v4.bg2, border: `1px solid ${v4.border}`,
+          borderRadius: 10, padding: '10px 14px', marginBottom: 12,
+          display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+        }}>
+          <span style={{ fontSize: 9.5, fontWeight: 700, color: v4.electric, fontFamily: mono, letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
+            R32 (3rd)
+          </span>
+          {[...thirdSelected].map(team => (
+            <span key={team} style={{
+              background: 'rgba(0,255,135,0.08)', border: `1px solid rgba(0,255,135,0.2)`,
+              borderRadius: 5, padding: '3px 7px',
+              fontSize: 10, color: v4.text, fontFamily: display,
+            }}>{team}</span>
+          ))}
+        </div>
+      )}
 
       {/* Round tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
@@ -1071,6 +1111,7 @@ export default function TournamentBracket() {
     THIRD_SLOTS.forEach(slot => { if (_urlState.picks[slot]) sel.add(_urlState.picks[slot]); });
     return sel;
   });
+  const [allGroupsLocked, setAllGroupsLocked] = React.useState(false);
 
   React.useEffect(() => {
     setSimLoading(true);
@@ -1083,6 +1124,11 @@ export default function TournamentBracket() {
     fetchStandings()
       .then(d => {
         setStandingsData(d);
+        const locked = Object.values(d.groups).every(
+          teams => teams.length >= 4 && teams.every(t => t.pos_locked)
+        );
+        setAllGroupsLocked(locked);
+
         if (!_urlState) {
           // Fresh load: seed all groups from actual standings
           setGroupPicks(
@@ -1092,7 +1138,6 @@ export default function TournamentBracket() {
           );
         } else {
           // Shared URL: only override groups where every position is mathematically locked
-          // (i.e. all 3 games played and standings are final facts, not predictions)
           setGroupPicks(prev => {
             const next = { ...prev };
             for (const [letter, teams] of Object.entries(d.groups)) {
@@ -1106,6 +1151,38 @@ export default function TournamentBracket() {
       })
       .catch(() => {}); // silently fail — falls back to original draw order
   }, []);
+
+  // Auto-fill 3rd-place qualifier slots once group stage is fully locked
+  React.useEffect(() => {
+    if (!allGroupsLocked || !standingsData || !simData || _urlState || thirdSelected.size > 0) return;
+
+    const allThirds = Object.entries(standingsData.groups).map(([, teams]) => ({
+      team: teams[2]?.team,
+      pts:  teams[2]?.pts ?? 0,
+      gd:   teams[2]?.gd  ?? 0,
+    })).filter(x => x.team);
+
+    // Rank by pts desc, gd desc, then model r32_pct desc
+    allThirds.sort((a, b) =>
+      b.pts - a.pts || b.gd - a.gd ||
+      (simFor(simData, b.team)?.r32_pct ?? 0) - (simFor(simData, a.team)?.r32_pct ?? 0)
+    );
+
+    const qualThirds = allThirds.slice(0, 8).map(t => t.team);
+    setThirdSelected(new Set(qualThirds));
+
+    // Assign to bracket slots sorted by model strength
+    const byStrength = [...qualThirds].sort(
+      (a, b) => (simFor(simData, b)?.r32_pct ?? 0) - (simFor(simData, a)?.r32_pct ?? 0)
+    );
+    setPicks(prev => {
+      const next = { ...prev };
+      THIRD_SLOTS.forEach(slot => delete next[slot]);
+      byStrength.forEach((team, i) => { if (THIRD_SLOTS[i]) next[THIRD_SLOTS[i]] = team; });
+      return next;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allGroupsLocked, standingsData, simData]);
 
   function handleGroupReorder(letter, newOrder) {
     setGroupPicks(prev => {
@@ -1284,6 +1361,7 @@ export default function TournamentBracket() {
           simData={simData}
           thirdSelected={thirdSelected}
           onThirdSelectionChange={setThirdSelected}
+          hideThirdPicker={allGroupsLocked}
         />
       ) : (
         <KnockoutView
@@ -1293,6 +1371,7 @@ export default function TournamentBracket() {
           simData={simData}
           thirdSelected={thirdSelected}
           onThirdSelectionChange={setThirdSelected}
+          hideThirdPicker={allGroupsLocked}
         />
       )}
       </div>
