@@ -4,205 +4,219 @@ import { fetchSimulation } from '../lib/api.js';
 const v4 = {
   bg:          '#0d0118',
   bg2:         '#15032a',
-  surface:     'rgba(255,255,255,0.03)',
   border:      'rgba(255,255,255,0.08)',
-  borderHi:    'rgba(255,255,255,0.16)',
   text:        '#ffffff',
   textDim:     '#b9aed0',
   textVeryDim: '#796a93',
   electric:    '#00FF87',
-  pink:        '#FF2882',
   purple:      '#7B2EE3',
+  amber:       '#FFB020',
 };
 const display = 'Space Grotesk, sans-serif';
 const mono    = 'JetBrains Mono, monospace';
 
+const TEAM_FLAGS = {
+  'Mexico':'mx','South Africa':'za','South Korea':'kr','Czech Republic':'cz',
+  'Canada':'ca','Bosnia and Herzegovina':'ba','Qatar':'qa','Switzerland':'ch',
+  'Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct',
+  'United States':'us','Paraguay':'py','Australia':'au','Turkey':'tr',
+  'Germany':'de','Ivory Coast':'ci','Curaçao':'cw','Ecuador':'ec',
+  'Netherlands':'nl','Japan':'jp','Sweden':'se','Tunisia':'tn',
+  'Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz',
+  'Spain':'es','Saudi Arabia':'sa','Cape Verde':'cv','Uruguay':'uy',
+  'France':'fr','Senegal':'sn','Iraq':'iq','Norway':'no',
+  'Argentina':'ar','Austria':'at','Algeria':'dz','Jordan':'jo',
+  'Portugal':'pt','Colombia':'co','DR Congo':'cd','Uzbekistan':'uz',
+  'England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa',
+};
+
 function useIsMobile() {
-  const [mobile, setMobile] = React.useState(() => typeof window !== 'undefined' && window.innerWidth < 640);
+  const [mobile, setMobile] = React.useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   React.useEffect(() => {
-    const handler = () => setMobile(window.innerWidth < 640);
+    const handler = () => setMobile(window.innerWidth < 768);
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
   return mobile;
 }
 
-function GroupCard({ letter, teams }) {
-  const sorted = [...teams].sort((a, b) => b.r32_pct - a.r32_pct);
-  const max = sorted[0]?.r32_pct || 1;
+function StatBar({ pct, color }) {
+  return (
+    <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+      <div style={{
+        width: `${Math.min(100, pct)}%`, height: '100%', borderRadius: 999,
+        background: color, transition: 'width 0.5s ease',
+      }} />
+    </div>
+  );
+}
+
+function TeamRow({ team, rank }) {
+  const flag = TEAM_FLAGS[team.team] ?? null;
+  const winPct = team.win_pct ?? 0;
+  const finalPct = team.final_pct ?? 0;
+  const sfPct = team.sf_pct ?? 0;
+  const qfPct = team.qf_pct ?? 0;
+
+  const isFavourite = winPct >= 8;
+  const isContender = winPct >= 3 && !isFavourite;
+
+  const rowColor = isFavourite ? v4.electric : isContender ? v4.textDim : v4.textVeryDim;
 
   return (
     <div style={{
-      background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
-      border: `1px solid ${v4.border}`,
-      borderRadius: 14,
-      overflow: 'hidden',
+      display: 'grid',
+      gridTemplateColumns: '32px 1fr 52px 52px 52px 60px',
+      alignItems: 'center',
+      gap: 8,
+      padding: '10px 16px',
+      borderBottom: `1px solid ${v4.border}`,
+      background: rank % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent',
     }}>
-      {/* Group header */}
-      <div style={{
-        padding: '10px 16px',
-        borderBottom: `1px solid ${v4.border}`,
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        background: 'rgba(0,255,135,0.04)',
-      }}>
-        <span style={{ color: v4.electric, fontFamily: mono, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em' }}>
-          GROUP {letter}
-        </span>
-        <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, letterSpacing: '0.08em' }}>ADVANCE %</span>
+      {/* Rank */}
+      <span style={{ fontFamily: mono, fontSize: 11, color: v4.textVeryDim, textAlign: 'center' }}>
+        {rank}
+      </span>
+
+      {/* Flag + Name */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        {flag && (
+          <img
+            src={`https://flagcdn.com/24x18/${flag}.png`}
+            width={24} height={18} alt=""
+            style={{ flexShrink: 0, borderRadius: 2, objectFit: 'cover' }}
+          />
+        )}
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            fontFamily: display, fontSize: 13, fontWeight: isFavourite ? 700 : 500,
+            color: rowColor,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {team.team}
+          </div>
+          <div style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, marginTop: 2 }}>
+            Grp {team.group}
+          </div>
+        </div>
       </div>
 
-      {/* Teams */}
-      <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {sorted.map((t, i) => {
-          const advances = i < 2;
-          const mayAdvance = i === 2;
-          return (
-            <div key={t.team} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              {/* Rank indicator */}
-              <div style={{
-                width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: advances
-                  ? 'rgba(0,255,135,0.15)'
-                  : mayAdvance
-                    ? 'rgba(255,176,32,0.1)'
-                    : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${advances ? 'rgba(0,255,135,0.35)' : mayAdvance ? 'rgba(255,176,32,0.2)' : 'rgba(255,255,255,0.08)'}`,
-                fontSize: 9, fontFamily: mono, fontWeight: 700,
-                color: advances ? v4.electric : mayAdvance ? '#FFB020' : v4.textVeryDim,
-              }}>
-                {i + 1}
-              </div>
+      {/* QF% */}
+      <div style={{ textAlign: 'right' }}>
+        <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 600, color: qfPct >= 40 ? v4.electric : v4.textDim }}>
+          {qfPct.toFixed(0)}%
+        </div>
+        <StatBar pct={qfPct} color="rgba(0,255,135,0.5)" />
+      </div>
 
-              {/* Team name + bar */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  color: advances ? v4.text : v4.textDim,
-                  fontFamily: display, fontSize: 13, fontWeight: advances ? 600 : 400,
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  marginBottom: 4,
-                }}>
-                  {t.team}
-                </div>
-                <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
-                  <div style={{
-                    width: `${(t.r32_pct / 100) * 100}%`,
-                    height: '100%', borderRadius: 999,
-                    background: advances ? v4.electric : mayAdvance ? '#FFB020' : v4.textVeryDim,
-                    opacity: advances ? 1 : 0.5,
-                  }} />
-                </div>
-              </div>
+      {/* SF% */}
+      <div style={{ textAlign: 'right' }}>
+        <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 600, color: sfPct >= 20 ? v4.electric : v4.textVeryDim }}>
+          {sfPct.toFixed(0)}%
+        </div>
+        <StatBar pct={sfPct} color="rgba(0,255,135,0.4)" />
+      </div>
 
-              {/* Advance % */}
-              <div style={{
-                fontFamily: mono, fontSize: 12, fontWeight: 700, flexShrink: 0,
-                color: advances ? v4.electric : mayAdvance ? '#FFB020' : v4.textVeryDim,
-                minWidth: 36, textAlign: 'right',
-              }}>
-                {t.r32_pct.toFixed(0)}%
-              </div>
-            </div>
-          );
-        })}
+      {/* Final% */}
+      <div style={{ textAlign: 'right' }}>
+        <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 600, color: finalPct >= 10 ? v4.amber : v4.textVeryDim }}>
+          {finalPct.toFixed(0)}%
+        </div>
+        <StatBar pct={finalPct} color={`rgba(255,176,32,0.5)`} />
+      </div>
+
+      {/* Win% */}
+      <div style={{ textAlign: 'right' }}>
+        <div style={{
+          fontFamily: mono, fontSize: 13, fontWeight: 700,
+          color: winPct >= 8 ? v4.electric : winPct >= 3 ? v4.amber : v4.textVeryDim,
+        }}>
+          {winPct.toFixed(1)}%
+        </div>
+        <StatBar pct={winPct * 4} color={winPct >= 8 ? v4.electric : v4.amber} />
       </div>
     </div>
   );
 }
 
-function SkeletonCard() {
+function SkeletonRow() {
   return (
-    <div style={{
-      background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
-      border: `1px solid ${v4.border}`, borderRadius: 14, overflow: 'hidden',
-    }}>
-      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${v4.border}`, background: 'rgba(0,255,135,0.04)' }}>
-        <div style={{ width: 60, height: 10, background: 'rgba(255,255,255,0.08)', borderRadius: 4 }} />
-      </div>
-      <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {[0,1,2,3].map(i => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ width: `${55 + i * 10}%`, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 4, marginBottom: 6 }} />
-              <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.04)', borderRadius: 999 }} />
-            </div>
-            <div style={{ width: 28, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
-          </div>
-        ))}
-      </div>
+    <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr 52px 52px 52px 60px', gap: 8, padding: '10px 16px', borderBottom: `1px solid ${v4.border}` }}>
+      <div style={{ height: 12, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
+      <div style={{ height: 12, background: 'rgba(255,255,255,0.06)', borderRadius: 4, width: '60%' }} />
+      {[0,1,2,3].map(i => <div key={i} style={{ height: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }} />)}
     </div>
   );
 }
 
 export default function GroupStandings() {
   const isMobile = useIsMobile();
-  const [groups,      setGroups]      = React.useState(null);
+  const [teams,       setTeams]       = React.useState(null);
   const [nSim,        setNSim]        = React.useState(null);
   const [lastUpdated, setLastUpdated] = React.useState(null);
 
   React.useEffect(() => {
-    fetchSimulation(10_000).then(data => {
-      const map = {};
-      for (const t of data.teams) {
-        const g = t.group || '?';
-        if (!map[g]) map[g] = [];
-        map[g].push(t);
-      }
-      setGroups(map);
+    fetchSimulation(20_000).then(data => {
+      // Only qualified teams (r32_pct > 0), sorted by win probability
+      const qualified = (data.teams || [])
+        .filter(t => (t.r32_pct ?? 0) > 0)
+        .sort((a, b) => (b.win_pct ?? 0) - (a.win_pct ?? 0));
+      setTeams(qualified);
       setNSim(data.n_sim);
       if (data.last_updated) setLastUpdated(data.last_updated);
     }).catch(() => {});
   }, []);
 
-  const groupLetters = groups ? Object.keys(groups).sort() : Array.from({ length: 12 }, (_, i) => String.fromCharCode(65 + i));
-
   return (
     <div style={{ padding: isMobile ? '60px 16px' : '100px 56px', background: v4.bg, borderTop: `1px solid ${v4.border}` }}>
-      <div style={{ maxWidth: 1320, margin: '0 auto' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
+
         {/* Heading */}
-        <div style={{ marginBottom: 40 }}>
+        <div style={{ marginBottom: 36 }}>
           <div style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>
-            group stage predictions
+            tournament odds
           </div>
-          <h2 style={{ color: v4.text, fontSize: isMobile ? 32 : 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
-            Who advances from every group?
+          <h2 style={{ color: v4.text, fontSize: isMobile ? 30 : 44, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
+            Who lifts the trophy?
           </h2>
-          <p style={{ color: v4.textDim, fontSize: 15, marginTop: 14, maxWidth: 560, lineHeight: 1.55 }}>
-            Based on {nSim ? `${(nSim / 1000).toFixed(0)}K` : '50K'} Monte Carlo simulations. Green = model expects them to advance. Yellow = possible best third-place qualifier.
+          <p style={{ color: v4.textDim, fontSize: 15, marginTop: 14, maxWidth: 520, lineHeight: 1.55 }}>
+            DC model probabilities across {nSim ? `${(nSim / 1000).toFixed(0)}K` : '—'} simulated tournaments. 32 qualified teams ranked by win probability.
           </p>
         </div>
 
-        {/* Legend */}
-        <div style={{ display: 'flex', gap: 20, marginBottom: 28, flexWrap: 'wrap' }}>
-          {[
-            { color: v4.electric, label: 'Expected to advance (top 2)' },
-            { color: '#FFB020',   label: 'Possible best 3rd' },
-            { color: v4.textVeryDim, label: 'Expected to exit' },
-          ].map(({ color, label }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
-              <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.06em' }}>{label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Group grid */}
+        {/* Table */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
-          gap: isMobile ? 10 : 14,
+          background: v4.bg2,
+          border: `1px solid ${v4.border}`,
+          borderRadius: 14,
+          overflow: 'hidden',
         }}>
-          {groupLetters.map(letter => (
-            groups
-              ? <GroupCard key={letter} letter={letter} teams={groups[letter]} />
-              : <SkeletonCard key={letter} />
-          ))}
+          {/* Header */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '32px 1fr 52px 52px 52px 60px',
+            gap: 8,
+            padding: '10px 16px',
+            borderBottom: `1px solid rgba(255,255,255,0.12)`,
+            background: 'rgba(123,46,227,0.1)',
+          }}>
+            <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase' }}>#</span>
+            <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Team</span>
+            <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'right' }}>QF%</span>
+            <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'right' }}>SF%</span>
+            <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'right' }}>Final%</span>
+            <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'right' }}>Win%</span>
+          </div>
+
+          {teams
+            ? teams.map((t, i) => <TeamRow key={t.team} team={t} rank={i + 1} />)
+            : Array.from({ length: 12 }, (_, i) => <SkeletonRow key={i} />)
+          }
         </div>
 
-        <p style={{ color: v4.textVeryDim, fontSize: 11, fontFamily: mono, textAlign: 'center', marginTop: 28, lineHeight: 1.6 }}>
-          Percentages represent probability of advancing from the group stage across {nSim ? `${nSim.toLocaleString()}` : '10,000'} simulated tournaments.{' '}
-          {lastUpdated ? `Model last updated ${new Date(lastUpdated).toUTCString()}.` : 'Updated daily at 06:00 UTC.'}
+        <p style={{ color: v4.textVeryDim, fontSize: 11, fontFamily: mono, textAlign: 'center', marginTop: 20, lineHeight: 1.6 }}>
+          Dixon-Coles model · {nSim ? `${nSim.toLocaleString()}` : '20,000'} Monte Carlo simulations ·{' '}
+          {lastUpdated ? `Updated ${new Date(lastUpdated).toUTCString()}` : 'Updated daily at 06:00 UTC'}
         </p>
       </div>
     </div>

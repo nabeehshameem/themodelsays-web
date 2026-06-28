@@ -1055,7 +1055,6 @@ function MobileKnockoutView({ groupPicks, picks, onPick, simData, thirdSelected,
 // ── Main component ─────────────────────────────────────────────────
 export default function TournamentBracket() {
   const mobile = useIsMobile();
-  const [tab,           setTab]          = React.useState('groups');
   const [simData,       setSimData]      = React.useState(null);
   const [simLoading,    setSimLoading]   = React.useState(false);
   const [simError,      setSimError]     = React.useState(false);
@@ -1227,11 +1226,11 @@ export default function TournamentBracket() {
               {simLoading && <span style={{ fontSize: 10.5, color: v4.textVeryDim, fontFamily: mono }}>loading model…</span>}
             </div>
             <h2 style={{ color: v4.text, fontSize: mobile ? 26 : 34, fontWeight: 700, letterSpacing: '-0.03em', margin: 0, fontFamily: display }}>
-              Build your 2026 bracket
+              2026 Knockout Bracket
             </h2>
             <p style={{ color: v4.textDim, fontSize: 15, marginTop: 8, maxWidth: 520, fontFamily: display }}>
-              Pick group results, choose your 3rd-place qualifiers, then click through every knockout round.
-              Model probabilities shown at every step.
+              Group stage complete. Pick your 3rd-place qualifiers, then click through every knockout round.
+              Model win probabilities shown at every step.
             </p>
           </div>
 
@@ -1275,39 +1274,9 @@ export default function TournamentBracket() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          {[
-            { id: 'groups',   label: 'Groups' },
-            { id: 'knockout', label: 'Knockout bracket' },
-          ].map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              style={{
-                background: tab === id ? v4.electric : 'transparent',
-                color: tab === id ? '#000' : v4.textDim,
-                border: `1px solid ${tab === id ? v4.electric : v4.border}`,
-                borderRadius: 8, padding: '8px 20px',
-                fontSize: 13, fontWeight: 700, fontFamily: display,
-                cursor: 'pointer', transition: 'all 0.15s',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {tab === 'groups' ? (
-        <GroupStageView
-          groupPicks={groupPicks}
-          onGroupReorder={handleGroupReorder}
-          simData={simData}
-          standingsData={standingsData}
-          onContinue={() => setTab('knockout')}
-        />
-      ) : mobile ? (
+      {mobile ? (
         <MobileKnockoutView
           groupPicks={groupPicks}
           picks={picks}
