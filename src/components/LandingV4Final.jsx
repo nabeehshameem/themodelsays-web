@@ -163,7 +163,10 @@ function V4BracketHero() {
           .slice(0, 8)
           .map(t => ({
             name: t.team,
-            pct: parseFloat(t.win_pct.toFixed(1)),
+            win:   parseFloat(t.win_pct.toFixed(1)),
+            final: parseFloat(t.final_pct.toFixed(1)),
+            sf:    parseFloat(t.sf_pct.toFixed(1)),
+            qf:    parseFloat(t.qf_pct.toFixed(1)),
             color: _TEAM_COLORS[t.team] || '#7B2EE3',
           }));
         setFavs(sorted);
@@ -176,7 +179,6 @@ function V4BracketHero() {
   }, []);
 
   const rows = favs || [];
-  const max = rows[0]?.pct || 1;
   const loading = favs === null && !err;
 
   return (
@@ -214,23 +216,25 @@ function V4BracketHero() {
               </div>
             ))
           : rows.map((t, i) => (
-              <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 16, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right' }}>{i + 1}</span>
+              <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 16, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
                 <span style={{
-                  width: 100, color: i === 0 ? v4.text : v4.textDim,
-                  fontFamily: display, fontSize: 13, fontWeight: i === 0 ? 700 : 400,
+                  width: 82, color: i === 0 ? v4.text : v4.textDim,
+                  fontFamily: display, fontSize: 12, fontWeight: i === 0 ? 700 : 400,
+                  flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>{t.name}</span>
-                <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden' }}>
-                  <div style={{
-                    width: `${(t.pct / max) * 100}%`, height: '100%', borderRadius: 999,
-                    background: i === 0 ? v4.electric : t.color,
-                    opacity: i === 0 ? 1 : 0.55,
-                  }} />
+                <div style={{ display: 'flex', gap: 4, flex: 1, justifyContent: 'flex-end', flexWrap: 'nowrap', overflow: 'hidden' }}>
+                  {[{ label: 'QF', val: t.qf, dim: true }, { label: 'SF', val: t.sf, dim: true }, { label: 'F', val: t.final, dim: false }].map(s => (
+                    <span key={s.label} style={{
+                      fontFamily: mono, fontSize: 10, color: s.dim ? v4.textVeryDim : v4.textDim,
+                      whiteSpace: 'nowrap',
+                    }}>{s.label} <span style={{ color: s.dim ? v4.textDim : v4.text }}>{s.val}%</span></span>
+                  ))}
                 </div>
                 <span style={{
-                  width: 44, textAlign: 'right', fontFamily: mono, fontSize: 12, fontWeight: 700,
+                  width: 40, textAlign: 'right', fontFamily: mono, fontSize: 12, fontWeight: 700, flexShrink: 0,
                   color: i === 0 ? v4.electric : v4.textDim,
-                }}>{t.pct}%</span>
+                }}>{t.win}%</span>
               </div>
             ))
         }
@@ -246,7 +250,7 @@ function V4BracketHero() {
           : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ color: v4.text, fontFamily: display, fontSize: 15, fontWeight: 700 }}>{rows[0].name}</span>
-              <span style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 800, background: 'rgba(0,0,0,0.45)', padding: '3px 9px', borderRadius: 6 }}>{rows[0].pct}%</span>
+              <span style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 800, background: 'rgba(0,0,0,0.45)', padding: '3px 9px', borderRadius: 6 }}>{rows[0].win}%</span>
               <span style={{ color: v4.textDim, fontFamily: display, fontSize: 13 }}>to win WC 2026</span>
             </div>
           )
@@ -644,26 +648,21 @@ function WidgetBracket() {
     );
   }
 
-  const max = teams[0]?.win || 1;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {teams.map((t, i) => (
-        <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 14, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
           <span style={{
-            width: 88, color: i === 0 ? v4.text : v4.textDim,
+            width: 76, color: i === 0 ? v4.text : v4.textDim,
             fontFamily: display, fontSize: 12, fontWeight: i === 0 ? 700 : 400,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 0,
           }}>{t.name}</span>
-          <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden' }}>
-            <div style={{
-              width: `${(t.win / max) * 100}%`, height: '100%', borderRadius: 999,
-              background: i === 0 ? v4.electric : _TEAM_COLORS[t.name] || v4.purple,
-              opacity: i === 0 ? 1 : 0.55,
-            }} />
-          </div>
+          <span style={{ flex: 1, fontFamily: mono, fontSize: 10, color: v4.textVeryDim, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+            F <span style={{ color: v4.textDim }}>{t.final}%</span>
+          </span>
           <span style={{
-            width: 38, textAlign: 'right', fontFamily: mono, fontSize: 11, fontWeight: 700, flexShrink: 0,
+            width: 44, textAlign: 'right', fontFamily: mono, fontSize: 11, fontWeight: 700, flexShrink: 0,
             color: i === 0 ? v4.electric : v4.textDim,
           }}>{t.win}%</span>
         </div>
