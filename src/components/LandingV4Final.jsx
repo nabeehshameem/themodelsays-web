@@ -219,20 +219,15 @@ function V4BracketHero() {
               <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ width: 16, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
                 <span style={{
-                  width: 82, color: i === 0 ? v4.text : v4.textDim,
+                  width: 76, color: i === 0 ? v4.text : v4.textDim,
                   fontFamily: display, fontSize: 12, fontWeight: i === 0 ? 700 : 400,
                   flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>{t.name}</span>
-                <div style={{ display: 'flex', gap: 4, flex: 1, justifyContent: 'flex-end', flexWrap: 'nowrap', overflow: 'hidden' }}>
-                  {[{ label: 'QF', val: t.qf, dim: true }, { label: 'SF', val: t.sf, dim: true }, { label: 'F', val: t.final, dim: false }].map(s => (
-                    <span key={s.label} style={{
-                      fontFamily: mono, fontSize: 10, color: s.dim ? v4.textVeryDim : v4.textDim,
-                      whiteSpace: 'nowrap',
-                    }}>{s.label} <span style={{ color: s.dim ? v4.textDim : v4.text }}>{s.val}%</span></span>
-                  ))}
+                <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.min(t.win * 5, 100)}%`, height: '100%', background: t.color, borderRadius: 4, opacity: i === 0 ? 1 : 0.65 }} />
                 </div>
                 <span style={{
-                  width: 40, textAlign: 'right', fontFamily: mono, fontSize: 12, fontWeight: 700, flexShrink: 0,
+                  width: 38, textAlign: 'right', fontFamily: mono, fontSize: 12, fontWeight: 700, flexShrink: 0,
                   color: i === 0 ? v4.electric : v4.textDim,
                 }}>{t.win}%</span>
               </div>
@@ -627,7 +622,7 @@ function WidgetBracket() {
         const sorted = [...data.teams]
           .sort((a, b) => b.win_pct - a.win_pct)
           .slice(0, 5)
-          .map(t => ({ name: t.team, win: parseFloat(t.win_pct.toFixed(1)), final: parseFloat(t.final_pct.toFixed(1)) }));
+          .map(t => ({ name: t.team, win: parseFloat(t.win_pct.toFixed(1)), color: _TEAM_COLORS[t.team] || '#7B2EE3' }));
         setTeams(sorted);
       })
       .catch(() => {});
@@ -658,9 +653,9 @@ function WidgetBracket() {
             fontFamily: display, fontSize: 12, fontWeight: i === 0 ? 700 : 400,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 0,
           }}>{t.name}</span>
-          <span style={{ flex: 1, fontFamily: mono, fontSize: 10, color: v4.textVeryDim, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-            F <span style={{ color: v4.textDim }}>{t.final}%</span>
-          </span>
+          <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ width: `${Math.min(t.win * 5, 100)}%`, height: '100%', background: t.color, borderRadius: 4, opacity: i === 0 ? 1 : 0.65 }} />
+          </div>
           <span style={{
             width: 44, textAlign: 'right', fontFamily: mono, fontSize: 11, fontWeight: 700, flexShrink: 0,
             color: i === 0 ? v4.electric : v4.textDim,
