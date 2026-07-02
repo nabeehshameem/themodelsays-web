@@ -179,6 +179,22 @@ function modelWinner(simData, t1, t2) {
   return (simFor(simData, t1)?.win_pct ?? 0) >= (simFor(simData, t2)?.win_pct ?? 0) ? t1 : t2;
 }
 
+// Auto-pin R32 results: a team with r32_pct=100 but qf_pct=0 was knocked out in R32.
+// Returns { matchId: winnerName } for all already-played R32 games.
+function derivePlayedR32(simData) {
+  if (!simData?.teams) return {};
+  const played = {};
+  [...R32_L, ...R32_R].forEach(m => {
+    const s1 = simFor(simData, m.t1);
+    const s2 = simFor(simData, m.t2);
+    if (!s1 || !s2) return;
+    if (s1.r32_pct < 99 || s2.r32_pct < 99) return; // one didn't qualify from groups
+    if (s1.qf_pct < 0.5 && s2.qf_pct >= 0.5) played[m.id] = m.t2;
+    else if (s2.qf_pct < 0.5 && s1.qf_pct >= 0.5) played[m.id] = m.t1;
+  });
+  return played;
+}
+
 // ── Country flag codes → flagcdn.com ISO codes ─────────────────────
 const TEAM_FLAGS = {
   'Mexico':                 'mx', 'South Africa':          'za',
@@ -957,7 +973,15 @@ export default function TournamentBracket() {
   React.useEffect(() => {
     setSimLoading(true);
     fetchSimulation(20_000)
-      .then(d => setSimData(d))
+      .then(d => {
+        setSimData(d);
+        // Auto-pin R32 results: played games override URL/user picks so the
+        // bracket always reflects actual results after the pipeline runs.
+        const played = derivePlayedR32(d);
+        if (Object.keys(played).length > 0) {
+          setPicks(prev => ({ ...prev, ...played }));
+        }
+      })
       .catch(() => setSimError(true))
       .finally(() => setSimLoading(false));
 
@@ -1032,9 +1056,11 @@ export default function TournamentBracket() {
     );
     setGroupPicks(newGroups);
 
-    const p = {};
+    // Seed with confirmed played results first, then let model fill the rest.
+    const p = { ...derivePlayedR32(simData) };
 
     const fill = matches => matches.forEach(m => {
+      if (p[m.id]) return; // already confirmed — don't overwrite with model pick
       const t1 = resolveSlot(m.t1, newGroups, p);
       const t2 = resolveSlot(m.t2, newGroups, p);
       const w  = modelWinner(simData, t1, t2);
@@ -1063,7 +1089,8 @@ export default function TournamentBracket() {
 
   function resetAll() {
     setGroupPicks(Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]])));
-    setPicks({});
+    // Keep confirmed played results — only clear user predictions for future games.
+    setPicks(simData ? derivePlayedR32(simData) : {});
     window.history.replaceState(null, '', window.location.pathname);
   }
 
