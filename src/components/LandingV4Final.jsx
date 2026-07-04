@@ -159,6 +159,7 @@ function V4BracketHero() {
     getSimulation()
       .then(data => {
         const sorted = [...data.teams]
+          .filter(t => t.win_pct > 0)
           .sort((a, b) => b.win_pct - a.win_pct)
           .slice(0, 8)
           .map(t => ({
@@ -620,6 +621,7 @@ function WidgetBracket() {
     getSimulation()
       .then(data => {
         const sorted = [...data.teams]
+          .filter(t => t.win_pct > 0)
           .sort((a, b) => b.win_pct - a.win_pct)
           .slice(0, 5)
           .map(t => ({ name: t.team, win: parseFloat(t.win_pct.toFixed(1)), color: _TEAM_COLORS[t.team] || '#7B2EE3' }));
