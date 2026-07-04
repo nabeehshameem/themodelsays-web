@@ -157,9 +157,9 @@ export default function GroupStandings() {
 
   React.useEffect(() => {
     fetchSimulation(20_000).then(data => {
-      // Only qualified teams (r32_pct > 0), sorted by win probability
+      // Only active teams (win_pct > 0 = not yet eliminated), sorted by win probability
       const qualified = (data.teams || [])
-        .filter(t => (t.r32_pct ?? 0) > 0)
+        .filter(t => (t.win_pct ?? 0) > 0)
         .sort((a, b) => (b.win_pct ?? 0) - (a.win_pct ?? 0));
       setTeams(qualified);
       setNSim(data.n_sim);
@@ -180,7 +180,7 @@ export default function GroupStandings() {
             Who lifts the trophy?
           </h2>
           <p style={{ color: v4.textDim, fontSize: 15, marginTop: 14, maxWidth: 520, lineHeight: 1.55 }}>
-            DC model probabilities across {nSim ? `${(nSim / 1000).toFixed(0)}K` : '—'} simulated tournaments. 32 qualified teams ranked by win probability.
+            DC model probabilities across {nSim ? `${(nSim / 1000).toFixed(0)}K` : '—'} simulated tournaments. Remaining teams ranked by win probability.
           </p>
         </div>
 

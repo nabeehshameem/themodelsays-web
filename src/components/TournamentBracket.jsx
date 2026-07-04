@@ -179,7 +179,9 @@ function modelWinner(simData, t1, t2) {
   return (simFor(simData, t1)?.win_pct ?? 0) >= (simFor(simData, t2)?.win_pct ?? 0) ? t1 : t2;
 }
 
-// Auto-pin R32 results: a team with r32_pct=100 but qf_pct=0 was knocked out in R32.
+// Auto-pin R32 results using r16_pct: a team that won R32 has r16_pct≈100,
+// a team that lost R32 has r16_pct=0. This correctly handles pen shootouts
+// stored as draws (e.g. 1-1 AET) where qf_pct alone can't distinguish.
 // Returns { matchId: winnerName } for all already-played R32 games.
 function derivePlayedR32(simData) {
   if (!simData?.teams) return {};
@@ -189,8 +191,8 @@ function derivePlayedR32(simData) {
     const s2 = simFor(simData, m.t2);
     if (!s1 || !s2) return;
     if (s1.r32_pct < 99 || s2.r32_pct < 99) return; // one didn't qualify from groups
-    if (s1.qf_pct < 0.5 && s2.qf_pct >= 0.5) played[m.id] = m.t2;
-    else if (s2.qf_pct < 0.5 && s1.qf_pct >= 0.5) played[m.id] = m.t1;
+    if (s1.r16_pct < 0.5 && s2.r16_pct >= 99) played[m.id] = m.t2;
+    else if (s2.r16_pct < 0.5 && s1.r16_pct >= 99) played[m.id] = m.t1;
   });
   return played;
 }
