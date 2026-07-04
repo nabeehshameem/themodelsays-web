@@ -201,6 +201,25 @@ function derivePlayedR32(simData) {
   return played;
 }
 
+// Auto-pin R16 results. Resolves "W73" etc using r32picks, then uses qf_pct
+// as the signal: ≥99% = reached QF (won R16), <0.5% = eliminated in R16.
+// Returns { matchId: winnerName } for all already-played R16 games.
+function derivePlayedR16(simData, r32picks) {
+  if (!simData?.teams) return {};
+  const played = {};
+  [...R16_L, ...R16_R].forEach(m => {
+    const t1 = r32picks[m.t1.slice(1)] ?? null; // resolve "W73" → actual team
+    const t2 = r32picks[m.t2.slice(1)] ?? null;
+    if (!t1 || !t2) return; // R32 not resolved yet
+    const s1 = simFor(simData, t1);
+    const s2 = simFor(simData, t2);
+    if (!s1 || !s2) return;
+    if (s1.qf_pct >= 99 && s2.qf_pct < 0.5) played[m.id] = t1;
+    else if (s2.qf_pct >= 99 && s1.qf_pct < 0.5) played[m.id] = t2;
+  });
+  return played;
+}
+
 // ── Country flag codes → flagcdn.com ISO codes ─────────────────────
 const TEAM_FLAGS = {
   'Mexico':                 'mx', 'South Africa':          'za',
@@ -981,9 +1000,10 @@ export default function TournamentBracket() {
     fetchSimulation(20_000)
       .then(d => {
         setSimData(d);
-        // Auto-pin R32 results: played games override URL/user picks so the
-        // bracket always reflects actual results after the pipeline runs.
-        const played = derivePlayedR32(d);
+        // Auto-pin played results: R32 first, then R16 (which depends on R32 winners).
+        const playedR32 = derivePlayedR32(d);
+        const playedR16 = derivePlayedR16(d, playedR32);
+        const played = { ...playedR32, ...playedR16 };
         if (Object.keys(played).length > 0) {
           setPicks(prev => ({ ...prev, ...played }));
         }
@@ -1064,6 +1084,7 @@ export default function TournamentBracket() {
 
     // Seed with confirmed played results first, then let model fill the rest.
     const p = { ...derivePlayedR32(simData) };
+    Object.assign(p, derivePlayedR16(simData, p));
 
     const fill = matches => matches.forEach(m => {
       if (p[m.id]) return; // already confirmed — don't overwrite with model pick
@@ -1096,7 +1117,8 @@ export default function TournamentBracket() {
   function resetAll() {
     setGroupPicks(Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]])));
     // Keep confirmed played results — only clear user predictions for future games.
-    setPicks(simData ? derivePlayedR32(simData) : {});
+    const r32p = simData ? derivePlayedR32(simData) : {};
+    setPicks({ ...r32p, ...(simData ? derivePlayedR16(simData, r32p) : {}) });
     window.history.replaceState(null, '', window.location.pathname);
   }
 
