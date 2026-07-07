@@ -56,7 +56,6 @@ function TeamRow({ team, rank }) {
   const winPct = team.win_pct ?? 0;
   const finalPct = team.final_pct ?? 0;
   const sfPct = team.sf_pct ?? 0;
-  const qfPct = team.qf_pct ?? 0;
 
   const isFavourite = winPct >= 8;
   const isContender = winPct >= 3 && !isFavourite;
@@ -66,7 +65,7 @@ function TeamRow({ team, rank }) {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: '32px 1fr 52px 52px 52px 60px',
+      gridTemplateColumns: '32px 1fr 52px 52px 60px',
       alignItems: 'center',
       gap: 8,
       padding: '10px 16px',
@@ -101,14 +100,6 @@ function TeamRow({ team, rank }) {
         </div>
       </div>
 
-      {/* QF% */}
-      <div style={{ textAlign: 'right' }}>
-        <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 600, color: qfPct >= 40 ? v4.electric : v4.textDim }}>
-          {qfPct.toFixed(0)}%
-        </div>
-        <StatBar pct={qfPct} color="rgba(0,255,135,0.5)" />
-      </div>
-
       {/* SF% */}
       <div style={{ textAlign: 'right' }}>
         <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 600, color: sfPct >= 20 ? v4.electric : v4.textVeryDim }}>
@@ -141,7 +132,7 @@ function TeamRow({ team, rank }) {
 
 function SkeletonRow() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr 52px 52px 52px 60px', gap: 8, padding: '10px 16px', borderBottom: `1px solid ${v4.border}` }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr 52px 52px 60px', gap: 8, padding: '10px 16px', borderBottom: `1px solid ${v4.border}` }}>
       <div style={{ height: 12, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
       <div style={{ height: 12, background: 'rgba(255,255,255,0.06)', borderRadius: 4, width: '60%' }} />
       {[0,1,2,3].map(i => <div key={i} style={{ height: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }} />)}
@@ -194,7 +185,7 @@ export default function GroupStandings() {
           {/* Header */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '32px 1fr 52px 52px 52px 60px',
+            gridTemplateColumns: '32px 1fr 52px 52px 60px',
             gap: 8,
             padding: '10px 16px',
             borderBottom: `1px solid rgba(255,255,255,0.12)`,
@@ -202,7 +193,6 @@ export default function GroupStandings() {
           }}>
             <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase' }}>#</span>
             <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Team</span>
-            <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'right' }}>QF%</span>
             <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'right' }}>SF%</span>
             <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'right' }}>Final%</span>
             <span style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'right' }}>Win%</span>
