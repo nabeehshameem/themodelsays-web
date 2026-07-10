@@ -220,6 +220,25 @@ function derivePlayedR16(simData, r32picks) {
   return played;
 }
 
+// Auto-pin QF results. Resolves "WR1" etc using r16picks, then uses sf_pct
+// as the signal: ≥99% = reached SF (won QF), <0.5% = eliminated in QF.
+// Returns { matchId: winnerName } for all already-played QF games.
+function derivePlayedQF(simData, r16picks) {
+  if (!simData?.teams) return {};
+  const played = {};
+  [...QF_L, ...QF_R].forEach(m => {
+    const t1 = r16picks[m.t1.slice(1)] ?? null; // resolve "WR1" → actual team
+    const t2 = r16picks[m.t2.slice(1)] ?? null;
+    if (!t1 || !t2) return; // R16 not resolved yet
+    const s1 = simFor(simData, t1);
+    const s2 = simFor(simData, t2);
+    if (!s1 || !s2) return;
+    if (s1.sf_pct >= 99 && s2.sf_pct < 0.5) played[m.id] = t1;
+    else if (s2.sf_pct >= 99 && s1.sf_pct < 0.5) played[m.id] = t2;
+  });
+  return played;
+}
+
 // ── Country flag codes → flagcdn.com ISO codes ─────────────────────
 const TEAM_FLAGS = {
   'Mexico':                 'mx', 'South Africa':          'za',
@@ -1003,7 +1022,8 @@ export default function TournamentBracket() {
         // Auto-pin played results: R32 first, then R16 (which depends on R32 winners).
         const playedR32 = derivePlayedR32(d);
         const playedR16 = derivePlayedR16(d, playedR32);
-        const played = { ...playedR32, ...playedR16 };
+        const playedQF  = derivePlayedQF(d, playedR16);
+        const played = { ...playedR32, ...playedR16, ...playedQF };
         if (Object.keys(played).length > 0) {
           setPicks(prev => ({ ...prev, ...played }));
         }
@@ -1085,6 +1105,7 @@ export default function TournamentBracket() {
     // Seed with confirmed played results first, then let model fill the rest.
     const p = { ...derivePlayedR32(simData) };
     Object.assign(p, derivePlayedR16(simData, p));
+    Object.assign(p, derivePlayedQF(simData, p));
 
     const fill = matches => matches.forEach(m => {
       if (p[m.id]) return; // already confirmed — don't overwrite with model pick
@@ -1118,7 +1139,8 @@ export default function TournamentBracket() {
     setGroupPicks(Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]])));
     // Keep confirmed played results — only clear user predictions for future games.
     const r32p = simData ? derivePlayedR32(simData) : {};
-    setPicks({ ...r32p, ...(simData ? derivePlayedR16(simData, r32p) : {}) });
+    const r16p = simData ? derivePlayedR16(simData, r32p) : {};
+    setPicks({ ...r32p, ...r16p, ...(simData ? derivePlayedQF(simData, r16p) : {}) });
     window.history.replaceState(null, '', window.location.pathname);
   }
 
