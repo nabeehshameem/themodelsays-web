@@ -204,8 +204,12 @@ export default function WorldCupPredictor() {
 
   function topScore(r) {
     const best = Math.max(r.win_pct, r.draw_pct, r.loss_pct);
-    if (best === r.draw_pct) return r.most_likely.find(s => s.home_goals === s.away_goals) ?? r.most_likely[0];
-    if (best === r.win_pct)  return r.most_likely.find(s => s.home_goals > s.away_goals)  ?? r.most_likely[0];
+    if (best === r.draw_pct) {
+      return r.most_likely.find(s => s.home_goals === s.away_goals && s.home_goals > 0)
+          ?? r.most_likely.find(s => s.home_goals === s.away_goals)
+          ?? r.most_likely[0];
+    }
+    if (best === r.win_pct) return r.most_likely.find(s => s.home_goals > s.away_goals) ?? r.most_likely[0];
     return r.most_likely.find(s => s.away_goals > s.home_goals) ?? r.most_likely[0];
   }
 
