@@ -125,7 +125,7 @@ function SkeletonRow() {
     <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr 52px 60px', gap: 8, padding: '10px 16px', borderBottom: `1px solid ${v4.border}` }}>
       <div style={{ height: 12, background: 'rgba(255,255,255,0.06)', borderRadius: 4 }} />
       <div style={{ height: 12, background: 'rgba(255,255,255,0.06)', borderRadius: 4, width: '60%' }} />
-      {[0,1,2,3].map(i => <div key={i} style={{ height: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }} />)}
+      {[0,1].map(i => <div key={i} style={{ height: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }} />)}
     </div>
   );
 }
@@ -175,7 +175,7 @@ export default function GroupStandings() {
           {/* Header */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '32px 1fr 52px 52px 60px',
+            gridTemplateColumns: '32px 1fr 52px 60px',
             gap: 8,
             padding: '10px 16px',
             borderBottom: `1px solid rgba(255,255,255,0.12)`,
