@@ -263,11 +263,10 @@ function V4BracketHero() {
 
 // ── Hero ────────────────────────────────────────────────────────────
 const SAYINGS = [
-  'Spain lift the trophy.',
-  'Spain vs Argentina: the model\'s predicted final.',
-  'France knock out Spain in the semi.',
-  'England fall short at the semi-final stage.',
-  'Spain are the model\'s pick. 32% and counting.',
+  'Spain lift the trophy. 32% says so.',
+  'France defy the odds and win it all.',
+  'Argentina win on penalties. Again.',
+  'England: so close, knocked out in the semis.',
 ];
 
 function V4Hero() {
