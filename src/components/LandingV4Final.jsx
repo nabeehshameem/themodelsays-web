@@ -263,10 +263,10 @@ function V4BracketHero() {
 
 // ── Hero ────────────────────────────────────────────────────────────
 const SAYINGS = [
-  'Spain: 32%. The model\'s pick.',
-  'France: 29%. Don\'t write them off.',
-  'Argentina: 21%. Messi\'s last shot.',
-  'England: 17%. History against them.',
+  'Spain: 31%. Marginally the model\'s pick.',
+  'France: 31%. Too close to call.',
+  'England: 20.5%. Overperforming the model.',
+  'Argentina: 17.4%. Messi\'s last shot.',
 ];
 
 function V4Hero() {
