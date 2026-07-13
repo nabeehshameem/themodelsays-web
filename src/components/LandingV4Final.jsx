@@ -264,8 +264,8 @@ function V4BracketHero() {
 // ── Hero ────────────────────────────────────────────────────────────
 const SAYINGS = [
   'Spain lift the trophy.',
-  'France vs Spain: the final the model expects.',
-  'Argentina sneak through on penalties.',
+  'Spain vs Argentina: the model\'s predicted final.',
+  'France knock out Spain in the semi.',
   'England fall short at the semi-final stage.',
   'Spain are the model\'s pick. 32% and counting.',
 ];
