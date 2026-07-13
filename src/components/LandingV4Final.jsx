@@ -263,10 +263,10 @@ function V4BracketHero() {
 
 // ── Hero ────────────────────────────────────────────────────────────
 const SAYINGS = [
-  'Spain lift the trophy. 32% says so.',
-  'France defy the odds and win it all.',
-  'Argentina win on penalties. Again.',
-  'England: so close, knocked out in the semis.',
+  'Spain: 32%. The model\'s pick.',
+  'France: 29%. Don\'t write them off.',
+  'Argentina: 21%. Messi\'s last shot.',
+  'England: 17%. History against them.',
 ];
 
 function V4Hero() {
