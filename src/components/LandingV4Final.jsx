@@ -262,20 +262,41 @@ function V4BracketHero() {
 }
 
 // ── Hero ────────────────────────────────────────────────────────────
-const SAYINGS = [
-  'Spain: 31%. Marginally the model\'s pick.',
-  'France: 31%. Too close to call.',
-  'England: 20.5%. Overperforming the model.',
-  'Argentina: 17.4%. Messi\'s last shot.',
+const HERO_DESCRIPTORS = [
+  "The model's pick.",
+  "Right behind them.",
+  "The dark horse.",
+  "Up against it.",
 ];
+
+function buildSayings(teams) {
+  const remaining = teams
+    .filter(t => (t.win_pct ?? 0) > 0)
+    .sort((a, b) => b.win_pct - a.win_pct)
+    .slice(0, 4);
+  return remaining.map((t, rank) =>
+    `${t.team}: ${t.win_pct.toFixed(1)}%. ${HERO_DESCRIPTORS[rank] ?? ''}`
+  );
+}
 
 function V4Hero() {
   const [i, setI] = React.useState(0);
+  const [sayings, setSayings] = React.useState([
+    "Loading odds…",
+  ]);
   const mobile = useIsMobile();
+
   React.useEffect(() => {
-    const t = setInterval(() => setI(p => (p + 1) % SAYINGS.length), 2800);
-    return () => clearInterval(t);
+    fetchSimulation(20_000).then(data => {
+      const s = buildSayings(data.teams || []);
+      if (s.length > 0) setSayings(s);
+    }).catch(() => {});
   }, []);
+
+  React.useEffect(() => {
+    const t = setInterval(() => setI(p => (p + 1) % sayings.length), 2800);
+    return () => clearInterval(t);
+  }, [sayings.length]);
 
   return (
     <div style={{ position: 'relative', overflow: 'hidden' }}>
@@ -323,7 +344,7 @@ function V4Hero() {
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
               animation: 'tmsFade 2.8s ease infinite',
             }}>
-              "{SAYINGS[i]}"
+              "{sayings[i]}"
             </span>
           </div>
 
