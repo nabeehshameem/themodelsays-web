@@ -6,6 +6,10 @@
     { "source": "/ads.txt", "destination": "/ads.txt" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/methodology", "destination": "/methodology.html" },
+    { "source": "/terms", "destination": "/terms.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

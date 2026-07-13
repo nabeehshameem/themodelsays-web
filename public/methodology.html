@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How It Works — Our Prediction Model | TheModelSays</title>
+  <meta name="description" content="How TheModelSays predicts World Cup 2026 match scores. A plain-English guide to the Dixon-Coles Poisson model, data sources, Monte Carlo simulation, and what the numbers actually mean." />
+  <link rel="canonical" href="https://themodelsays.com/methodology" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5120443387712788" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d0118;
+      color: #b9aed0;
+      line-height: 1.7;
+      padding: 0;
+    }
+    .nav {
+      background: rgba(13,1,24,0.95);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .nav a.brand { color: #00FF87; font-weight: 700; font-size: 17px; text-decoration: none; }
+    .nav a.brand:hover { text-decoration: underline; }
+    .nav-links { margin-left: auto; display: flex; gap: 20px; }
+    .nav-links a { color: #b9aed0; font-size: 14px; text-decoration: none; }
+    .nav-links a:hover { color: #ffffff; }
+    .nav span.sep { color: #796a93; font-size: 14px; }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 24px 96px;
+    }
+    .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #00FF87;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      line-height: 1.1;
+    }
+    .intro {
+      font-size: 17px;
+      color: #b9aed0;
+      margin-bottom: 48px;
+      line-height: 1.65;
+      border-left: 3px solid #7B2EE3;
+      padding-left: 16px;
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 48px 0 14px;
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 28px 0 10px;
+    }
+    p { margin-bottom: 16px; font-size: 15px; }
+    ul, ol { margin: 0 0 16px 24px; }
+    li { margin-bottom: 10px; font-size: 15px; }
+    a { color: #00FF87; }
+    a:hover { text-decoration: underline; }
+    .callout {
+      background: rgba(123,46,227,0.12);
+      border: 1px solid rgba(123,46,227,0.3);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .callout p { margin: 0; font-size: 14px; }
+    code {
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 13px;
+      color: #00FF87;
+    }
+    .stat-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+    .stat {
+      flex: 1;
+      min-width: 140px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 16px 20px;
+      text-align: center;
+    }
+    .stat .value { font-size: 28px; font-weight: 700; color: #00FF87; }
+    .stat .desc { font-size: 12px; color: #796a93; margin-top: 4px; }
+    .footer-note {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 13px;
+      color: #796a93;
+    }
+    .footer-note a { color: #796a93; }
+    .footer-note a:hover { color: #b9aed0; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="brand" href="/">TheModel<span style="color:#00FF87">Says</span></a>
+    <span class="sep">›</span>
+    <span class="sep">How It Works</span>
+    <div class="nav-links">
+      <a href="/">Predictor</a>
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <p class="label">Methodology</p>
+    <h1>How we predict World Cup 2026 matches</h1>
+    <p class="intro">
+      TheModelSays uses a statistical model — not gut feeling, not punditry — to estimate the probability of every possible scoreline in every World Cup 2026 match. Here is an honest, plain-English explanation of how it works, what data it uses, and where it can go wrong.
+    </p>
+
+    <div class="stat-row">
+      <div class="stat">
+        <div class="value">20K</div>
+        <div class="desc">tournament simulations per run</div>
+      </div>
+      <div class="stat">
+        <div class="value">48</div>
+        <div class="desc">teams modelled</div>
+      </div>
+      <div class="stat">
+        <div class="value">4×</div>
+        <div class="desc">weight given to WC 2026 matches</div>
+      </div>
+    </div>
+
+    <h2>The Dixon-Coles Poisson model</h2>
+    <p>
+      Football goals are rare, discrete events. The most natural mathematical framework for modelling them is the <strong>Poisson distribution</strong>, which describes how often a random event occurs in a fixed interval of time. If we expect a team to score 1.4 goals in a match on average, the Poisson distribution tells us the probability of them scoring exactly 0, 1, 2, 3, or more goals.
+    </p>
+    <p>
+      The problem with a naive Poisson model is that it treats both teams independently. In reality, a 0–0 draw happens slightly more often than two independent goal-scoring processes would predict — goalkeepers make big saves, attackers miss open nets. Dixon and Coles (1997) introduced a small correction factor (called <strong>tau</strong>) that adjusts the probability of low-scoring results (0–0, 1–0, 0–1, 1–1) to better match real-world football data. We apply this correction in all our predictions.
+    </p>
+    <p>
+      For each team we estimate two parameters:
+    </p>
+    <ul>
+      <li><strong>Attack strength</strong> — how many goals a team tends to score against an average opponent.</li>
+      <li><strong>Defensive weakness</strong> — how many goals a team tends to concede against an average opponent. A lower number means a tighter defence.</li>
+    </ul>
+    <p>
+      The expected goals for Team A against Team B is then: <code>attack_A × defence_B</code>. Each team's expected goals in a match feeds into a Poisson distribution to produce the full scoreline probability matrix — every combination from 0–0 to 8–8.
+    </p>
+
+    <h2>Data sources and weighting</h2>
+    <p>
+      The model is fitted on three tiers of match data, blended by relevance:
+    </p>
+    <ol>
+      <li>
+        <strong>WC 2026 matches (weight: 4.0)</strong> — every group stage, round of 32, round of 16, quarter-final, and semi-final result from the current tournament. These carry the highest weight because they involve the exact squads, fitness levels, and tactical setups currently on the pitch.
+      </li>
+      <li>
+        <strong>WC 2022 StatsBomb data (weight: 1.0)</strong> — the previous World Cup in Qatar, used as the gold-standard historical baseline for tournament-level performance.
+      </li>
+      <li>
+        <strong>WC 2018 StatsBomb data (weight: 0.60)</strong> — the Russia tournament, down-weighted because squads and team strengths have changed significantly in eight years.
+      </li>
+      <li>
+        <strong>Recent international results (weight: 0.35–0.85, decayed by age)</strong> — qualifying matches, continental tournaments (Euros, Copa América, AFCON), and Nations League fixtures from the past two years. Competitive matches receive higher weight than friendlies. A match played six months ago carries roughly 74% of its base weight; eighteen months ago, around 52%.
+      </li>
+    </ol>
+    <p>
+      For knockout matches that went to extra time, we train on the 90-minute score only, not the final result including extra time. Extra-time goals distort attack and defence ratings because both teams play more cautiously in the additional 30 minutes.
+    </p>
+
+    <h2>Form adjustments</h2>
+    <p>
+      The Poisson parameters fitted across all historical data capture a team's average long-run strength. But tournament football has a short-run reality: a team's form in the current tournament may diverge significantly from what history predicts.
+    </p>
+    <p>
+      To capture this, we compute <strong>form adjustments</strong> — a pair of multipliers for each team's attack and defence — by comparing the model's pre-match expected goals against the actual goals scored and conceded in WC 2026 matches. If France has consistently scored more than the model predicts, their attack multiplier rises above 1.0. If Argentina has conceded less than expected, their defensive multiplier falls below 1.0.
+    </p>
+    <p>
+      These multipliers are applied on top of the fitted parameters when generating predictions. This means the model can distinguish between "Spain is historically strong" and "Spain is particularly tight defensively in this specific tournament."
+    </p>
+
+    <div class="callout">
+      <p><strong>Example:</strong> At the semi-final stage, Argentina's defensive form multiplier was 0.848 — meaning they conceded 15% fewer goals in WC 2026 than the long-run Dixon-Coles model expected. This is a significant real-world signal that affects both match predictions and tournament win probabilities.</p>
+    </div>
+
+    <h2>Monte Carlo tournament simulation</h2>
+    <p>
+      A single match prediction is useful, but understanding a team's probability of winning the entire tournament requires simulating the full bracket thousands of times.
+    </p>
+    <p>
+      We run <strong>20,000 independent tournament simulations</strong> using the Monte Carlo method. In each simulation:
+    </p>
+    <ol>
+      <li>All already-played matches are pinned to their actual results.</li>
+      <li>For remaining group stage matches, goals are sampled from Poisson distributions based on each team's expected goals against their opponent. Group standings, head-to-head records, and goal difference tiebreakers are all computed per FIFA rules.</li>
+      <li>The bracket is seeded using the official WC 2026 draw order.</li>
+      <li>Each knockout match is resolved by sampling from the scoreline distribution. Draws in knockout rounds trigger simulated extra time (30 minutes, at one-third of normal match rate), followed by a 50/50 penalty shootout coin flip if extra time doesn't resolve the match.</li>
+      <li>Each team's advancement through the round of 32, round of 16, quarter-finals, semi-finals, final, and tournament win is tracked separately.</li>
+    </ol>
+    <p>
+      The percentages displayed on the site — "France 31% to win the World Cup" — are the fraction of 20,000 simulations in which that outcome occurred. These are model estimates, not certainties, and they update whenever new match results are ingested.
+    </p>
+
+    <h2>The fantasy football optimizer</h2>
+    <p>
+      Alongside match predictions, TheModelSays includes a fantasy football optimizer for the WC 2026 official fantasy game. This tool uses the same projected expected goals and clean sheet probabilities from the DC model to estimate each player's expected fantasy points over the remaining matches.
+    </p>
+    <p>
+      Player projections account for:
+    </p>
+    <ul>
+      <li>Their team's expected goals scored (for attacking points) and conceded (for clean sheet and save bonuses)</li>
+      <li>The player's historical goal, assist, and bonus point contributions — adjusted by their role and starting likelihood</li>
+      <li>Set-piece responsibility (penalties, free kicks) for relevant players</li>
+      <li>Expected minutes played, based on squad rotation patterns and whether a player is a confirmed starter</li>
+      <li>WC 2026 fantasy scoring rules: goals, assists, appearances, clean sheets, saves, tackles, shots on target, big chances created, and penalty bonuses</li>
+    </ul>
+    <p>
+      The squad selection is solved as a Mixed Integer Linear Programme (MILP) that maximises projected points subject to the official constraints: squad of 15, two goalkeepers, five defenders, five midfielders, three forwards, a maximum budget of £105M (in the knockout phase), and per-country player limits.
+    </p>
+
+    <h2>Limitations and honest caveats</h2>
+    <p>
+      Statistical models are approximations of reality, and ours is no exception. Some things our model does not capture well:
+    </p>
+    <ul>
+      <li><strong>Injuries and suspensions</strong> — we mark key players as unavailable when their absence is confirmed, but we cannot predict mid-tournament injuries.</li>
+      <li><strong>Tactical matchups</strong> — a team set up specifically to counter another team's strengths can outperform its statistical rating. The model doesn't read tactics.</li>
+      <li><strong>Momentum and psychology</strong> — a team that has just won on penalties may play differently to one that has cruised through. The model is stationary between matches.</li>
+      <li><strong>Referee and VAR decisions</strong> — these can swing matches in ways no statistical model can anticipate.</li>
+      <li><strong>Weather and pitch conditions</strong> — especially relevant at a multi-stadium, multi-country tournament like WC 2026 across the USA, Canada, and Mexico.</li>
+    </ul>
+    <p>
+      The model is a useful decision-support tool for fantasy football and a fun way to engage with the tournament. It is not a gambling tool, and no prediction should be treated as a guaranteed outcome.
+    </p>
+
+    <h2>Model updates</h2>
+    <p>
+      The model is re-fitted after each matchday, incorporating the latest WC 2026 results. Parameters, form adjustments, and tournament simulation odds are all updated automatically. The "last updated" timestamp shown on the tournament odds section reflects the most recent data ingestion.
+    </p>
+
+    <div class="footer-note">
+      <p>
+        © 2026 TheModelSays · Not affiliated with FIFA ·
+        <a href="/">Home</a> ·
+        <a href="/about">About</a> ·
+        <a href="/privacy">Privacy</a> ·
+        <a href="/terms">Terms</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

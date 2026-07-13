@@ -202,16 +202,9 @@ export default function WorldCupPredictor() {
 
   const canPredict = home && away && home !== away && status !== 'loading';
 
-  function topScore(r) {
-    const best = Math.max(r.win_pct, r.draw_pct, r.loss_pct);
-    if (best === r.draw_pct) return r.most_likely.find(s => s.home_goals === s.away_goals) ?? r.most_likely[0];
-    if (best === r.win_pct)  return r.most_likely.find(s => s.home_goals > s.away_goals)  ?? r.most_likely[0];
-    return r.most_likely.find(s => s.away_goals > s.home_goals) ?? r.most_likely[0];
-  }
-
   function handleShare() {
     if (!result) return;
-    const { home_goals: h, away_goals: a } = topScore(result);
+    const { home_goals: h, away_goals: a } = result.most_likely[0];
     const text = `The model predicts: ${result.home_name} ${h}–${a} ${result.away_name}\n${result.win_pct.toFixed(0)}% chance of a ${result.home_name} win\n\nthemodelsays.com`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
@@ -312,7 +305,7 @@ export default function WorldCupPredictor() {
                   letterSpacing: '-0.04em', lineHeight: 1,
                   textShadow: `0 0 30px rgba(0,255,135,0.35)`,
                 }}>
-                  {topScore(result).home_goals}–{topScore(result).away_goals}
+                  {result.most_likely[0].home_goals}–{result.most_likely[0].away_goals}
                 </div>
                 <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', marginTop: 8 }}>
                   EXPECTED SCORE
