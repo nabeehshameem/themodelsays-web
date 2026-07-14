@@ -143,7 +143,7 @@ function getSimulation() {
 
 // ── WC Favourites hero widget ────────────────────────────────────────
 const _TEAM_COLORS = {
-  France: '#4F85D3', Brazil: '#3DB56A', England: '#E05252', Argentina: '#74ACDF',
+  France: '#4F85D3', Brazil: '#3DB56A', England: '#FFFFFF', Argentina: '#74ACDF',
   Spain: '#D45353', Germany: '#aaaaaa', Portugal: '#c8434a', Netherlands: '#E07C2A',
   Belgium: '#E08A2A', Uruguay: '#6ABFAD', Morocco: '#C4474A', Japan: '#E8384D',
   Croatia: '#CC4444', Mexico: '#3DB56A', Colombia: '#F4D03F', Senegal: '#3DB56A',
