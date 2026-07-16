@@ -163,11 +163,8 @@ function V4BracketHero() {
           .sort((a, b) => b.win_pct - a.win_pct)
           .slice(0, 8)
           .map(t => ({
-            name: t.team,
+            name:  t.team,
             win:   parseFloat(t.win_pct.toFixed(1)),
-            final: parseFloat(t.final_pct.toFixed(1)),
-            sf:    parseFloat(t.sf_pct.toFixed(1)),
-            qf:    parseFloat(t.qf_pct.toFixed(1)),
             color: _TEAM_COLORS[t.team] || '#7B2EE3',
           }));
         setFavs(sorted);
@@ -225,12 +222,8 @@ function V4BracketHero() {
                   flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>{t.name}</span>
                 <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
-                  <div style={{ width: `${Math.min(t.win * 5, 100)}%`, height: '100%', background: t.color, borderRadius: 4, opacity: i === 0 ? 1 : 0.65 }} />
+                  <div style={{ width: `${t.win / rows[0].win * 100}%`, height: '100%', background: t.color, borderRadius: 4, opacity: i === 0 ? 1 : 0.65 }} />
                 </div>
-                <span style={{
-                  width: 38, textAlign: 'right', fontFamily: mono, fontSize: 12, fontWeight: 700, flexShrink: 0,
-                  color: i === 0 ? v4.electric : v4.textDim,
-                }}>{t.win}%</span>
               </div>
             ))
         }
@@ -676,12 +669,8 @@ function WidgetBracket() {
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 0,
           }}>{t.name}</span>
           <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(t.win * 5, 100)}%`, height: '100%', background: t.color, borderRadius: 4, opacity: i === 0 ? 1 : 0.65 }} />
+            <div style={{ width: `${t.win / teams[0].win * 100}%`, height: '100%', background: t.color, borderRadius: 4, opacity: i === 0 ? 1 : 0.65 }} />
           </div>
-          <span style={{
-            width: 44, textAlign: 'right', fontFamily: mono, fontSize: 11, fontWeight: 700, flexShrink: 0,
-            color: i === 0 ? v4.electric : v4.textDim,
-          }}>{t.win}%</span>
         </div>
       ))}
       <div style={{ marginTop: 2, fontSize: 10, color: v4.textVeryDim, fontFamily: mono }}>
