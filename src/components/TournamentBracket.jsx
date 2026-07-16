@@ -176,7 +176,10 @@ function modelGroupOrder(simData, group) {
 
 function modelWinner(simData, t1, t2) {
   if (!simData || !t1 || !t2) return null;
-  return (simFor(simData, t1)?.win_pct ?? 0) >= (simFor(simData, t2)?.win_pct ?? 0) ? t1 : t2;
+  const s1 = simFor(simData, t1), s2 = simFor(simData, t2);
+  const v1 = s1?.win_pct ?? 0, v2 = s2?.win_pct ?? 0;
+  if (v1 + v2 > 0) return v1 >= v2 ? t1 : t2;
+  return (s1?.third_place_pct ?? 0) >= (s2?.third_place_pct ?? 0) ? t1 : t2;
 }
 
 // Auto-pin R32 results. Uses r16_pct (P of winning R32) when available from the
@@ -296,6 +299,10 @@ function MatchCard({ match, t1, t2, winner, onPick, simData, flip, fillWidth }) 
   if (s1 && s2 && s1.win_pct + s2.win_pct > 0) {
     const tot = s1.win_pct + s2.win_pct;
     bar1 = Math.min(99, Math.max(1, Math.round(s1.win_pct / tot * 100)));
+    bar2 = 100 - bar1;
+  } else if (s1 && s2 && (s1.third_place_pct ?? 0) + (s2.third_place_pct ?? 0) > 0) {
+    const tot = (s1.third_place_pct ?? 0) + (s2.third_place_pct ?? 0);
+    bar1 = Math.min(99, Math.max(1, Math.round((s1.third_place_pct ?? 0) / tot * 100)));
     bar2 = 100 - bar1;
   }
 
