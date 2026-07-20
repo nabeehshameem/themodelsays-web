@@ -953,7 +953,7 @@ function V4About() {
   );
 }
 
-// ── WC2026 Results ────────────────────────────────────────────────
+// ── WC2026 Achievements ───────────────────────────────────────────
 const FINAL_GW_PLAYERS = [
   { name: 'Mbappé',     country: 'France',    role: 'FWD', pts: 17, captain: true },
   { name: 'Olise',      country: 'France',    role: 'MID', pts: 10 },
@@ -968,24 +968,137 @@ const FINAL_GW_PLAYERS = [
   { name: 'Enzo',       country: 'Argentina', role: 'MID', pts: 0  },
 ];
 
+// tier: 'gold' | 'electric' | 'purple'
+const ACHIEVEMENTS = [
+  {
+    tier: 'gold',
+    icon: '🏆',
+    title: 'Champion Called',
+    desc: 'Spain backed as tournament favourite from the start. Won 1–0 AET vs Argentina. Ferran Torres, 106′.',
+    stat: 'Spain · 67% pre-Final',
+  },
+  {
+    tier: 'gold',
+    icon: '🎯',
+    title: 'Perfect Final',
+    desc: 'Both finalists correctly predicted — Spain from the left bracket half, Argentina from the right.',
+    stat: '2 / 2 finalists called',
+  },
+  {
+    tier: 'electric',
+    icon: '🥉',
+    title: '3rd Place Called',
+    desc: 'England predicted 3rd via simulation. Beat France 4–6 in the 3rd place match on July 18.',
+    stat: 'England ✓',
+  },
+  {
+    tier: 'electric',
+    icon: '⚡',
+    title: 'Captain Masterclass',
+    desc: 'Max Captain chip deployed on Mbappé in the Final GW. 17 pts naturally — doubled to lead the week.',
+    stat: '17 pts · Max C',
+  },
+  {
+    tier: 'purple',
+    icon: '🌍',
+    title: 'Top 10,600 Worldwide',
+    desc: '727 points across all 8 gameweeks. Heavy Spain build (8 players) paid off in the knockout rounds.',
+    stat: '#10,600 · 727 pts',
+  },
+  {
+    tier: 'purple',
+    icon: '📋',
+    title: '104 on the Record',
+    desc: 'Every WC2026 fixture predicted before kick-off and committed publicly. Dixon-Coles, all 104 matches.',
+    stat: '104 / 104 matches',
+  },
+];
+
+const TIER_STYLES = {
+  gold: {
+    border:   'rgba(255,176,32,0.35)',
+    bg:       'linear-gradient(160deg, rgba(255,176,32,0.12) 0%, rgba(255,176,32,0.03) 100%)',
+    badgeBg:  'rgba(255,176,32,0.15)',
+    badgeBorder: 'rgba(255,176,32,0.3)',
+    statColor: '#FFD060',
+    labelColor: '#FFB020',
+    label: 'GOLD',
+  },
+  electric: {
+    border:   'rgba(0,255,135,0.28)',
+    bg:       'linear-gradient(160deg, rgba(0,255,135,0.08) 0%, rgba(0,255,135,0.02) 100%)',
+    badgeBg:  'rgba(0,255,135,0.12)',
+    badgeBorder: 'rgba(0,255,135,0.25)',
+    statColor: '#00FF87',
+    labelColor: '#00FF87',
+    label: 'UNLOCKED',
+  },
+  purple: {
+    border:   'rgba(123,46,227,0.35)',
+    bg:       'linear-gradient(160deg, rgba(123,46,227,0.12) 0%, rgba(123,46,227,0.03) 100%)',
+    badgeBg:  'rgba(123,46,227,0.15)',
+    badgeBorder: 'rgba(123,46,227,0.3)',
+    statColor: '#a06af9',
+    labelColor: '#a06af9',
+    label: 'UNLOCKED',
+  },
+};
+
+function AchievementCard({ tier, icon, title, desc, stat }) {
+  const ts = TIER_STYLES[tier];
+  return (
+    <div style={{
+      background: ts.bg,
+      border: `1px solid ${ts.border}`,
+      borderRadius: 16,
+      padding: '24px 22px',
+      display: 'flex', flexDirection: 'column', gap: 14,
+    }}>
+      {/* top row: icon badge + tier label */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 12,
+          background: ts.badgeBg, border: `1px solid ${ts.badgeBorder}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 22, flexShrink: 0,
+        }}>
+          {icon}
+        </div>
+        <span style={{
+          fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
+          color: ts.labelColor, textTransform: 'uppercase',
+          background: ts.badgeBg, border: `1px solid ${ts.badgeBorder}`,
+          padding: '3px 8px', borderRadius: 6,
+        }}>
+          {ts.label}
+        </span>
+      </div>
+
+      {/* body */}
+      <div>
+        <div style={{ color: v4.text, fontFamily: display, fontSize: 16, fontWeight: 700, marginBottom: 6, letterSpacing: '-0.01em' }}>
+          {title}
+        </div>
+        <div style={{ color: v4.textDim, fontFamily: display, fontSize: 13, lineHeight: 1.6 }}>
+          {desc}
+        </div>
+      </div>
+
+      {/* stat chip */}
+      <div style={{
+        marginTop: 'auto',
+        fontFamily: mono, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+        color: ts.statColor,
+      }}>
+        {stat}
+      </div>
+    </div>
+  );
+}
+
 function V4WCResults() {
   const mobile = useIsMobile();
-
-  const statTiles = [
-    { n: '727',    label: 'Fantasy points',  sub: 'Tournament total · 8 gameweeks' },
-    { n: '#10,600', label: 'Global rank',    sub: 'WC Fantasy 2026' },
-    { n: '82',     label: 'Best gameweek',   sub: 'Final GW · 65 base + 17 cap bonus' },
-    { n: '67%',    label: 'Spain win odds',  sub: 'Pre-Final · Champion called ✓' },
-  ];
-
   const sorted = [...FINAL_GW_PLAYERS].sort((a, b) => b.pts - a.pts);
-
-  const modelCalls = [
-    { label: 'Spain — 2026 World Champions',   note: 'Backed at 67% pre-Final. Won 1–0 AET. Ferran Torres (106′).' },
-    { label: 'Argentina in the Final',          note: 'Correct right-side bracket call throughout knockouts.' },
-    { label: 'England 3rd place',               note: 'Bracket call ✓ · 4–6 win vs France in 3rd place match.' },
-    { label: '104 WC2026 fixtures predicted',   note: 'All matches · all on the public record before kick-off.' },
-  ];
 
   return (
     <section id="results" style={{
@@ -994,54 +1107,48 @@ function V4WCResults() {
       borderTop: `1px solid ${v4.border}`,
     }}>
       <div style={{ maxWidth: 1320, margin: '0 auto' }}>
+
         {/* Header */}
         <div style={{ marginBottom: 48 }}>
           <div style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>
-            WC2026 · THE RESULTS
+            WC2026 · ACHIEVEMENTS
           </div>
           <h2 style={{ color: v4.text, fontSize: mobile ? 36 : 60, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, margin: 0, fontFamily: display }}>
-            How it ended.
+            The record.
           </h2>
-          <p style={{ color: v4.textDim, fontSize: 15, marginTop: 14, maxWidth: 580, lineHeight: 1.55 }}>
-            Fantasy squad across 8 gameweeks. Spain backed from the start. 104 matches called, all on the record.
+          <p style={{ color: v4.textDim, fontSize: 15, marginTop: 14, maxWidth: 560, lineHeight: 1.55 }}>
+            Fantasy squad managed across 8 gameweeks. Spain backed from the group stage. 104 match predictions — all committed before kick-off, all on the record.
           </p>
         </div>
 
-        {/* Stat tiles */}
+        {/* Achievement grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: mobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr',
-          gap: 12,
-          marginBottom: 40,
+          gridTemplateColumns: mobile ? '1fr 1fr' : '1fr 1fr 1fr',
+          gap: 14,
+          marginBottom: 48,
         }}>
-          {statTiles.map(({ n, label, sub }) => (
-            <div key={label} style={{
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
-              border: `1px solid ${v4.border}`, borderRadius: 14, padding: '24px 20px',
-            }}>
-              <div style={{ color: v4.text, fontFamily: display, fontSize: mobile ? 28 : 38, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>{n}</div>
-              <div style={{ color: v4.electric, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 12, marginBottom: 3 }}>{label}</div>
-              <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10 }}>{sub}</div>
-            </div>
-          ))}
+          {ACHIEVEMENTS.map(a => <AchievementCard key={a.title} {...a} />)}
         </div>
 
-        {/* Two-column breakdown */}
-        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 20 }}>
+        {/* Fantasy scorecard — receipts */}
+        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.1fr 1fr', gap: 20 }}>
 
-          {/* Fantasy Final GW scorecard */}
+          {/* Scorecard */}
           <div style={{ background: v4.bg2, border: `1px solid ${v4.border}`, borderRadius: 16, overflow: 'hidden' }}>
             <div style={{
-              padding: '16px 20px', borderBottom: `1px solid ${v4.border}`,
+              padding: '14px 20px', borderBottom: `1px solid ${v4.border}`,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             }}>
               <div>
-                <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>Final Gameweek · 3rd place + Final</div>
+                <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>
+                  Final GW · 3rd place + Final
+                </div>
                 <div style={{ color: v4.text, fontFamily: display, fontSize: 15, fontWeight: 700 }}>Fantasy Scorecard</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ color: v4.electric, fontFamily: display, fontSize: 28, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em' }}>82 pts</div>
-                <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, marginTop: 3 }}>incl. Max Captain bonus</div>
+                <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, marginTop: 2 }}>incl. Max Captain bonus</div>
               </div>
             </div>
             <div>
@@ -1065,7 +1172,7 @@ function V4WCResults() {
               ))}
             </div>
             <div style={{
-              padding: '11px 20px', borderTop: `1px solid ${v4.border}`,
+              padding: '10px 20px', borderTop: `1px solid ${v4.border}`,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             }}>
               <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9 }}>SF round: 63 pts · Spain ×8 in squad</span>
@@ -1073,47 +1180,25 @@ function V4WCResults() {
             </div>
           </div>
 
-          {/* Model calls */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Spain champion splash */}
-            <div style={{
-              background: 'linear-gradient(160deg, rgba(255,176,32,0.12) 0%, rgba(255,176,32,0.03) 100%)',
-              border: '1px solid rgba(255,176,32,0.3)', borderRadius: 16, padding: '22px 24px',
-            }}>
-              <div style={{ color: v4.amber, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>Champion Call</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                <span style={{ color: '#FFD060', fontFamily: display, fontSize: 32, fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1 }}>Spain</span>
-                <span style={{ color: v4.electric, fontFamily: mono, fontSize: 18, fontWeight: 800 }}>✓</span>
-                <span style={{
-                  background: 'rgba(255,176,32,0.15)', border: '1px solid rgba(255,176,32,0.3)',
-                  color: v4.amber, fontFamily: mono, fontSize: 11, fontWeight: 700,
-                  padding: '3px 10px', borderRadius: 6, letterSpacing: '0.04em',
-                }}>67% pre-Final</span>
-              </div>
-              <div style={{ color: v4.textDim, fontFamily: display, fontSize: 13, lineHeight: 1.6 }}>
-                Won 1–0 AET vs Argentina. Ferran Torres (106′), assist Nico Williams. Spain are 2026 World Champions.
-              </div>
-            </div>
-
-            {/* Record list */}
-            <div style={{
-              background: v4.bg2, border: `1px solid ${v4.border}`, borderRadius: 16,
-              padding: '20px 24px', flex: 1,
-            }}>
-              <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 18 }}>Model Record</div>
-              {modelCalls.map(({ label, note }, i) => (
-                <div key={label} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 16,
-                  paddingBottom: 16, borderBottom: i < modelCalls.length - 1 ? `1px solid ${v4.border}` : 'none',
-                }}>
-                  <span style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 800, flexShrink: 0, marginTop: 1 }}>✓</span>
-                  <div>
-                    <div style={{ color: v4.text, fontFamily: display, fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{label}</div>
-                    <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, lineHeight: 1.5 }}>{note}</div>
-                  </div>
+          {/* Tournament totals */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {[
+              { label: 'Tournament total',  val: '727 pts',   sub: 'Across all 8 gameweeks' },
+              { label: 'Global rank',        val: '#10,600',   sub: 'WC Fantasy 2026' },
+              { label: 'Final GW (3rd + Final)', val: '82 pts', sub: '65 base + 17 Max Captain' },
+              { label: 'SF round',           val: '63 pts',    sub: 'Second-best gameweek' },
+            ].map(({ label, val, sub }) => (
+              <div key={label} style={{
+                background: v4.bg2, border: `1px solid ${v4.border}`, borderRadius: 14,
+                padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              }}>
+                <div>
+                  <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
+                  <div style={{ color: v4.textDim, fontFamily: mono, fontSize: 10 }}>{sub}</div>
                 </div>
-              ))}
-            </div>
+                <div style={{ color: v4.text, fontFamily: display, fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em' }}>{val}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
