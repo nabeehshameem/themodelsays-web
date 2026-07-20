@@ -101,6 +101,16 @@ const SF_R        = [{ id: 'S2', t1: 'WQ3', t2: 'WQ4' }];
 const FINAL       = [{ id: 'F',  t1: 'WS1', t2: 'WS2' }];
 const THIRD_PLACE = [{ id: '3P', t1: 'LS1', t2: 'LS2' }];
 
+// Tournament complete — Spain champions, England 3rd.
+// S1/S2 hardcoded because derivePlayedSF can't distinguish finalists
+// (both have final_pct=100 after the Final; neither satisfies <0.5 threshold).
+const LOCKED_RESULTS = {
+  S1:  'Spain',
+  S2:  'Argentina',
+  F:   'Spain',
+  '3P': 'England',
+};
+
 // ── URL share encode/decode ────────────────────────────────────────
 const ALL_TEAMS   = Object.values(GROUPS).flat();
 const TEAM_TO_IDX = Object.fromEntries(ALL_TEAMS.map((t, i) => [t, i]));
@@ -1036,7 +1046,7 @@ export default function TournamentBracket() {
   const [groupPicks, setGroupPicks] = React.useState(
     _urlState?.groupPicks ?? Object.fromEntries(Object.keys(GROUPS).map(g => [g, [...GROUPS[g]]]))
   );
-  const [picks, setPicks] = React.useState(_urlState?.picks ?? {});
+  const [picks, setPicks] = React.useState(_urlState?.picks ?? { ...LOCKED_RESULTS });
   const [copied, setCopied] = React.useState(false);
 
   React.useEffect(() => {
@@ -1050,9 +1060,9 @@ export default function TournamentBracket() {
         const playedQF  = derivePlayedQF(d, playedR16);
         const playedSF  = derivePlayedSF(d, { ...playedR32, ...playedR16, ...playedQF });
         const played = { ...playedR32, ...playedR16, ...playedQF, ...playedSF };
-        if (Object.keys(played).length > 0) {
-          setPicks(prev => ({ ...prev, ...played }));
-        }
+        // LOCKED_RESULTS always wins — derivePlayedSF can't resolve SF winners
+        // once the Final is played (both finalists have final_pct=100).
+        setPicks(prev => ({ ...prev, ...played, ...LOCKED_RESULTS }));
       })
       .catch(() => setSimError(true))
       .finally(() => setSimLoading(false));
@@ -1169,7 +1179,7 @@ export default function TournamentBracket() {
     const r16p = simData ? derivePlayedR16(simData, r32p) : {};
     const qfp = simData ? derivePlayedQF(simData, r16p) : {};
     const sfp = simData ? derivePlayedSF(simData, { ...r32p, ...r16p, ...qfp }) : {};
-    setPicks({ ...r32p, ...r16p, ...qfp, ...sfp });
+    setPicks({ ...r32p, ...r16p, ...qfp, ...sfp, ...LOCKED_RESULTS });
     window.history.replaceState(null, '', window.location.pathname);
   }
 
@@ -1207,8 +1217,8 @@ export default function TournamentBracket() {
               2026 Knockout Bracket
             </h2>
             <p style={{ color: v4.textDim, fontSize: 15, marginTop: 8, maxWidth: 520, fontFamily: display }}>
-              All 16 Round of 32 fixtures confirmed. Click through every knockout round to build your bracket.
-              Model win probabilities shown at every step.
+              Tournament complete. Spain 2026 World Champions — beat Argentina 1–0 AET in the Final.
+              England 3rd. Model win probabilities on record at every step.
             </p>
           </div>
 
