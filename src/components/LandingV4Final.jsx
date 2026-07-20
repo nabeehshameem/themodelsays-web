@@ -992,16 +992,9 @@ const ACHIEVEMENTS = [
   {
     tier: 'gold',
     icon: '🎯',
-    title: 'Perfect Final',
-    desc: 'Both finalists correctly called from opposite bracket halves.',
-    stat: '2 / 2 finalists',
-  },
-  {
-    tier: 'electric',
-    icon: '🥉',
-    title: '3rd Place Called',
-    desc: 'England predicted 3rd via simulation. Confirmed July 18.',
-    stat: 'England ✓',
+    title: 'Final Score Called',
+    desc: '0–0 at 90 minutes was the model\'s top-predicted scoreline. Spain won in AET.',
+    stat: 'Exact score hit · Final',
   },
   {
     tier: 'electric',
@@ -1009,6 +1002,13 @@ const ACHIEVEMENTS = [
     title: '134-pt Peak Week',
     desc: 'Best single gameweek of the tournament — Round of 32.',
     stat: 'R32 · highest GW',
+  },
+  {
+    tier: 'electric',
+    icon: '📋',
+    title: '104 on the Record',
+    desc: 'Every match predicted from a committed model state before kick-off.',
+    stat: '104 / 104 matches',
   },
   {
     tier: 'purple',
