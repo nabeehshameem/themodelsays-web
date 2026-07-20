@@ -968,6 +968,18 @@ const FINAL_GW_PLAYERS = [
   { name: 'Enzo',       country: 'Argentina', role: 'MID', pts: 0  },
 ];
 
+const GW_SCORES = [
+  { label: 'GS Round 1', short: 'GS1', pts: 99  },
+  { label: 'GS Round 2', short: 'GS2', pts: 100 },
+  { label: 'GS Round 3', short: 'GS3', pts: 91  },
+  { label: 'R32',        short: 'R32', pts: 134, peak: true },
+  { label: 'R16',        short: 'R16', pts: 72  },
+  { label: 'QF',         short: 'QF',  pts: 86  },
+  { label: 'SF',         short: 'SF',  pts: 63  },
+  { label: 'Final',      short: 'FIN', pts: 82  },
+];
+const GW_MAX = Math.max(...GW_SCORES.map(g => g.pts)); // 134
+
 // tier: 'gold' | 'electric' | 'purple'
 const ACHIEVEMENTS = [
   {
@@ -994,23 +1006,23 @@ const ACHIEVEMENTS = [
   {
     tier: 'electric',
     icon: '⚡',
+    title: '134-pt Peak Week',
+    desc: 'Round of 32 was the best single gameweek — 134 points. Nearly double the Final GW haul.',
+    stat: 'R32 · highest GW',
+  },
+  {
+    tier: 'electric',
+    icon: '©',
     title: 'Captain Masterclass',
-    desc: 'Max Captain chip deployed on Mbappé in the Final GW. 17 pts naturally — doubled to lead the week.',
-    stat: '17 pts · Max C',
+    desc: 'Max Captain chip on Mbappé in the Final GW. Scored 17 pts naturally — doubled for 34 total captain return.',
+    stat: '34 cap return · Final GW',
   },
   {
     tier: 'purple',
     icon: '🌍',
     title: 'Top 10,600 Worldwide',
-    desc: '727 points across all 8 gameweeks. Heavy Spain build (8 players) paid off in the knockout rounds.',
+    desc: '727 points across all 8 gameweeks. Heavy Spain build (8 players) paid off throughout the knockouts.',
     stat: '#10,600 · 727 pts',
-  },
-  {
-    tier: 'purple',
-    icon: '📋',
-    title: '104 on the Record',
-    desc: 'Every WC2026 fixture predicted before kick-off and committed publicly. Dixon-Coles, all 104 matches.',
-    stat: '104 / 104 matches',
   },
 ];
 
@@ -1180,25 +1192,46 @@ function V4WCResults() {
             </div>
           </div>
 
-          {/* Tournament totals */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {[
-              { label: 'Tournament total',  val: '727 pts',   sub: 'Across all 8 gameweeks' },
-              { label: 'Global rank',        val: '#10,600',   sub: 'WC Fantasy 2026' },
-              { label: 'Final GW (3rd + Final)', val: '82 pts', sub: '65 base + 17 Max Captain' },
-              { label: 'SF round',           val: '63 pts',    sub: 'Second-best gameweek' },
-            ].map(({ label, val, sub }) => (
-              <div key={label} style={{
-                background: v4.bg2, border: `1px solid ${v4.border}`, borderRadius: 14,
-                padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              }}>
-                <div>
-                  <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
-                  <div style={{ color: v4.textDim, fontFamily: mono, fontSize: 10 }}>{sub}</div>
-                </div>
-                <div style={{ color: v4.text, fontFamily: display, fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em' }}>{val}</div>
+          {/* Per-round breakdown */}
+          <div style={{ background: v4.bg2, border: `1px solid ${v4.border}`, borderRadius: 16, overflow: 'hidden' }}>
+            <div style={{
+              padding: '14px 20px', borderBottom: `1px solid ${v4.border}`,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}>
+              <div>
+                <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>All 8 Gameweeks</div>
+                <div style={{ color: v4.text, fontFamily: display, fontSize: 15, fontWeight: 700 }}>Round-by-Round</div>
               </div>
-            ))}
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ color: v4.text, fontFamily: display, fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em' }}>727 pts</div>
+                <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, marginTop: 2 }}>#10,600 worldwide</div>
+              </div>
+            </div>
+            <div style={{ padding: '8px 0' }}>
+              {GW_SCORES.map((g, i) => (
+                <div key={g.short} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '7px 20px',
+                  background: g.peak ? 'rgba(0,255,135,0.07)' : i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
+                  borderLeft: g.peak ? `2px solid ${v4.electric}` : '2px solid transparent',
+                }}>
+                  <span style={{ width: 34, fontFamily: mono, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: g.peak ? v4.electric : v4.textVeryDim, flexShrink: 0 }}>{g.short}</span>
+                  <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.07)', borderRadius: 999, overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${(g.pts / GW_MAX) * 100}%`, height: '100%', borderRadius: 999,
+                      background: g.peak ? v4.electric : 'rgba(255,255,255,0.3)',
+                    }} />
+                  </div>
+                  {g.peak && (
+                    <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 800, color: v4.electric, background: 'rgba(0,255,135,0.14)', padding: '2px 6px', borderRadius: 4 }}>PEAK</span>
+                  )}
+                  <span style={{
+                    fontFamily: mono, fontSize: 13, fontWeight: 700, textAlign: 'right', minWidth: 30,
+                    color: g.peak ? v4.electric : g.pts >= 90 ? v4.text : v4.textDim,
+                  }}>{g.pts}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
