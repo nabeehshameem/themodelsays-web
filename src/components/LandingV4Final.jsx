@@ -115,11 +115,9 @@ function V4Nav() {
       {!mobile && (
         <div style={{ display: 'flex', gap: 24, marginLeft: 8, fontFamily: display }}>
           {[
-            ['World Cup 2026',  'home'],
+            ['WC2026',          'home'],
             ['Bracket',         'bracket'],
-            ['Groups',          'groups'],
             ['Score Predictor', 'predictor'],
-            ['Fantasy',         'fantasy'],
             ['FPL',             'fpl'],
           ].map(([label, targetId]) => (
             <a key={label} href={`#${targetId}`}
@@ -244,7 +242,7 @@ function V4BracketHero() {
             </div>
           )
         }
-        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, marginTop: 6 }}>Live · Updated after each matchday</div>
+        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 9, marginTop: 6 }}>Final standings · Tournament complete</div>
       </div>
 
       <div style={{ position: 'absolute', bottom: 12, right: 18, color: 'rgba(255,255,255,0.2)', fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.06em' }}>
@@ -255,41 +253,21 @@ function V4BracketHero() {
 }
 
 // ── Hero ────────────────────────────────────────────────────────────
-const HERO_DESCRIPTORS = [
-  "The model's pick.",
-  "Right behind them.",
-  "The dark horse.",
-  "Up against it.",
+const SAYINGS_FINAL = [
+  "Spain. 2026 World Champions.",
+  "Final: Spain 1–0 Argentina AET.",
+  "England third. France fourth.",
+  "Model backed Spain at 67%.",
 ];
-
-function buildSayings(teams) {
-  const remaining = teams
-    .filter(t => (t.win_pct ?? 0) > 0)
-    .sort((a, b) => b.win_pct - a.win_pct)
-    .slice(0, 4);
-  return remaining.map((t, rank) =>
-    `${t.team}: ${t.win_pct.toFixed(1)}%. ${HERO_DESCRIPTORS[rank] ?? ''}`
-  );
-}
 
 function V4Hero() {
   const [i, setI] = React.useState(0);
-  const [sayings, setSayings] = React.useState([
-    "Loading odds…",
-  ]);
   const mobile = useIsMobile();
 
   React.useEffect(() => {
-    fetchSimulation(20_000).then(data => {
-      const s = buildSayings(data.teams || []);
-      if (s.length > 0) setSayings(s);
-    }).catch(() => {});
-  }, []);
-
-  React.useEffect(() => {
-    const t = setInterval(() => setI(p => (p + 1) % sayings.length), 2800);
+    const t = setInterval(() => setI(p => (p + 1) % SAYINGS_FINAL.length), 2800);
     return () => clearInterval(t);
-  }, [sayings.length]);
+  }, []);
 
   return (
     <div style={{ position: 'relative', overflow: 'hidden' }}>
@@ -315,8 +293,8 @@ function V4Hero() {
             fontSize: 12, color: v4.electric, marginBottom: 28,
             fontFamily: mono, fontWeight: 600, letterSpacing: '0.04em',
           }}>
-            <span style={{ width: 7, height: 7, borderRadius: 999, background: v4.electric, animation: 'tmsPulse 1.6s ease infinite', flexShrink: 0 }} />
-            FIFA WORLD CUP 2026 · JUNE 11 – JULY 19
+            <span style={{ width: 7, height: 7, borderRadius: 999, background: v4.electric, flexShrink: 0 }} />
+            WC2026 COMPLETE · SPAIN ARE WORLD CHAMPIONS
           </div>
 
           <h1 style={{
@@ -337,13 +315,13 @@ function V4Hero() {
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
               animation: 'tmsFade 2.8s ease infinite',
             }}>
-              "{sayings[i]}"
+              "{SAYINGS_FINAL[i]}"
             </span>
           </div>
 
           <p style={{ color: v4.textDim, fontSize: mobile ? 16 : 18, lineHeight: 1.55, marginTop: 22, maxWidth: 540, fontWeight: 400 }}>
-            AI predictions for every 2026 World Cup match. 50,000 simulations per team, bracket builder, and fantasy squad optimizer.{' '}
-            <span style={{ color: v4.text, fontWeight: 500 }}>Free, open beta.</span>
+            104 WC2026 matches called. Bracket, simulations, score predictor — all on the record.{' '}
+            <span style={{ color: v4.text, fontWeight: 500 }}>FPL 2026/27 is next.</span>
           </p>
 
           {/* Stats */}
@@ -374,7 +352,7 @@ function V4Hero() {
 
 // ── Marquee ────────────────────────────────────────────────────────
 function V4Marquee() {
-  const items = ['WORLD CUP 2026', '48 TEAMS · 104 MATCHES', 'LIVE PREDICTIONS', 'BRACKET BUILDER', '50K SIMULATIONS', 'FANTASY OPTIMIZER', 'FREE OPEN BETA', 'JUNE 11 · USA MEXICO CANADA', 'MINI LEAGUE · CODE: 64T3EKYD'];
+  const items = ['WC2026 COMPLETE', 'SPAIN 2026 WORLD CHAMPIONS', '104 MATCHES CALLED', 'BRACKET RESULTS', '50K SIMULATIONS', 'FPL 2026/27 · LAUNCHING AUGUST', 'FREE OPEN BETA', 'SCORE PREDICTOR', 'DIXON-COLES MODEL'];
   const all = [...items, ...items, ...items];
   return (
     <div style={{
@@ -511,12 +489,12 @@ function V4Features() {
             widgetStat="48 teams · 104 matches"
           />
           <V4FeatureCard
-            tag="FANTASY OPTIMIZER"
-            title="Build the optimal squad."
-            body="Captain picks, budget optimizer, and phase-by-phase EV for FIFA's official WC fantasy game."
-            widget={<WidgetCaptain />}
-            widgetLabel="CAPTAIN PICKS"
-            widgetStat="Projected tournament pts"
+            tag="FPL 2026/27"
+            title="The model, every gameweek."
+            body="The same Dixon-Coles engine turns to Fantasy Premier League. Weekly captains, transfer recommendations, and fixture difficulty — launching with the new season."
+            widget={<WidgetFPLPreview />}
+            widgetLabel="COMING SOON"
+            widgetStat="GW1 · Aug 2026"
           />
         </div>
       </div>
@@ -675,6 +653,23 @@ function WidgetBracket() {
       ))}
       <div style={{ marginTop: 2, fontSize: 10, color: v4.textVeryDim, fontFamily: mono }}>
         % chance to win WC 2026 · 50K sims
+      </div>
+    </div>
+  );
+}
+
+function WidgetFPLPreview() {
+  const tools = ['GW Predictions', 'Captain Picks', 'Transfer Optimizer', 'Fixture Ticker'];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {tools.map((t, i) => (
+        <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: 0.5 + i * 0.02 }}>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: v4.electric, opacity: 0.4, flexShrink: 0 }} />
+          <div style={{ fontFamily: display, fontSize: 13, color: v4.textDim }}>{t}</div>
+        </div>
+      ))}
+      <div style={{ marginTop: 6, fontFamily: mono, fontSize: 10, color: v4.electric, letterSpacing: '0.08em' }}>
+        LAUNCHING AUGUST 2026
       </div>
     </div>
   );
@@ -862,22 +857,20 @@ function V4FPLSection() {
         <div style={{ marginBottom: 48 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
             <span style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono }}>Fantasy Premier League</span>
-            <span style={{ background: 'rgba(255,176,32,0.15)', color: v4.amber, fontFamily: mono, fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 6, letterSpacing: '0.08em' }}>AUG 2026</span>
+            <span style={{ background: 'rgba(255,176,32,0.15)', color: v4.amber, fontFamily: mono, fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 6, letterSpacing: '0.08em' }}>SEASON STARTS AUGUST</span>
           </div>
           <h2 style={{ color: v4.text, fontSize: mobile ? 32 : 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
             FPL tools, powered<br/>by the same model.
           </h2>
           <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.55, marginTop: 14, maxWidth: 520 }}>
-            The 2026/27 Premier League season starts in August. The Dixon-Coles engine powering WC predictions will drive weekly FPL recommendations — captains, transfers, and fixture analysis.
+            The same Dixon-Coles engine that called all 104 WC2026 matches turns to FPL next. Weekly squad picks, captain recommendations, and transfer analysis — every gameweek, committed before the deadline.
           </p>
         </div>
-        <div style={{ position: 'relative' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 16 }}>
             {tools.map(t => (
               <div key={t.title} style={{
                 background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
                 border: `1px solid ${v4.border}`, borderRadius: 14, padding: 24,
-                opacity: 0.5,
               }}>
                 <div style={{ fontSize: 22, marginBottom: 10 }}>{t.icon}</div>
                 <div style={{ color: v4.text, fontSize: 16, fontWeight: 700, fontFamily: display, marginBottom: 6 }}>{t.title}</div>
@@ -885,16 +878,13 @@ function V4FPLSection() {
               </div>
             ))}
           </div>
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(13,1,24,0.55)', backdropFilter: 'blur(1.5px)', borderRadius: 14,
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ color: v4.amber, fontFamily: mono, fontSize: 14, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Coming August 2026</div>
-              <div style={{ color: v4.textDim, fontFamily: display, fontSize: 14, marginTop: 8 }}>Launching with the new Premier League season</div>
-            </div>
+          <div style={{ marginTop: 28, display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a href="https://www.tiktok.com/@themodel.says" target="_blank" rel="noopener noreferrer" style={{
+              padding: '11px 24px', background: 'rgba(0,255,135,0.1)', border: `1px solid rgba(0,255,135,0.28)`,
+              borderRadius: 999, color: v4.electric, fontFamily: mono, fontSize: 12, fontWeight: 700,
+              letterSpacing: '0.06em', textDecoration: 'none', textTransform: 'uppercase',
+            }}>Follow for GW1 launch</a>
           </div>
-        </div>
       </div>
     </div>
   );
@@ -917,8 +907,8 @@ function V4About() {
       body: 'The tournament simulation draws 50,000 independent runs of the full World Cup — all 72 group-stage games, the Round of 32, Quarter-Finals, Semi-Finals, and Final. Group-stage results that have already been played are pinned to the actual result. The win probability shown for each team is simply how often they lift the trophy across those 50,000 paths.',
     },
     {
-      title: 'Live retraining',
-      body: 'After each matchday, the model is retrained using the actual WC 2026 results, which carry a 4× weight over the historical WC data. This means team strength estimates shift as the tournament progresses — a team that outperforms expectations in the group stage will be rated higher heading into the knockouts.',
+      title: 'Walk-forward retraining',
+      body: 'Throughout the tournament, the model was retrained after each matchday using actual WC 2026 results at 4× weight over historical data. Team strength estimates shifted as the tournament progressed — a team that outperformed expectations in the group stage was rated higher heading into the knockouts.',
     },
   ];
   return (
@@ -950,9 +940,9 @@ function V4About() {
         <div style={{ marginTop: 32, padding: '22px 28px', background: 'rgba(0,255,135,0.04)', border: `1px solid rgba(0,255,135,0.14)`, borderRadius: 14 }}>
           <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>about the project</div>
           <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.65, margin: 0 }}>
-            TheModelSays is an independent, free-to-use football prediction tool built for the 2026 FIFA World Cup.
-            It is not affiliated with FIFA, any football association, or any official WC 2026 product.
-            All predictions are generated by a statistical model and are provided for informational and entertainment purposes only.
+            TheModelSays is an independent, free-to-use football prediction tool. The WC2026 model is complete — 104 matches, all on the record.
+            Next up: FPL 2026/27, launching with the new Premier League season.
+            Not affiliated with FIFA or the Premier League. All predictions are generated by a statistical model for informational and entertainment purposes only.
             Follow updates on <a href="https://www.tiktok.com/@themodel.says" target="_blank" rel="noopener noreferrer" style={{ color: v4.electric }}>TikTok</a> and{' '}
             <a href="https://www.youtube.com/@themodelsays" target="_blank" rel="noopener noreferrer" style={{ color: v4.electric }}>YouTube</a>.
           </p>
@@ -969,7 +959,7 @@ const _FOOTER_LINKS = {
   'Bracket Builder':   { scroll: 'bracket' },
   'Fantasy Squad':     { scroll: 'fantasy' },
   'Match Predictions': { scroll: 'predictor' },
-  'FPL (Aug 2026)':   { scroll: 'fpl' },
+  'FPL 2026/27':      { scroll: 'fpl' },
   'Track record':      { scroll: 'accuracy' },
   'How it works':      { scroll: 'about' },
   'Updates':           { href: 'https://www.tiktok.com/@themodel.says', external: true },
@@ -995,7 +985,7 @@ function FooterLink({ label }) {
 function V4Footer() {
   const mobile = useIsMobile();
   const cols = [
-    ['App',   ['World Cup 2026', 'Score Predictor', 'Bracket Builder', 'Fantasy Squad', 'FPL (Aug 2026)']],
+    ['App',   ['World Cup 2026', 'Score Predictor', 'Bracket Builder', 'FPL 2026/27']],
     ['About', ['How it works', 'Track record', 'Updates', 'Contact', 'Privacy Policy']],
   ];
   return (
@@ -1008,7 +998,7 @@ function V4Footer() {
               <TmsBrand />
             </div>
             <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-              AI predictions for every 2026 World Cup match. The same model, every matchday.
+              104 WC2026 matches called. The same model turns to FPL 2026/27 next.
             </p>
           </div>
           {cols.map(([title, items]) => (
@@ -1045,11 +1035,8 @@ function LandingV4Final() {
       <V4Nav />
       <div id="home"><V4Hero /></div>
       <V4Marquee />
-      <V4MiniLeagueBanner />
       <div id="bracket"><TournamentBracket /></div>
-      <div id="groups"><GroupStandings /></div>
       <div id="predictor"><WorldCupPredictor /></div>
-      <div id="fantasy"><WCFantasySection /></div>
       <div id="fpl"><V4FPLSection /></div>
       <V4Features />
       <div id="accuracy"><V4Accuracy /></div>
