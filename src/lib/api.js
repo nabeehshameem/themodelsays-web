@@ -87,16 +87,94 @@ export function subscribeEmail(email) {
   return request('/api/notify/subscribe', { method: 'POST', body: { email } });
 }
 
-// ── FPL (add as the app grows in July) ────────────────────────────
+// ── FPL: The Model's season ───────────────────────────────────────
+//
+// Endpoint contracts are fixed by the backend (src/fpl_api.py,
+// src/fpl_receipts.py). Response shapes are documented here because the
+// disclosure rules matter to the UI: before a deadline the model's squad is
+// deliberately withheld, and the frontend must render that state rather than
+// treat it as an error.
+
+// GET /api/fpl/model/gw/{gw}
+//
+// Three distinct states — all are 200s except the first:
+//
+//  404                     → gameweek not locked yet (no squad committed)
+//
+//  { revealed: false,      → COMMITMENT PHASE (locked, deadline not passed).
+//    gameweek, locked_at_utc, deadline_utc, squad_hash }
+//    The squad is intentionally absent. Render the hash + deadline countdown;
+//    do NOT show "loading" or an error.
+//
+//  { revealed: true,       → REVEAL PHASE (deadline passed)
+//    gameweek, locked_at_utc, deadline_utc, squad_hash,
+//    squad: [{ player_id, name, position, team,
+//              is_xi, is_captain, is_vice, bench_order }],
+//    transfers: { in: [...], out: [...], hits },
+//    free_transfers, bank, expected_points,
+//    result: null | {          → null until the gameweek is graded
+//      gross_points, hit_points, net_points,
+//      effective_captain: { player_id, name, ... } | null,
+//      autosubs: [{ out: {...}, in: {...} }],
+//      graded_at_utc } }
+export function fetchModelGameweek(gw, { signal } = {}) {
+  return request(`/api/fpl/model/gw/${gw}`, { signal });
+}
+
+// GET /api/fpl/model/season → {
+//   gameweeks: [{ gameweek, net_points, hit_points, fpl_average, cumulative }],
+//   model_total, average_total,
+//   vs_average: { above, below, equal }
+// }
+//
+// Before the first graded gameweek this correctly returns an EMPTY season:
+// { gameweeks: [], model_total: 0, average_total: 0,
+//   vs_average: { above: 0, below: 0, equal: 0 } }
+// That is the site's initial state for the weeks between launch and GW1
+// being graded — build it as a first-class view, not an edge case.
+export function fetchModelSeason({ signal } = {}) {
+  return request('/api/fpl/model/season', { signal });
+}
+
+// GET /api/fpl/receipt/{gw}/{teamId} → {
+//   gameweek,
+//   user:  { team_id, team_name, points_gross, hit_points, points_net },
+//   model: { net_points },
+//   winner: 'user' | 'model' | 'draw',
+//   h2h_season: { user, model, draws },
+//   from_cache: boolean
+// }
+//
+// Error states the UI must distinguish:
+//   409 → gameweek exists but is not graded yet ("check back after the GW")
+//   404 → no such FPL team id ("we couldn't find that team")
+//   502 → FPL's API is unreachable ("FPL is down, try later") — not the
+//         user's fault, and retrying later will work.
+//
+// First call for a team backfills every graded gameweek so the season H2H is
+// complete; it can take a few seconds. Show a spinner, and note that repeat
+// calls are served from cache instantly.
+export function fetchReceipt(gw, teamId, { signal } = {}) {
+  return request(`/api/fpl/receipt/${gw}/${teamId}`, { signal });
+}
+
+// Shareable receipt URLs. These are served by the BACKEND, not this SPA:
+// /r/ is a server-rendered page carrying og: tags so links unfurl on
+// Twitter/Reddit (crawlers never execute our JS). Link to them; don't try to
+// route them in React.
+export function receiptShareUrl(gw, teamId) {
+  return `${API_URL}/r/${gw}/${teamId}`;
+}
+export function receiptCardUrl(gw, teamId, fmt = 'og') {
+  return `${API_URL}/card/${gw}/${teamId}.png?fmt=${fmt}`;
+}
+
 export const fpl = {
-  nextGameweek: () => request('/gameweek/next'),
-  predictions: (gw) => request(`/predictions/${gw}`),
-  captains: (gw, top = 7) => request(`/captains/${gw}?top_n=${top}`),
-  differentials: (gw) => request(`/differentials/${gw}`),
-  fixtureTicker: (gw, weeks = 5) => request(`/fixture-ticker/${gw}?num_gws=${weeks}`),
-  team: (teamId) => request(`/team/${teamId}`),
-  optimise: (body) => request('/optimise', { method: 'POST', body }),
-  transfers: (body) => request('/transfers', { method: 'POST', body }),
+  modelGameweek: fetchModelGameweek,
+  season: fetchModelSeason,
+  receipt: fetchReceipt,
+  shareUrl: receiptShareUrl,
+  cardUrl: receiptCardUrl,
 };
 
 export { ApiError, API_URL };

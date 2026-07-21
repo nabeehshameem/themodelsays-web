@@ -321,7 +321,7 @@ function V4Hero() {
           </div>
 
           <p style={{ color: v4.textDim, fontSize: mobile ? 16 : 18, lineHeight: 1.55, marginTop: 22, maxWidth: 540, fontWeight: 400 }}>
-            104 WC2026 matches called. Bracket, simulations, score predictor — all on the record.{' '}
+            104 WC2026 match predictions — all on the record.{' '}
             <span style={{ color: v4.text, fontWeight: 500 }}>FPL 2026/27 is next.</span>
           </p>
 
@@ -353,7 +353,7 @@ function V4Hero() {
 
 // ── Marquee ────────────────────────────────────────────────────────
 function V4Marquee() {
-  const items = ['WC2026 COMPLETE', 'SPAIN 2026 WORLD CHAMPIONS', '104 MATCHES CALLED', 'BRACKET RESULTS', '50K SIMULATIONS', 'FPL 2026/27 · LAUNCHING AUGUST', 'FREE OPEN BETA', 'SCORE PREDICTOR', 'DIXON-COLES MODEL'];
+  const items = ['WC2026 COMPLETE', 'SPAIN 2026 WORLD CHAMPIONS', '104 MATCHES ON THE RECORD', 'BRACKET RESULTS', '50K SIMULATIONS', 'FPL 2026/27 · LAUNCHING AUGUST', 'FREE OPEN BETA', 'SCORE PREDICTOR', 'DIXON-COLES MODEL'];
   const all = [...items, ...items, ...items];
   return (
     <div style={{
@@ -679,15 +679,11 @@ function WidgetFPLPreview() {
 // ── Accuracy snapshot ─────────────────────────────────────────────
 function V4Accuracy() {
   const mobile = useIsMobile();
-  const bars = [
-    { gw: 22, model: 2.05, fpl: 2.19 },
-    { gw: 23, model: 1.83, fpl: 2.11 },
-    { gw: 24, model: 1.84, fpl: 2.12 },
-    { gw: 25, model: 1.91, fpl: 2.07 },
-    { gw: 26, model: 1.71, fpl: 2.08 },
-    { gw: 27, model: 1.86, fpl: 2.13 },
+  const models = [
+    { name: 'Dixon-Coles', label: 'The model', result: 'Winner', note: 'Best overall accuracy + top-pick accuracy', highlight: true },
+    { name: 'Gradient-boosted ML', label: 'LightGBM', result: '2nd', note: 'Statistically indistinguishable from the baseline', highlight: false },
+    { name: 'Naive baseline', label: 'Recent form', result: '3rd', note: 'Prior-season rates with no fixture adjustment', highlight: false },
   ];
-  const max = 2.4;
   return (
     <div style={{ padding: mobile ? '64px 20px' : '100px 56px', background: v4.bg2, borderTop: `1px solid ${v4.border}`, borderBottom: `1px solid ${v4.border}` }}>
       <div className="tms-acc-grid" style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1.2fr', gap: 64, alignItems: 'center' }}>
@@ -697,33 +693,28 @@ function V4Accuracy() {
             Built on a proven forecasting engine.
           </h2>
           <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.5, marginTop: 16, maxWidth: 420 }}>
-            Our Dixon-Coles model outperformed FPL's own forecasts in six consecutive gameweeks last season — the same engine now predicts every WC 2026 fixture.
+            We tested three models on GWs 29–34 of 2025/26 — weeks no model trained on. The Dixon-Coles projection won. The ML model performed no better than a naive baseline on an honest out-of-sample test, so we didn't ship it. The same engine now runs every WC 2026 fixture and the 2026/27 FPL season.
           </p>
         </div>
 
         <div style={{ background: v4.surface, border: `1px solid ${v4.border}`, borderRadius: 14, padding: 28 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 18 }}>
-            <div>
-              <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase' }}>last 6 gameweeks</div>
-              <div style={{ color: v4.text, fontFamily: display, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', marginTop: 4 }}>Lower bar = closer to reality</div>
-            </div>
-            <div style={{ display: 'flex', gap: 12, fontFamily: mono, fontSize: 10 }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: v4.text }}>
-                <span style={{ width: 8, height: 8, background: v4.electric, borderRadius: 2 }} />The model
-              </span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: v4.textDim }}>
-                <span style={{ width: 8, height: 8, background: v4.textVeryDim, borderRadius: 2 }} />FPL
-              </span>
-            </div>
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>held-out evaluation · GW29–34 · 2025/26</div>
+            <div style={{ color: v4.text, fontFamily: display, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>Three models, one honest test</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, height: 190 }}>
-            {bars.map(r => (
-              <div key={r.gw} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 160, width: '100%', justifyContent: 'center' }}>
-                  <div style={{ width: 16, height: `${(r.model / max) * 100}%`, background: v4.electric, borderRadius: '2px 2px 0 0' }} />
-                  <div style={{ width: 16, height: `${(r.fpl / max) * 100}%`, background: v4.textVeryDim, borderRadius: '2px 2px 0 0' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {models.map(m => (
+              <div key={m.name} style={{
+                display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
+                background: m.highlight ? 'rgba(0,255,135,0.06)' : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${m.highlight ? 'rgba(0,255,135,0.2)' : v4.border}`,
+                borderRadius: 10,
+              }}>
+                <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: m.highlight ? v4.electric : v4.textVeryDim, minWidth: 48 }}>{m.result}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: m.highlight ? v4.text : v4.textDim, fontWeight: 600, fontSize: 14 }}>{m.name}</div>
+                  <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, marginTop: 2 }}>{m.note}</div>
                 </div>
-                <div style={{ fontFamily: mono, fontSize: 9, color: v4.textVeryDim, fontWeight: 600 }}>GW{r.gw}</div>
               </div>
             ))}
           </div>
@@ -864,7 +855,7 @@ function V4FPLSection() {
             FPL tools, powered<br/>by the same model.
           </h2>
           <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.55, marginTop: 14, maxWidth: 520 }}>
-            The same Dixon-Coles engine that called all 104 WC2026 matches turns to FPL next. Weekly squad picks, captain recommendations, and transfer analysis — every gameweek, committed before the deadline.
+            The same Dixon-Coles engine that predicted and graded all 104 WC2026 matches turns to FPL next. Weekly squad picks, captain recommendations, and transfer analysis — every gameweek, committed before the deadline.
           </p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 16 }}>
@@ -1286,7 +1277,7 @@ function V4Footer() {
               <TmsBrand />
             </div>
             <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-              104 WC2026 matches called. The same model turns to FPL 2026/27 next.
+              104 WC2026 match predictions — all on the record. The same model turns to FPL 2026/27 next.
             </p>
           </div>
           {cols.map(([title, items]) => (
