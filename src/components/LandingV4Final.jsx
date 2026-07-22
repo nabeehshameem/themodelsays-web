@@ -4,6 +4,7 @@ import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
 import TournamentBracket from './TournamentBracket.jsx';
 import GroupStandings from './GroupStandings.jsx';
+import { FPLSeasonPanel, ReceiptFlow } from './FPLLive.jsx';
 
 const v4 = {
   bg:          '#0d0118',
@@ -837,12 +838,6 @@ function V4SocialLink({ s }) {
 // ── FPL Section ───────────────────────────────────────────────────
 function V4FPLSection() {
   const mobile = useIsMobile();
-  const tools = [
-    { icon: '⚡', title: 'GW Predictions',    body: 'Points projections for every Premier League player, every gameweek.' },
-    { icon: '©',  title: 'Captain Picks',      body: 'Top captain options ranked by expected points for your squad.' },
-    { icon: '↔',  title: 'Transfer Optimizer', body: 'Best transfers for your specific squad and remaining budget.' },
-    { icon: '📊', title: 'Fixture Ticker',     body: 'Colour-coded difficulty ratings for the next 8 gameweeks.' },
-  ];
   return (
     <div style={{ padding: mobile ? '64px 20px' : '100px 56px', background: v4.bg2, borderTop: `1px solid ${v4.border}` }}>
       <div style={{ maxWidth: 1320, margin: '0 auto' }}>
@@ -855,28 +850,20 @@ function V4FPLSection() {
             FPL tools, powered<br/>by the same model.
           </h2>
           <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.55, marginTop: 14, maxWidth: 520 }}>
-            The same Dixon-Coles engine that predicted and graded all 104 WC2026 matches turns to FPL next. Weekly squad picks, captain recommendations, and transfer analysis — every gameweek, committed before the deadline.
+            The same Dixon-Coles engine that predicted and graded all 104 WC2026 matches turns to FPL next. Every squad committed before the deadline, every score graded in public — including the bad ones.
           </p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 16 }}>
-            {tools.map(t => (
-              <div key={t.title} style={{
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-                border: `1px solid ${v4.border}`, borderRadius: 14, padding: 24,
-              }}>
-                <div style={{ fontSize: 22, marginBottom: 10 }}>{t.icon}</div>
-                <div style={{ color: v4.text, fontSize: 16, fontWeight: 700, fontFamily: display, marginBottom: 6 }}>{t.title}</div>
-                <div style={{ color: v4.textDim, fontSize: 13, lineHeight: 1.5 }}>{t.body}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 28, display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="https://www.tiktok.com/@themodel.says" target="_blank" rel="noopener noreferrer" style={{
-              padding: '11px 24px', background: 'rgba(0,255,135,0.1)', border: `1px solid rgba(0,255,135,0.28)`,
-              borderRadius: 999, color: v4.electric, fontFamily: mono, fontSize: 12, fontWeight: 700,
-              letterSpacing: '0.06em', textDecoration: 'none', textTransform: 'uppercase',
-            }}>Follow for GW1 launch</a>
-          </div>
+        <FPLSeasonPanel />
+        <div style={{ marginTop: 32 }}>
+          <ReceiptFlow />
+        </div>
+        <div style={{ marginTop: 28, display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <a href="https://www.tiktok.com/@themodel.says" target="_blank" rel="noopener noreferrer" style={{
+            padding: '11px 24px', background: 'rgba(0,255,135,0.1)', border: `1px solid rgba(0,255,135,0.28)`,
+            borderRadius: 999, color: v4.electric, fontFamily: mono, fontSize: 12, fontWeight: 700,
+            letterSpacing: '0.06em', textDecoration: 'none', textTransform: 'uppercase',
+          }}>Follow for GW1 launch</a>
+        </div>
       </div>
     </div>
   );
