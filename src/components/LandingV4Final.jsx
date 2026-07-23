@@ -480,12 +480,12 @@ function V4Features() {
             body="Dixon-Coles model trained on WC history and recent international form. Group stage and knockout."
             widget={<WidgetWCMatches />}
             widgetLabel="LATEST PICKS"
-            widgetStat="Updated daily"
+            widgetStat="WC 2026 complete"
           />
           <V4FeatureCard
             tag="TOURNAMENT BRACKET"
             title="Every path to the final."
-            body="50,000 Monte Carlo simulations. Win probabilities for all 48 teams, updated after each matchday."
+            body="50,000 Monte Carlo simulations. Win probabilities for all 48 teams, built pre-tournament — every call on the record."
             widget={<WidgetBracket />}
             widgetLabel="BRACKET CALL"
             widgetStat="48 teams · 104 matches"
@@ -759,12 +759,12 @@ function V4CTA() {
     <div style={{ padding: mobile ? '80px 20px' : '120px 56px', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${v4.border}` }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 65%, rgba(123,46,227,0.22), transparent 52%)' }} />
       <div style={{ position: 'relative', maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ color: v4.electric, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 20 }}>WC 2026 · GROUP STAGE UNDERWAY</div>
+        <div style={{ color: v4.electric, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 20 }}>WC 2026 COMPLETE · FPL 2026/27 NEXT</div>
         <h2 style={{ color: v4.text, fontSize: mobile ? 48 : 72, fontWeight: 700, letterSpacing: '-0.045em', lineHeight: 0.95, margin: 0, fontFamily: display }}>
-          Follow every<br/>call live.
+          Follow the<br/>FPL season.
         </h2>
         <p style={{ color: v4.textDim, fontSize: 16, marginTop: 20, marginBottom: 40, lineHeight: 1.5 }}>
-          Match predictions, squad picks, and bracket updates — every matchday on TikTok and YouTube.
+          Squad picks, transfers, and gameweek previews — every week on TikTok and YouTube.
         </p>
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
           {SOCIALS.map(s => (
@@ -886,8 +886,8 @@ function V4About() {
       body: 'The tournament simulation draws 50,000 independent runs of the full World Cup — all 72 group-stage games, the Round of 32, Quarter-Finals, Semi-Finals, and Final. Group-stage results that have already been played are pinned to the actual result. The win probability shown for each team is simply how often they lift the trophy across those 50,000 paths.',
     },
     {
-      title: 'Walk-forward retraining',
-      body: 'Throughout the tournament, the model was retrained after each matchday using actual WC 2026 results at 4× weight over historical data. Team strength estimates shifted as the tournament progressed — a team that outperformed expectations in the group stage was rated higher heading into the knockouts.',
+      title: 'Walk-forward retraining — tested and dropped',
+      body: 'We retrained after each matchday, weighting WC 2026 results at 4× over historical data. The evidence showed it made things worse: the frozen pre-tournament model called 66.7% of group-stage outcomes correctly; the retrained version called 60.8%. In the knockouts, 70.0% versus 56.7%. Walk-forward retraining has been dropped for the FPL season.',
     },
   ];
   return (
