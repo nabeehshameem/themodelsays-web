@@ -694,7 +694,7 @@ function V4Accuracy() {
             Built on a proven forecasting engine.
           </h2>
           <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.5, marginTop: 16, maxWidth: 420 }}>
-            We tested three models on GWs 29–34 of 2025/26 — weeks no model trained on. The Dixon-Coles projection won. The ML model performed no better than a naive baseline on an honest out-of-sample test, so we didn't ship it. The same engine now runs every WC 2026 fixture and the 2026/27 FPL season.
+            We tested three models on GWs 29–34 of 2025/26 — weeks no model trained on. The Dixon-Coles projection won. The ML model performed no better than a naive baseline on an honest out-of-sample test, so we didn't ship it. The same approach now runs every WC 2026 fixture and the 2026/27 FPL season.
           </p>
         </div>
 
