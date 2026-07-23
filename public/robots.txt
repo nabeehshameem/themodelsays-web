@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://themodelsays.com/sitemap.xml
+Sitemap: https://www.themodelsays.com/sitemap.xml
