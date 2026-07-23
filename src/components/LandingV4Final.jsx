@@ -887,7 +887,7 @@ function V4About() {
     },
     {
       title: 'Walk-forward retraining — tested and dropped',
-      body: 'We retrained after each matchday, weighting WC 2026 results at 4× over historical data. The evidence showed it made things worse: the frozen pre-tournament model called 66.7% of group-stage outcomes correctly; the retrained version called 60.8%. In the knockouts, 70.0% versus 56.7%. Walk-forward retraining has been dropped for the FPL season.',
+      body: 'We retrained after each matchday, weighting WC 2026 results at 4× over historical data. Graded across all 104 matches, it made things worse: the frozen pre-tournament model called 66.3% of outcomes correctly against the retrained version\'s 59.6%. The gap was widest in the knockouts — 68.8% versus 53.1%. Walk-forward retraining has been dropped for the FPL season.',
     },
   ];
   return (
