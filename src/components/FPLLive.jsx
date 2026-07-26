@@ -168,9 +168,14 @@ function SeasonRecord({ season }) {
       <div style={card}>
         <div style={label}>season record</div>
         <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.6, margin: '12px 0 0' }}>
-          No gameweeks graded yet. The record starts at Gameweek 1 and updates
-          after every deadline — every squad committed in advance, every score
-          graded in public, including the bad ones.
+          {/* Deliberately state-independent. This branch renders both before
+              GW1 and for the moment before each fetch resolves, and it is what
+              gets baked into the prerendered HTML — which is not rebuilt when a
+              gameweek is graded. Asserting "no gameweeks graded yet" would be
+              true today and a published falsehood from GW1 onward. */}
+          The model's gameweek scores appear here as they are graded — every
+          squad committed before the deadline, every score published afterwards,
+          including the bad ones.
         </p>
       </div>
     );
