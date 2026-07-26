@@ -1,0 +1,1273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The World Cup 2026 record, match by match | TheModelSays</title>
+<meta name="description" content="Every one of our 104 World Cup 2026 match predictions, graded against the result. 59.6% outcome accuracy, 12 exact scorelines, and the two places the model failed." />
+<link rel="canonical" href="https://www.themodelsays.com/wc2026-record" />
+<link rel="icon" type="image/png" href="/favicon.png" />
+<meta property="og:title" content="The World Cup 2026 record, match by match" />
+<meta property="og:description" content="Every one of our 104 World Cup 2026 match predictions, graded against the result. 59.6% outcome accuracy, 12 exact scorelines, and the two places the model failed." />
+<meta property="og:url" content="https://www.themodelsays.com/wc2026-record" />
+<meta property="og:type" content="article" />
+<meta name="twitter:card" content="summary_large_image" />
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5120443387712788" crossorigin="anonymous"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+background:#0d0118;color:#b9aed0;line-height:1.7}
+.nav{background:rgba(13,1,24,.95);border-bottom:1px solid rgba(255,255,255,.08);
+padding:16px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.nav a{color:#b9aed0;text-decoration:none;font-size:14px}
+.nav a:hover{color:#fff}
+.nav .brand{color:#fff;font-weight:700;font-size:16px}
+main{max-width:860px;margin:0 auto;padding:48px 24px 80px}
+h1{color:#fff;font-size:clamp(28px,5vw,40px);line-height:1.2;margin-bottom:12px}
+h2{color:#fff;font-size:24px;margin:44px 0 14px}
+h3{color:#fff;font-size:18px;margin:28px 0 10px}
+p{margin-bottom:16px}
+.lede{font-size:18px;color:#d5cce6}
+.meta{color:#796a93;font-size:13px;margin-bottom:32px}
+a{color:#00FF87}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08)}
+th{color:#fff;font-weight:600;font-size:12px;text-transform:uppercase;
+letter-spacing:.06em;color:#796a93}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.win{color:#00FF87}.miss{color:#ff6b6b}
+.callout{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+border-left:3px solid #7B2EE3;border-radius:8px;padding:18px 20px;margin:24px 0}
+.callout strong{color:#fff}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+code{background:rgba(0,0,0,.4);padding:2px 6px;border-radius:4px;
+font-size:13px;color:#00FF87}
+pre{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);
+border-radius:8px;padding:16px;overflow-x:auto;margin:16px 0}
+pre code{background:none;padding:0;color:#d5cce6}
+footer{border-top:1px solid rgba(255,255,255,.08);margin-top:56px;padding-top:24px;
+color:#796a93;font-size:13px}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="/">TheModelSays</a>
+  <a href="/methodology">How it works</a>
+  <a href="/wc2026-record">WC 2026 record</a>
+  <a href="/about">About</a>
+</nav>
+<main>
+<h1>The World Cup 2026 record, match by match</h1>
+<p class="meta">All 104 matches, 2026-06-11 to 2026-07-19. Graded from the
+committed record — every figure on this page is computed from
+<code>per_match.csv</code>, not typed in.</p>
+
+<p class="lede">We predicted every match of the 2026 World Cup before it was
+played, published each prediction in a public repository, and graded all
+104 of them afterwards. This page is the whole record: the hits, the
+misses, and the two findings that made the model worse rather than better.</p>
+
+<h2>The headline numbers</h2>
+<div class="scroll"><table>
+<thead><tr><th>Metric</th><th class="num">The model</th>
+<th class="num">Coin flip</th><th class="num">Historical base rates</th></tr></thead>
+<tbody>
+<tr><td>Outcome accuracy (W/D/L)</td><td class="num">59.6%</td>
+<td class="num">33.3%</td><td class="num">—</td></tr>
+<tr><td>Brier score (lower is better)</td><td class="num">0.5406</td>
+<td class="num">0.6667</td>
+<td class="num">0.6513</td></tr>
+<tr><td>Exact scorelines</td>
+<td class="num">12 of 104 (11.5%)</td>
+<td class="num">—</td><td class="num">—</td></tr>
+<tr><td>Log loss</td><td class="num">0.9102</td>
+<td class="num">1.0986</td><td class="num">—</td></tr>
+</tbody></table></div>
+
+<p>Beating a coin flip is trivial; beating the historical base rates of football
+results is not. Both comparison columns are computed over the same
+104 matches, so they are like-for-like.</p>
+
+<h3>By stage</h3>
+<div class="scroll"><table>
+<thead><tr><th>Stage</th><th class="num">Matches</th>
+<th class="num">Outcome accuracy</th><th class="num">Exact scores</th>
+<th class="num">Brier</th></tr></thead>
+<tbody>
+<tr><td>Group stage</td><td class="num">72</td>
+<td class="num">62.5%</td><td class="num">11.1%</td>
+<td class="num">0.5277</td></tr>
+<tr><td>Knockouts (90 minutes)</td><td class="num">32</td>
+<td class="num">53.1%</td><td class="num">12.5%</td>
+<td class="num">0.5696</td></tr>
+</tbody></table></div>
+
+<h2>Finding one: retraining during the tournament made the model worse</h2>
+
+<p>We retrained after every matchday, weighting the tournament's own results
+four times more heavily than historical data. The intuition was obvious — use
+the newest information. Graded against the record, it was
+wrong.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Model</th><th class="num">Outcome accuracy</th>
+<th class="num">Brier</th><th class="num">Exact scores</th></tr></thead>
+<tbody>
+<tr><td>Frozen before the tournament</td>
+<td class="num">66.3%</td>
+<td class="num">0.5220</td>
+<td class="num">9.6%</td></tr>
+<tr><td>Retrained after every matchday</td>
+<td class="num">59.6%</td>
+<td class="num">0.5406</td>
+<td class="num">11.5%</td></tr>
+</tbody></table></div>
+
+<p>The version that never saw a single tournament result was
+6.7 percentage points better across all
+104 matches, and 15.6 points
+better in the knockouts —
+68.8% against 53.1%. Three to seven matches per
+team is not enough data to update team strength; we were fitting to noise and
+calling it form. Walk-forward retraining has been dropped.</p>
+
+<h2>Finding two: the model could not imagine a well-organised underdog</h2>
+
+<p>Our confident predictions were not as good as their confidence implied.
+Predictions in the 90–100% band (6 of them) came in at 50.0%. A calibrated model's 90% predictions come in about 90% of the time.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Predicted probability</th><th class="num">Predictions</th>
+<th class="num">Actually happened</th></tr></thead>
+<tbody>
+<tr><td>0–10%</td><td class='num'>35</td><td class='num'>8.6%</td></tr>
+<tr><td>10–20%</td><td class='num'>53</td><td class='num'>11.3%</td></tr>
+<tr><td>20–30%</td><td class='num'>64</td><td class='num'>18.8%</td></tr>
+<tr><td>30–40%</td><td class='num'>64</td><td class='num'>35.9%</td></tr>
+<tr><td>40–50%</td><td class='num'>41</td><td class='num'>58.5%</td></tr>
+<tr><td>50–60%</td><td class='num'>20</td><td class='num'>65.0%</td></tr>
+<tr><td>60–70%</td><td class='num'>13</td><td class='num'>53.8%</td></tr>
+<tr><td>70–80%</td><td class='num'>9</td><td class='num'>88.9%</td></tr>
+<tr><td>80–90%</td><td class='num'>7</td><td class='num'>71.4%</td></tr>
+<tr><td>90–100%</td><td class='num'>6</td><td class='num'>50.0%</td></tr>
+</tbody></table></div>
+
+<p>Nearly all of the damage sat in one place: heavy favourites held to draws by
+sides that set up to defend. A Poisson goal model with a draw correction still
+assumes both teams are trying to score at their usual rate. That is the wrong
+assumption for a tournament with a 48-team field and a lot of underdogs happy
+to take a point.</p>
+
+<h2>The calls we got right when it was hard</h2>
+<ul><li><strong>England 1-2 Argentina</strong> — called the away win at 34.7%.</li>
+<li><strong>Colombia 0-0 Portugal</strong> — called the draw at 35.1%.</li>
+<li><strong>Brazil 1-1 Morocco</strong> — called the draw at 37.5%.</li>
+<li><strong>Spain 2-1 Belgium</strong> — called the home win at 38.1%.</li>
+<li><strong>USA 4-1 Paraguay</strong> — called the home win at 38.5%.</li>
+<li><strong>Cabo Verde 0-0 Saudi Arabia</strong> — called the draw at 41.3%.</li></ul>
+
+<h2>The calls we got wrong while confident</h2>
+<ul><li><strong>Spain 0-0 Cabo Verde</strong> — we had home win at 97.5%; it finished a draw.</li>
+<li><strong>Iran 2-2 New Zealand</strong> — we had home win at 94.9%; it finished a draw.</li>
+<li><strong>Ecuador 0-0 Curaçao</strong> — we had home win at 91.2%; it finished a draw.</li>
+<li><strong>England 0-0 Ghana</strong> — we had home win at 81.2%; it finished a draw.</li>
+<li><strong>Uruguay 2-2 Cabo Verde</strong> — we had home win at 81.1%; it finished a draw.</li>
+<li><strong>Qatar 1-1 Switzerland</strong> — we had away win at 73.0%; it finished a draw.</li></ul>
+
+<h2>Verify any of this yourself</h2>
+<p>Predictions were committed to a public repository before kick-off, so the
+timestamps are checkable independently of anything we say. The grading script
+reconstructs each prediction from the model parameters as they existed at least
+sixteen hours before the match — a walk-forward rebuild from git history, not a
+retrospective fit:</p>
+<pre><code>git clone https://github.com/nabeehshameem/fpl-optimiser
+python wc/scripts/grade_retrospective.py</code></pre>
+<p>That regenerates <code>per_match.csv</code> and <code>summary.txt</code>,
+which are the only inputs to this page. If your numbers differ from the ones
+above, the numbers above are wrong.</p>
+
+<div class="callout">
+<strong>What this record does and does not show.</strong> It shows that these
+predictions existed before the matches and how they scored. It does not show
+that the model will do as well on the next tournament — 104 matches is
+a small sample, and two of the model's weaknesses only became visible after the
+fact. The next public record is the 2026/27 Fantasy Premier League season, where
+every squad is committed before the deadline and graded afterwards on the same
+terms.
+</div>
+
+<h2>Every match</h2>
+<p>Two different predictions are graded here, and they can disagree.
+<strong>Top scoreline</strong> is the single most likely score. <strong>W/D/L
+call</strong> is the most likely outcome, which is every home-win scoreline
+added together against every draw and every away win. The most likely single
+score is often a draw while the most likely outcome is still a home win, because
+home victories are spread across many different scorelines.</p>
+
+<p>That is why 5 matches below show a correct exact score next to
+a missed W/D/L call. Canada 1&ndash;1 Bosnia &amp; Herzegovina is the clearest
+case: the top scoreline was 1&ndash;1, but the home win held 42% against the
+draw's 32%, so the outcome call was a home win. Both grades are shown rather
+than the flattering one.</p>
+
+<p>Probabilities are home/draw/away at 90 minutes. Matches marked * went to
+extra time and are graded on the 90-minute result. Brier score is per match,
+lower being better.</p>
+<div class="scroll"><table>
+<thead><tr><th class="num">#</th><th>Date</th><th>Match</th>
+<th class="num">Top scoreline</th><th class="num">Actual</th>
+<th class="num">H/D/A %</th><th>W/D/L call</th>
+<th class="num">Exact</th><th class="num">Brier</th></tr></thead>
+<tbody>
+<tr>
+<td class="num">1</td><td>2026-06-11</td>
+<td>Mexico v South Africa</td>
+<td class="num">1-0</td>
+<td class="num">2-0</td>
+<td class="num">56/28/16</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.300</td>
+</tr>
+<tr>
+<td class="num">2</td><td>2026-06-12</td>
+<td>Canada v Bosnia &amp; Herzegovina</td>
+<td class="num">1-1</td>
+<td class="num">1-1</td>
+<td class="num">42/32/26</td>
+<td class="miss">H &#x2717;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.714</td>
+</tr>
+<tr>
+<td class="num">3</td><td>2026-06-12</td>
+<td>South Korea v Czechia</td>
+<td class="num">1-1</td>
+<td class="num">2-1</td>
+<td class="num">43/29/28</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.492</td>
+</tr>
+<tr>
+<td class="num">4</td><td>2026-06-13</td>
+<td>USA v Paraguay</td>
+<td class="num">1-1</td>
+<td class="num">4-1</td>
+<td class="num">38/32/29</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.568</td>
+</tr>
+<tr>
+<td class="num">5</td><td>2026-06-13</td>
+<td>Qatar v Switzerland</td>
+<td class="num">0-2</td>
+<td class="num">1-1</td>
+<td class="num">8/19/73</td>
+<td class="miss">A &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.201</td>
+</tr>
+<tr>
+<td class="num">6</td><td>2026-06-13</td>
+<td>Brazil v Morocco</td>
+<td class="num">0-0</td>
+<td class="num">1-1</td>
+<td class="num">27/38/35</td>
+<td class="win">D &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.589</td>
+</tr>
+<tr>
+<td class="num">7</td><td>2026-06-14</td>
+<td>Haiti v Scotland</td>
+<td class="num">0-2</td>
+<td class="num">0-1</td>
+<td class="num">12/19/69</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.145</td>
+</tr>
+<tr>
+<td class="num">8</td><td>2026-06-14</td>
+<td>Australia v Türkiye</td>
+<td class="num">1-1</td>
+<td class="num">2-0</td>
+<td class="num">29/30/41</td>
+<td class="miss">A &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.766</td>
+</tr>
+<tr>
+<td class="num">9</td><td>2026-06-14</td>
+<td>Germany v Curaçao</td>
+<td class="num">4-0</td>
+<td class="num">7-1</td>
+<td class="num">96/4/1</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.003</td>
+</tr>
+<tr>
+<td class="num">10</td><td>2026-06-14</td>
+<td>Netherlands v Japan</td>
+<td class="num">1-1</td>
+<td class="num">2-2</td>
+<td class="num">36/32/32</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.696</td>
+</tr>
+<tr>
+<td class="num">11</td><td>2026-06-14</td>
+<td>Côte d&#x27;Ivoire v Ecuador</td>
+<td class="num">0-0</td>
+<td class="num">1-0</td>
+<td class="num">27/34/39</td>
+<td class="miss">A &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.797</td>
+</tr>
+<tr>
+<td class="num">12</td><td>2026-06-15</td>
+<td>Sweden v Tunisia</td>
+<td class="num">1-1</td>
+<td class="num">5-1</td>
+<td class="num">32/28/40</td>
+<td class="miss">A &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.705</td>
+</tr>
+<tr>
+<td class="num">13</td><td>2026-06-15</td>
+<td>Spain v Cabo Verde</td>
+<td class="num">5-0</td>
+<td class="num">0-0</td>
+<td class="num">98/2/0</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.909</td>
+</tr>
+<tr>
+<td class="num">14</td><td>2026-06-15</td>
+<td>Belgium v Egypt</td>
+<td class="num">1-0</td>
+<td class="num">1-1</td>
+<td class="num">55/30/16</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.814</td>
+</tr>
+<tr>
+<td class="num">15</td><td>2026-06-15</td>
+<td>Saudi Arabia v Uruguay</td>
+<td class="num">0-1</td>
+<td class="num">1-1</td>
+<td class="num">13/28/59</td>
+<td class="miss">A &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.888</td>
+</tr>
+<tr>
+<td class="num">16</td><td>2026-06-16</td>
+<td>Iran v New Zealand</td>
+<td class="num">4-0</td>
+<td class="num">2-2</td>
+<td class="num">95/4/1</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.820</td>
+</tr>
+<tr>
+<td class="num">17</td><td>2026-06-16</td>
+<td>France v Senegal</td>
+<td class="num">1-1</td>
+<td class="num">3-1</td>
+<td class="num">55/24/21</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.304</td>
+</tr>
+<tr>
+<td class="num">18</td><td>2026-06-16</td>
+<td>Iraq v Norway</td>
+<td class="num">0-2</td>
+<td class="num">1-4</td>
+<td class="num">6/15/80</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.068</td>
+</tr>
+<tr>
+<td class="num">19</td><td>2026-06-17</td>
+<td>Argentina v Algeria</td>
+<td class="num">1-0</td>
+<td class="num">3-0</td>
+<td class="num">50/32/18</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.388</td>
+</tr>
+<tr>
+<td class="num">20</td><td>2026-06-17</td>
+<td>Austria v Jordan</td>
+<td class="num">3-0</td>
+<td class="num">3-1</td>
+<td class="num">86/10/4</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.031</td>
+</tr>
+<tr>
+<td class="num">21</td><td>2026-06-17</td>
+<td>Portugal v DR Congo</td>
+<td class="num">1-0</td>
+<td class="num">1-1</td>
+<td class="num">52/31/18</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.781</td>
+</tr>
+<tr>
+<td class="num">22</td><td>2026-06-17</td>
+<td>England v Croatia</td>
+<td class="num">2-0</td>
+<td class="num">4-2</td>
+<td class="num">67/22/11</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.165</td>
+</tr>
+<tr>
+<td class="num">23</td><td>2026-06-17</td>
+<td>Ghana v Panama</td>
+<td class="num">1-1</td>
+<td class="num">1-0</td>
+<td class="num">45/28/27</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.454</td>
+</tr>
+<tr>
+<td class="num">24</td><td>2026-06-18</td>
+<td>Uzbekistan v Colombia</td>
+<td class="num">0-2</td>
+<td class="num">1-3</td>
+<td class="num">8/18/74</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.103</td>
+</tr>
+<tr>
+<td class="num">25</td><td>2026-06-18</td>
+<td>Czechia v South Africa</td>
+<td class="num">1-1</td>
+<td class="num">1-1</td>
+<td class="num">61/23/16</td>
+<td class="miss">H &#x2717;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.995</td>
+</tr>
+<tr>
+<td class="num">26</td><td>2026-06-18</td>
+<td>Switzerland v Bosnia &amp; Herzegovina</td>
+<td class="num">1-0</td>
+<td class="num">4-1</td>
+<td class="num">59/26/15</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.256</td>
+</tr>
+<tr>
+<td class="num">27</td><td>2026-06-18</td>
+<td>Canada v Qatar</td>
+<td class="num">1-0</td>
+<td class="num">6-0</td>
+<td class="num">50/32/18</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.388</td>
+</tr>
+<tr>
+<td class="num">28</td><td>2026-06-19</td>
+<td>Mexico v South Korea</td>
+<td class="num">1-0</td>
+<td class="num">1-0</td>
+<td class="num">51/32/17</td>
+<td class="win">H &#x2713;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.373</td>
+</tr>
+<tr>
+<td class="num">29</td><td>2026-06-19</td>
+<td>USA v Australia</td>
+<td class="num">1-1</td>
+<td class="num">2-0</td>
+<td class="num">35/30/36</td>
+<td class="miss">A &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.644</td>
+</tr>
+<tr>
+<td class="num">30</td><td>2026-06-19</td>
+<td>Scotland v Morocco</td>
+<td class="num">0-2</td>
+<td class="num">0-1</td>
+<td class="num">10/21/70</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.144</td>
+</tr>
+<tr>
+<td class="num">31</td><td>2026-06-20</td>
+<td>Brazil v Haiti</td>
+<td class="num">3-0</td>
+<td class="num">3-0</td>
+<td class="num">87/9/4</td>
+<td class="win">H &#x2713;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.026</td>
+</tr>
+<tr>
+<td class="num">32</td><td>2026-06-20</td>
+<td>Türkiye v Paraguay</td>
+<td class="num">1-0</td>
+<td class="num">0-1</td>
+<td class="num">59/27/14</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.165</td>
+</tr>
+<tr>
+<td class="num">33</td><td>2026-06-20</td>
+<td>Netherlands v Sweden</td>
+<td class="num">1-1</td>
+<td class="num">5-1</td>
+<td class="num">62/22/16</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.222</td>
+</tr>
+<tr>
+<td class="num">34</td><td>2026-06-20</td>
+<td>Germany v Côte d&#x27;Ivoire</td>
+<td class="num">3-0</td>
+<td class="num">2-1</td>
+<td class="num">79/14/7</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.068</td>
+</tr>
+<tr>
+<td class="num">35</td><td>2026-06-21</td>
+<td>Ecuador v Curaçao</td>
+<td class="num">3-0</td>
+<td class="num">0-0</td>
+<td class="num">91/7/2</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.697</td>
+</tr>
+<tr>
+<td class="num">36</td><td>2026-06-21</td>
+<td>Tunisia v Japan</td>
+<td class="num">0-2</td>
+<td class="num">0-4</td>
+<td class="num">5/18/77</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.091</td>
+</tr>
+<tr>
+<td class="num">37</td><td>2026-06-21</td>
+<td>Belgium v Iran</td>
+<td class="num">2-1</td>
+<td class="num">0-0</td>
+<td class="num">63/20/16</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.059</td>
+</tr>
+<tr>
+<td class="num">38</td><td>2026-06-21</td>
+<td>Uruguay v Cabo Verde</td>
+<td class="num">2-0</td>
+<td class="num">2-2</td>
+<td class="num">81/15/4</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.385</td>
+</tr>
+<tr>
+<td class="num">39</td><td>2026-06-21</td>
+<td>Spain v Saudi Arabia</td>
+<td class="num">3-0</td>
+<td class="num">4-0</td>
+<td class="num">90/8/2</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.017</td>
+</tr>
+<tr>
+<td class="num">40</td><td>2026-06-22</td>
+<td>New Zealand v Egypt</td>
+<td class="num">0-2</td>
+<td class="num">1-3</td>
+<td class="num">6/16/78</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.080</td>
+</tr>
+<tr>
+<td class="num">41</td><td>2026-06-22</td>
+<td>Argentina v Austria</td>
+<td class="num">1-0</td>
+<td class="num">2-0</td>
+<td class="num">54/30/16</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.333</td>
+</tr>
+<tr>
+<td class="num">42</td><td>2026-06-22</td>
+<td>France v Iraq</td>
+<td class="num">2-0</td>
+<td class="num">3-0</td>
+<td class="num">76/16/7</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.088</td>
+</tr>
+<tr>
+<td class="num">43</td><td>2026-06-23</td>
+<td>Norway v Senegal</td>
+<td class="num">1-1</td>
+<td class="num">3-2</td>
+<td class="num">56/26/18</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.299</td>
+</tr>
+<tr>
+<td class="num">44</td><td>2026-06-23</td>
+<td>Jordan v Algeria</td>
+<td class="num">0-2</td>
+<td class="num">1-2</td>
+<td class="num">15/24/61</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.233</td>
+</tr>
+<tr>
+<td class="num">45</td><td>2026-06-23</td>
+<td>Portugal v Uzbekistan</td>
+<td class="num">1-1</td>
+<td class="num">5-0</td>
+<td class="num">56/26/18</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.293</td>
+</tr>
+<tr>
+<td class="num">46</td><td>2026-06-23</td>
+<td>England v Ghana</td>
+<td class="num">2-0</td>
+<td class="num">0-0</td>
+<td class="num">81/15/4</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.391</td>
+</tr>
+<tr>
+<td class="num">47</td><td>2026-06-23</td>
+<td>Panama v Croatia</td>
+<td class="num">1-2</td>
+<td class="num">0-1</td>
+<td class="num">18/20/62</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.215</td>
+</tr>
+<tr>
+<td class="num">48</td><td>2026-06-24</td>
+<td>Colombia v DR Congo</td>
+<td class="num">0-0</td>
+<td class="num">1-0</td>
+<td class="num">43/34/24</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.496</td>
+</tr>
+<tr>
+<td class="num">49</td><td>2026-06-24</td>
+<td>Bosnia &amp; Herzegovina v Qatar</td>
+<td class="num">1-0</td>
+<td class="num">3-1</td>
+<td class="num">55/30/15</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.321</td>
+</tr>
+<tr>
+<td class="num">50</td><td>2026-06-24</td>
+<td>Switzerland v Canada</td>
+<td class="num">1-1</td>
+<td class="num">2-1</td>
+<td class="num">42/30/29</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.506</td>
+</tr>
+<tr>
+<td class="num">51</td><td>2026-06-24</td>
+<td>Morocco v Haiti</td>
+<td class="num">2-0</td>
+<td class="num">4-2</td>
+<td class="num">86/12/3</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.034</td>
+</tr>
+<tr>
+<td class="num">52</td><td>2026-06-24</td>
+<td>Scotland v Brazil</td>
+<td class="num">1-1</td>
+<td class="num">0-3</td>
+<td class="num">18/24/58</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.262</td>
+</tr>
+<tr>
+<td class="num">53</td><td>2026-06-25</td>
+<td>South Africa v South Korea</td>
+<td class="num">0-1</td>
+<td class="num">1-0</td>
+<td class="num">12/27/61</td>
+<td class="miss">A &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.216</td>
+</tr>
+<tr>
+<td class="num">54</td><td>2026-06-25</td>
+<td>Czechia v Mexico</td>
+<td class="num">0-1</td>
+<td class="num">0-3</td>
+<td class="num">11/24/65</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.196</td>
+</tr>
+<tr>
+<td class="num">55</td><td>2026-06-25</td>
+<td>Curaçao v Côte d&#x27;Ivoire</td>
+<td class="num">0-3</td>
+<td class="num">0-2</td>
+<td class="num">2/6/92</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.011</td>
+</tr>
+<tr>
+<td class="num">56</td><td>2026-06-25</td>
+<td>Ecuador v Germany</td>
+<td class="num">0-2</td>
+<td class="num">2-1</td>
+<td class="num">14/24/62</td>
+<td class="miss">A &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">1.179</td>
+</tr>
+<tr>
+<td class="num">57</td><td>2026-06-25</td>
+<td>Japan v Sweden</td>
+<td class="num">2-0</td>
+<td class="num">1-1</td>
+<td class="num">63/24/13</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.995</td>
+</tr>
+<tr>
+<td class="num">58</td><td>2026-06-25</td>
+<td>Tunisia v Netherlands</td>
+<td class="num">0-3</td>
+<td class="num">1-3</td>
+<td class="num">2/7/91</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.014</td>
+</tr>
+<tr>
+<td class="num">59</td><td>2026-06-26</td>
+<td>Paraguay v Australia</td>
+<td class="num">0-0</td>
+<td class="num">0-0</td>
+<td class="num">20/39/41</td>
+<td class="miss">A &#x2717;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.582</td>
+</tr>
+<tr>
+<td class="num">60</td><td>2026-06-26</td>
+<td>Türkiye v USA</td>
+<td class="num">1-1</td>
+<td class="num">3-2</td>
+<td class="num">29/37/34</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.753</td>
+</tr>
+<tr>
+<td class="num">61</td><td>2026-06-26</td>
+<td>Senegal v Iraq</td>
+<td class="num">1-0</td>
+<td class="num">5-0</td>
+<td class="num">58/30/13</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.280</td>
+</tr>
+<tr>
+<td class="num">62</td><td>2026-06-26</td>
+<td>Norway v France</td>
+<td class="num">1-1</td>
+<td class="num">1-4</td>
+<td class="num">38/27/35</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.634</td>
+</tr>
+<tr>
+<td class="num">63</td><td>2026-06-27</td>
+<td>Cabo Verde v Saudi Arabia</td>
+<td class="num">1-1</td>
+<td class="num">0-0</td>
+<td class="num">31/41/28</td>
+<td class="win">D &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.518</td>
+</tr>
+<tr>
+<td class="num">64</td><td>2026-06-27</td>
+<td>Uruguay v Spain</td>
+<td class="num">0-1</td>
+<td class="num">0-1</td>
+<td class="num">15/43/42</td>
+<td class="miss">D &#x2717;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.544</td>
+</tr>
+<tr>
+<td class="num">65</td><td>2026-06-27</td>
+<td>New Zealand v Belgium</td>
+<td class="num">0-2</td>
+<td class="num">1-5</td>
+<td class="num">5/24/72</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.136</td>
+</tr>
+<tr>
+<td class="num">66</td><td>2026-06-27</td>
+<td>Egypt v Iran</td>
+<td class="num">1-1</td>
+<td class="num">1-1</td>
+<td class="num">30/42/28</td>
+<td class="win">D &#x2713;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.503</td>
+</tr>
+<tr>
+<td class="num">67</td><td>2026-06-27</td>
+<td>Croatia v Ghana</td>
+<td class="num">1-1</td>
+<td class="num">2-1</td>
+<td class="num">28/44/28</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.789</td>
+</tr>
+<tr>
+<td class="num">68</td><td>2026-06-27</td>
+<td>Panama v England</td>
+<td class="num">0-2</td>
+<td class="num">0-2</td>
+<td class="num">3/24/72</td>
+<td class="win">A &#x2713;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.139</td>
+</tr>
+<tr>
+<td class="num">69</td><td>2026-06-27</td>
+<td>DR Congo v Uzbekistan</td>
+<td class="num">0-0</td>
+<td class="num">3-1</td>
+<td class="num">40/47/13</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.596</td>
+</tr>
+<tr>
+<td class="num">70</td><td>2026-06-27</td>
+<td>Colombia v Portugal</td>
+<td class="num">1-1</td>
+<td class="num">0-0</td>
+<td class="num">31/35/34</td>
+<td class="win">D &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.633</td>
+</tr>
+<tr>
+<td class="num">71</td><td>2026-06-28</td>
+<td>Algeria v Austria</td>
+<td class="num">0-0</td>
+<td class="num">3-3</td>
+<td class="num">22/47/31</td>
+<td class="win">D &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.425</td>
+</tr>
+<tr>
+<td class="num">72</td><td>2026-06-28</td>
+<td>Jordan v Argentina</td>
+<td class="num">0-3</td>
+<td class="num">1-3</td>
+<td class="num">1/18/81</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.068</td>
+</tr>
+<tr>
+<td class="num">73</td><td>2026-06-28</td>
+<td>South Africa v Canada</td>
+<td class="num">0-1</td>
+<td class="num">0-1</td>
+<td class="num">12/40/48</td>
+<td class="win">A &#x2713;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.439</td>
+</tr>
+<tr>
+<td class="num">74</td><td>2026-06-29</td>
+<td>Brazil v Japan</td>
+<td class="num">0-0</td>
+<td class="num">2-1</td>
+<td class="num">27/45/28</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.809</td>
+</tr>
+<tr>
+<td class="num">75</td><td>2026-06-29</td>
+<td>Germany v Paraguay</td>
+<td class="num">2-0</td>
+<td class="num">1-1 *</td>
+<td class="num">56/38/6</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.696</td>
+</tr>
+<tr>
+<td class="num">76</td><td>2026-06-30</td>
+<td>Netherlands v Morocco</td>
+<td class="num">1-1</td>
+<td class="num">1-1 *</td>
+<td class="num">26/42/31</td>
+<td class="win">D &#x2713;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.502</td>
+</tr>
+<tr>
+<td class="num">77</td><td>2026-06-30</td>
+<td>Côte d&#x27;Ivoire v Norway</td>
+<td class="num">1-1</td>
+<td class="num">1-2</td>
+<td class="num">21/34/45</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.462</td>
+</tr>
+<tr>
+<td class="num">78</td><td>2026-06-30</td>
+<td>France v Sweden</td>
+<td class="num">2-1</td>
+<td class="num">3-0</td>
+<td class="num">49/38/13</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.421</td>
+</tr>
+<tr>
+<td class="num">79</td><td>2026-07-01</td>
+<td>Mexico v Ecuador</td>
+<td class="num">0-0</td>
+<td class="num">2-0</td>
+<td class="num">35/51/15</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.704</td>
+</tr>
+<tr>
+<td class="num">80</td><td>2026-07-01</td>
+<td>England v DR Congo</td>
+<td class="num">1-0</td>
+<td class="num">2-1</td>
+<td class="num">41/52/8</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.620</td>
+</tr>
+<tr>
+<td class="num">81</td><td>2026-07-01</td>
+<td>Belgium v Senegal</td>
+<td class="num">1-1</td>
+<td class="num">2-2 *</td>
+<td class="num">45/38/17</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.613</td>
+</tr>
+<tr>
+<td class="num">82</td><td>2026-07-02</td>
+<td>USA v Bosnia &amp; Herzegovina</td>
+<td class="num">2-0</td>
+<td class="num">2-0</td>
+<td class="num">49/41/10</td>
+<td class="win">H &#x2713;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.444</td>
+</tr>
+<tr>
+<td class="num">83</td><td>2026-07-02</td>
+<td>Spain v Austria</td>
+<td class="num">1-0</td>
+<td class="num">3-0</td>
+<td class="num">45/45/10</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.516</td>
+</tr>
+<tr>
+<td class="num">84</td><td>2026-07-02</td>
+<td>Portugal v Croatia</td>
+<td class="num">1-1</td>
+<td class="num">2-1</td>
+<td class="num">45/34/21</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.469</td>
+</tr>
+<tr>
+<td class="num">85</td><td>2026-07-03</td>
+<td>Switzerland v Algeria</td>
+<td class="num">1-1</td>
+<td class="num">2-0</td>
+<td class="num">43/38/19</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.505</td>
+</tr>
+<tr>
+<td class="num">86</td><td>2026-07-03</td>
+<td>Australia v Egypt</td>
+<td class="num">0-0</td>
+<td class="num">1-1 *</td>
+<td class="num">28/48/24</td>
+<td class="win">D &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.402</td>
+</tr>
+<tr>
+<td class="num">87</td><td>2026-07-03</td>
+<td>Argentina v Cabo Verde</td>
+<td class="num">2-0</td>
+<td class="num">1-1 *</td>
+<td class="num">62/35/4</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.805</td>
+</tr>
+<tr>
+<td class="num">88</td><td>2026-07-04</td>
+<td>Colombia v Ghana</td>
+<td class="num">0-0</td>
+<td class="num">1-0</td>
+<td class="num">38/45/17</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.612</td>
+</tr>
+<tr>
+<td class="num">89</td><td>2026-07-04</td>
+<td>Canada v Morocco</td>
+<td class="num">1-1</td>
+<td class="num">0-3</td>
+<td class="num">18/42/40</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.574</td>
+</tr>
+<tr>
+<td class="num">90</td><td>2026-07-04</td>
+<td>Paraguay v France</td>
+<td class="num">0-2</td>
+<td class="num">0-1</td>
+<td class="num">8/40/52</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.389</td>
+</tr>
+<tr>
+<td class="num">91</td><td>2026-07-05</td>
+<td>Brazil v Norway</td>
+<td class="num">2-1</td>
+<td class="num">1-2</td>
+<td class="num">47/31/22</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.917</td>
+</tr>
+<tr>
+<td class="num">92</td><td>2026-07-06</td>
+<td>Mexico v England</td>
+<td class="num">0-0</td>
+<td class="num">2-3</td>
+<td class="num">23/40/37</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.616</td>
+</tr>
+<tr>
+<td class="num">93</td><td>2026-07-06</td>
+<td>Portugal v Spain</td>
+<td class="num">1-1</td>
+<td class="num">0-1</td>
+<td class="num">20/33/47</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.429</td>
+</tr>
+<tr>
+<td class="num">94</td><td>2026-07-07</td>
+<td>USA v Belgium</td>
+<td class="num">1-1</td>
+<td class="num">1-4</td>
+<td class="num">23/31/46</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.447</td>
+</tr>
+<tr>
+<td class="num">95</td><td>2026-07-07</td>
+<td>Argentina v Egypt</td>
+<td class="num">1-0</td>
+<td class="num">3-2</td>
+<td class="num">55/31/14</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.318</td>
+</tr>
+<tr>
+<td class="num">96</td><td>2026-07-07</td>
+<td>Switzerland v Colombia</td>
+<td class="num">1-1</td>
+<td class="num">0-0 *</td>
+<td class="num">27/34/39</td>
+<td class="miss">A &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.667</td>
+</tr>
+<tr>
+<td class="num">97</td><td>2026-07-09</td>
+<td>France v Morocco</td>
+<td class="num">1-1</td>
+<td class="num">2-0</td>
+<td class="num">32/37/31</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.702</td>
+</tr>
+<tr>
+<td class="num">98</td><td>2026-07-10</td>
+<td>Spain v Belgium</td>
+<td class="num">1-1</td>
+<td class="num">2-1</td>
+<td class="num">38/36/25</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.581</td>
+</tr>
+<tr>
+<td class="num">99</td><td>2026-07-11</td>
+<td>Norway v England</td>
+<td class="num">1-1</td>
+<td class="num">1-2</td>
+<td class="num">22/26/51</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.358</td>
+</tr>
+<tr>
+<td class="num">100</td><td>2026-07-12</td>
+<td>Argentina v Switzerland</td>
+<td class="num">1-1</td>
+<td class="num">3-1</td>
+<td class="num">49/33/18</td>
+<td class="win">H &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.399</td>
+</tr>
+<tr>
+<td class="num">101</td><td>2026-07-14</td>
+<td>France v Spain</td>
+<td class="num">1-1</td>
+<td class="num">0-2</td>
+<td class="num">29/38/33</td>
+<td class="miss">D &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.679</td>
+</tr>
+<tr>
+<td class="num">102</td><td>2026-07-15</td>
+<td>England v Argentina</td>
+<td class="num">1-1</td>
+<td class="num">1-2</td>
+<td class="num">31/34/35</td>
+<td class="win">A &#x2713;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.640</td>
+</tr>
+<tr>
+<td class="num">103</td><td>2026-07-18</td>
+<td>France v England</td>
+<td class="num">1-1</td>
+<td class="num">4-6</td>
+<td class="num">44/33/23</td>
+<td class="miss">H &#x2717;</td>
+<td class="num">&mdash;</td>
+<td class="num">0.900</td>
+</tr>
+<tr>
+<td class="num">104</td><td>2026-07-19</td>
+<td>Spain v Argentina</td>
+<td class="num">0-0</td>
+<td class="num">0-0 *</td>
+<td class="num">44/39/17</td>
+<td class="miss">H &#x2717;</td>
+<td class="num win">&#x2713;</td>
+<td class="num">0.595</td>
+</tr>
+</tbody></table></div>
+
+<footer>
+<p>Generated from the committed retrospective on 26 July 2026.
+Source data: <code>wc/retrospective/per_match.csv</code>. ·
+<a href="/methodology">How the model works</a> ·
+<a href="https://github.com/nabeehshameem/fpl-optimiser">Code and data</a></p>
+</footer>
+</main>
+</body>
+</html>

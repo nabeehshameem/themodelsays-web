@@ -9,6 +9,7 @@
     { "source": "/about", "destination": "/about.html" },
     { "source": "/methodology", "destination": "/methodology.html" },
     { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/wc2026-record", "destination": "/wc2026-record.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
