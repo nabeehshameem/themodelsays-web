@@ -469,11 +469,11 @@ function V4Features() {
         <div style={{ marginBottom: 52 }}>
           <div style={{ color: v4.electric, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: mono, marginBottom: 14 }}>what the model says</div>
           <h2 style={{ color: v4.text, fontSize: mobile ? 36 : 56, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.02, margin: 0, fontFamily: display }}>
-            Every group. Every knockout. Every call.
+            Every match. Every gameweek. <span style={{ color: v4.electric }}>Every call.</span>
           </h2>
         </div>
 
-        <div className="tms-feat-grid" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr 1fr', gap: 16 }}>
+        <div className="tms-feat-grid" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 16 }}>
           <V4FeatureCard
             tag="SCORE PREDICTOR"
             title="Pick any match. Get the call."
@@ -481,14 +481,6 @@ function V4Features() {
             widget={<WidgetWCMatches />}
             widgetLabel="LATEST PICKS"
             widgetStat="WC 2026 complete"
-          />
-          <V4FeatureCard
-            tag="TOURNAMENT BRACKET"
-            title="Every path to the final."
-            body="50,000 Monte Carlo simulations. Win probabilities for all 48 teams, built pre-tournament — every call on the record."
-            widget={<WidgetBracket />}
-            widgetLabel="BRACKET CALL"
-            widgetStat="48 teams · 104 matches"
           />
           <V4FeatureCard
             tag="FPL 2026/27"
@@ -607,58 +599,6 @@ function WidgetWCMatches() {
   );
 }
 
-function WidgetBracket() {
-  const [teams, setTeams] = React.useState(null);
-
-  React.useEffect(() => {
-    getSimulation()
-      .then(data => {
-        const sorted = [...data.teams]
-          .filter(t => t.win_pct > 0)
-          .sort((a, b) => b.win_pct - a.win_pct)
-          .slice(0, 5)
-          .map(t => ({ name: t.team, win: parseFloat(t.win_pct.toFixed(1)), color: _TEAM_COLORS[t.team] || '#7B2EE3' }));
-        setTeams(sorted);
-      })
-      .catch(() => {});
-  }, []);
-
-  if (!teams) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {[0,1,2,3,4].map(i => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 16, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }} />
-            <div style={{ width: 80, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }} />
-            <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 999 }} />
-            <div style={{ width: 32, height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }} />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {teams.map((t, i) => (
-        <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 14, color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
-          <span style={{
-            width: 76, color: i === 0 ? v4.text : v4.textDim,
-            fontFamily: display, fontSize: 12, fontWeight: i === 0 ? 700 : 400,
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 0,
-          }}>{t.name}</span>
-          <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ width: `${t.win / teams[0].win * 100}%`, height: '100%', background: t.color, borderRadius: 4, opacity: i === 0 ? 1 : 0.65 }} />
-          </div>
-        </div>
-      ))}
-      <div style={{ marginTop: 2, fontSize: 10, color: v4.textVeryDim, fontFamily: mono }}>
-        % chance to win WC 2026 · 50K sims
-      </div>
-    </div>
-  );
-}
 
 function WidgetFPLPreview() {
   const tools = ['GW Predictions', 'Captain Picks', 'Transfer Optimizer', 'Fixture Ticker'];
