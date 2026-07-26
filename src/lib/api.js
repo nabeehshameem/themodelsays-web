@@ -169,7 +169,25 @@ export function receiptCardUrl(gw, teamId, fmt = 'og') {
   return `${API_URL}/card/${gw}/${teamId}.png?fmt=${fmt}`;
 }
 
+// GET /api/fpl/projections/{gw} → {
+//   gameweek, deadline_utc, generated_at_utc, model,
+//   captain_candidates: [{ player_id, name, team, position, price,
+//                          projected_points, opponent, venue }],
+//   by_position: { GK: [...], DEF: [...], MID: [...], FWD: [...] },
+//   excluded: [{ player_id, name, team }],
+//   note
+// }
+//
+// The only endpoint that is useful BEFORE a deadline. Published when the model
+// locks (about 10h out) and readable immediately, unlike the squad — these are
+// the model's view of every player, not its selection, so they carry neither
+// the squad nor the hash. 404 until the lock has run for that gameweek.
+export function fetchProjections(gw, { signal } = {}) {
+  return request(`/api/fpl/projections/${gw}`, { signal });
+}
+
 export const fpl = {
+  projections: fetchProjections,
   modelGameweek: fetchModelGameweek,
   season: fetchModelSeason,
   receipt: fetchReceipt,

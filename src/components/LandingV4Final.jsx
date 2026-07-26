@@ -4,6 +4,7 @@ import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
 import GroupStandings from './GroupStandings.jsx';
 import { FPLSeasonPanel, ReceiptFlow } from './FPLLive.jsx';
+import { ProjectionsPanel } from './ProjectionsPanel.jsx';
 
 const v4 = {
   bg:          '#0d0118',
@@ -798,7 +799,10 @@ function V4FPLSection() {
             The same Dixon-Coles engine that predicted and graded all 104 WC2026 matches turns to FPL next. Every squad committed before the deadline, every score graded in public — including the bad ones.
           </p>
         </div>
-        <FPLSeasonPanel />
+        <ProjectionsPanel />
+        <div style={{ marginTop: 32 }}>
+          <FPLSeasonPanel />
+        </div>
         <div style={{ marginTop: 32 }}>
           <ReceiptFlow />
         </div>
