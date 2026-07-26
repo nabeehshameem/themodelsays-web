@@ -231,7 +231,7 @@ export function FPLSeasonPanel({ gameweek }) {
   const mobile = useIsMobile();
   const [season, setSeason] = useState(null);
   const [gw, setGw] = useState(null);
-  const [state, setState] = useState('loading');
+  const [state, setState] = useState('ready');
 
   useEffect(() => {
     const ac = new AbortController();

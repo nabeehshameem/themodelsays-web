@@ -2,7 +2,6 @@ import React from 'react';
 import { fetchSimulation, predictWorldCupMatch, wcFantasy } from '../lib/api.js';
 import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
-import TournamentBracket from './TournamentBracket.jsx';
 import GroupStandings from './GroupStandings.jsx';
 import { FPLSeasonPanel, ReceiptFlow } from './FPLLive.jsx';
 
@@ -116,17 +115,23 @@ function V4Nav() {
       {!mobile && (
         <div style={{ display: 'flex', gap: 24, marginLeft: 8, fontFamily: display }}>
           {[
-            ['WC2026',          'home'],
-            ['Results',         'results'],
-            ['Bracket',         'bracket'],
-            ['Score Predictor', 'predictor'],
-            ['FPL',             'fpl'],
-          ].map(([label, targetId]) => (
-            <a key={label} href={`#${targetId}`}
-               onClick={e => { e.preventDefault(); scrollTo(targetId); }}
-               style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
-              {label}
-            </a>
+            { label: 'WC2026',          anchor: 'home' },
+            { label: 'Results',         anchor: 'results' },
+            { label: 'Score Predictor', anchor: 'predictor' },
+            { label: 'FPL',             anchor: 'fpl' },
+            { label: 'WC Record',       href: '/wc2026-record' },
+            { label: 'How it works',    href: '/methodology' },
+          ].map(({ label, anchor, href }) => (
+            anchor
+              ? <a key={label} href={`#${anchor}`}
+                   onClick={e => { e.preventDefault(); scrollTo(anchor); }}
+                   style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
+                  {label}
+                </a>
+              : <a key={label} href={href}
+                   style={{ color: v4.textDim, fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
+                  {label}
+                </a>
           ))}
         </div>
       )}
@@ -1162,12 +1167,12 @@ const _FOOTER_LINKS = {
   'World Cup 2026':    { scroll: 'home' },
   'Results':           { scroll: 'results' },
   'Score Predictor':   { scroll: 'predictor' },
-  'Bracket Builder':   { scroll: 'bracket' },
   'Fantasy Squad':     { scroll: 'fantasy' },
   'Match Predictions': { scroll: 'predictor' },
   'FPL 2026/27':      { scroll: 'fpl' },
+  'WC 2026 Record':   { href: '/wc2026-record', external: false },
   'Track record':      { scroll: 'accuracy' },
-  'How it works':      { scroll: 'about' },
+  'How it works':      { href: '/methodology', external: false },
   'Updates':           { href: 'https://www.tiktok.com/@themodel.says', external: true },
   'Contact':           { scroll: 'cta' },
   'Privacy Policy':    { href: '/privacy', external: false },
@@ -1191,8 +1196,8 @@ function FooterLink({ label }) {
 function V4Footer() {
   const mobile = useIsMobile();
   const cols = [
-    ['App',   ['World Cup 2026', 'Results', 'Score Predictor', 'Bracket Builder', 'FPL 2026/27']],
-    ['About', ['How it works', 'Track record', 'Updates', 'Contact', 'Privacy Policy']],
+    ['App',   ['World Cup 2026', 'Results', 'Score Predictor', 'FPL 2026/27']],
+    ['About', ['WC 2026 Record', 'How it works', 'Track record', 'Updates', 'Contact', 'Privacy Policy']],
   ];
   return (
     <div style={{ borderTop: `1px solid ${v4.border}`, padding: mobile ? '48px 20px 28px' : '72px 56px 36px', background: v4.bg }}>
@@ -1242,7 +1247,6 @@ function LandingV4Final() {
       <div id="home"><V4Hero /></div>
       <V4Marquee />
       <V4WCResults />
-      <div id="bracket"><TournamentBracket /></div>
       <div id="predictor"><WorldCupPredictor /></div>
       <div id="fpl"><V4FPLSection /></div>
       <V4Features />
