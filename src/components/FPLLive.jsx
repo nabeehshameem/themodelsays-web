@@ -295,18 +295,41 @@ const ERRORS = {
   502: () => "FPL's own API isn't responding right now. Nothing's wrong with your team — try again in a few minutes.",
 };
 
+const inputStyle = {
+  background: 'rgba(0,0,0,0.3)', border: `1px solid rgba(255,255,255,0.08)`,
+  borderRadius: 10, padding: '12px 14px', color: '#ffffff',
+  fontFamily: 'JetBrains Mono, monospace', fontSize: 14, outline: 'none', width: '100%',
+};
+
+function tabStyle(active) {
+  return {
+    background: active ? '#00FF87' : 'transparent',
+    color: active ? '#0d0118' : '#b9aed0',
+    border: `1px solid ${active ? '#00FF87' : 'rgba(255,255,255,0.08)'}`,
+    borderRadius: 8, padding: '8px 16px',
+    fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: 13,
+    cursor: 'pointer',
+  };
+}
+
 export function ReceiptFlow({ gameweek }) {
+  const [mode, setMode] = useState('id');
   const [teamId, setTeamId] = useState('');
+  const [points, setPoints] = useState('');
   const [gw, setGw] = useState(gameweek ?? '');
   const [receipt, setReceipt] = useState(null);
+  const [manual, setManual] = useState(null);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
-  const submit = useCallback(async () => {
+  const reset = () => { setReceipt(null); setManual(null); setErr(null); };
+
+  const submitId = useCallback(async () => {
     const id = parseInt(teamId, 10);
     const g = parseInt(gw, 10);
     if (!id || !g) { setErr('Enter your FPL team ID and a gameweek.'); return; }
-    setBusy(true); setErr(null); setReceipt(null);
+    setBusy(true); reset();
     try {
       setReceipt(await fpl.receipt(g, id));
     } catch (e) {
@@ -317,42 +340,120 @@ export function ReceiptFlow({ gameweek }) {
     }
   }, [teamId, gw]);
 
-  const input = {
-    background: 'rgba(0,0,0,0.3)', border: `1px solid ${v4.border}`,
-    borderRadius: 10, padding: '12px 14px', color: v4.text,
-    fontFamily: mono, fontSize: 14, outline: 'none', width: '100%',
-  };
+  const submitPoints = useCallback(async () => {
+    const p = parseInt(points, 10);
+    const g = parseInt(gw, 10);
+    if (!p || !g) { setErr('Enter your points and a gameweek.'); return; }
+    setBusy(true); reset();
+    try {
+      const modelGw = await fpl.modelGameweek(g);
+      if (!modelGw?.result) {
+        setErr(ERRORS[409](g));
+      } else {
+        setManual({ userPoints: p, modelPoints: modelGw.result.net_points, gameweek: g });
+      }
+    } catch (e) {
+      // 404 = GW not locked yet, treat same as ungraded
+      if (e instanceof ApiError && e.status === 404) {
+        setErr(ERRORS[409](g));
+      } else {
+        const build = e instanceof ApiError ? ERRORS[e.status] : null;
+        setErr(build ? build(g) : "Something went wrong fetching the model's score.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }, [points, gw]);
 
   return (
     <div style={card}>
       <div style={label}>beat the model</div>
       <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.55, margin: '12px 0 18px' }}>
         The model plays by your rules — one squad, real budget, real transfers,
-        hits paid. Put your team ID in and see how you did against it.
+        hits paid. See how you did against it.
       </p>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <div style={{ flex: '2 1 180px' }}>
-          <input style={input} inputMode="numeric" placeholder="FPL team ID"
-                 value={teamId} onChange={e => setTeamId(e.target.value)}
-                 onKeyDown={e => e.key === 'Enter' && submit()} />
-        </div>
-        <div style={{ flex: '1 1 90px' }}>
-          <input style={input} inputMode="numeric" placeholder="GW"
-                 value={gw} onChange={e => setGw(e.target.value)}
-                 onKeyDown={e => e.key === 'Enter' && submit()} />
-        </div>
-        <button onClick={submit} disabled={busy} style={{
-          background: busy ? v4.textVeryDim : v4.electric, color: v4.bg,
-          border: 'none', borderRadius: 10, padding: '12px 22px',
-          fontFamily: display, fontWeight: 700, fontSize: 14,
-          cursor: busy ? 'default' : 'pointer',
-        }}>
-          {busy ? 'Checking…' : 'Get receipt'}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+        <button style={tabStyle(mode === 'id')}
+                onClick={() => { setMode('id'); reset(); }}>
+          Team ID
+        </button>
+        <button style={tabStyle(mode === 'points')}
+                onClick={() => { setMode('points'); reset(); }}>
+          Just my points
         </button>
       </div>
 
-      {busy && (
+      {mode === 'id' ? (
+        <>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ flex: '2 1 180px' }}>
+              <input style={inputStyle} inputMode="numeric" placeholder="FPL team ID"
+                     value={teamId} onChange={e => setTeamId(e.target.value)}
+                     onKeyDown={e => e.key === 'Enter' && submitId()} />
+            </div>
+            <div style={{ flex: '1 1 90px' }}>
+              <input style={inputStyle} inputMode="numeric" placeholder="GW"
+                     value={gw} onChange={e => setGw(e.target.value)}
+                     onKeyDown={e => e.key === 'Enter' && submitId()} />
+            </div>
+            <button onClick={submitId} disabled={busy} style={{
+              background: busy ? v4.textVeryDim : v4.electric, color: v4.bg,
+              border: 'none', borderRadius: 10, padding: '12px 22px',
+              fontFamily: display, fontWeight: 700, fontSize: 14,
+              cursor: busy ? 'default' : 'pointer',
+            }}>
+              {busy ? 'Checking…' : 'Get receipt'}
+            </button>
+          </div>
+
+          <button onClick={() => setHelpOpen(h => !h)} style={{
+            background: 'none', border: 'none', padding: '10px 0 0',
+            color: v4.textVeryDim, fontFamily: mono, fontSize: 11,
+            cursor: 'pointer', textDecoration: 'underline',
+          }}>
+            {helpOpen ? '▲' : '▼'} Where do I find my team ID?
+          </button>
+          {helpOpen && (
+            <div style={{
+              marginTop: 8, padding: '12px 14px', borderRadius: 10,
+              background: 'rgba(0,0,0,0.25)', border: `1px solid ${v4.border}`,
+              color: v4.textDim, fontSize: 13, lineHeight: 1.7,
+            }}>
+              <div>1. Open FPL in a <strong style={{ color: v4.text }}>browser</strong> (not the app).</div>
+              <div>2. Click <strong style={{ color: v4.text }}>Points</strong> in the top nav, or <strong style={{ color: v4.text }}>View Gameweek History</strong> from Pick Team.</div>
+              <div>3. The URL reads <span style={{ fontFamily: mono, color: v4.electric }}>/entry/YOUR-ID/event/…</span> — that number is your team ID.</div>
+              <div>4. It only exists once you've entered a squad and played a gameweek.</div>
+              <div style={{ marginTop: 8, color: v4.textVeryDim, fontSize: 11 }}>
+                IDs may change between seasons — check it each year.
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ flex: '2 1 180px' }}>
+            <input style={inputStyle} inputMode="numeric" placeholder="Your points this GW"
+                   value={points} onChange={e => setPoints(e.target.value)}
+                   onKeyDown={e => e.key === 'Enter' && submitPoints()} />
+          </div>
+          <div style={{ flex: '1 1 90px' }}>
+            <input style={inputStyle} inputMode="numeric" placeholder="GW"
+                   value={gw} onChange={e => setGw(e.target.value)}
+                   onKeyDown={e => e.key === 'Enter' && submitPoints()} />
+          </div>
+          <button onClick={submitPoints} disabled={busy} style={{
+            background: 'transparent', color: v4.textDim,
+            border: `1px solid ${v4.border}`, borderRadius: 10, padding: '12px 22px',
+            fontFamily: display, fontWeight: 700, fontSize: 14,
+            cursor: busy ? 'default' : 'pointer',
+          }}>
+            {busy ? 'Checking…' : 'Compare'}
+          </button>
+        </div>
+      )}
+
+      {busy && mode === 'id' && (
         <div style={{ ...label, marginTop: 12, textTransform: 'none', letterSpacing: 0 }}>
           First look-up for a team pulls every graded gameweek so the season
           record is complete — this can take a few seconds. It's instant after that.
@@ -369,6 +470,11 @@ export function ReceiptFlow({ gameweek }) {
       )}
 
       {receipt && <Receipt r={receipt} />}
+      {manual && (
+        <ManualResult m={manual} onUpgrade={() => {
+          setMode('id'); setManual(null); setErr(null);
+        }} />
+      )}
     </div>
   );
 }
@@ -420,6 +526,57 @@ function Receipt({ r }) {
       }}>
         Share this receipt →
       </a>
+    </div>
+  );
+}
+
+function ManualResult({ m, onUpgrade }) {
+  const won = m.userPoints > m.modelPoints;
+  const drew = m.userPoints === m.modelPoints;
+  const colour = won ? v4.electric : drew ? v4.amber : v4.textDim;
+
+  const score = (name, pts, highlight, sub) => (
+    <div style={{ textAlign: 'center', flex: 1 }}>
+      <div style={{ ...label, marginBottom: sub ? 2 : 6 }}>{name}</div>
+      {sub && (
+        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, marginBottom: 4 }}>
+          {sub}
+        </div>
+      )}
+      <div style={{
+        fontFamily: mono, fontSize: 44, fontWeight: 700,
+        color: highlight ? colour : v4.textDim, lineHeight: 1,
+      }}>{pts}</div>
+    </div>
+  );
+
+  return (
+    <div style={{ marginTop: 20, paddingTop: 20, borderTop: `1px solid ${v4.border}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {score('You', m.userPoints, won, 'self-reported')}
+        <div style={{ ...label, fontSize: 13 }}>vs</div>
+        {score('The Model', m.modelPoints, !won && !drew)}
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: 16 }}>
+        <div style={{ fontFamily: display, fontSize: 16, fontWeight: 700, color: colour }}>
+          {won ? 'You beat the model' : drew ? 'Dead heat' : 'The model beat you'}
+        </div>
+        <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11, marginTop: 8, lineHeight: 1.5 }}>
+          The model's score is from the verified graded record. Your score is self-reported.
+        </div>
+      </div>
+
+      <button onClick={onUpgrade} style={{
+        display: 'block', width: '100%', marginTop: 18,
+        padding: '12px 20px', borderRadius: 10,
+        background: 'transparent',
+        border: `1px solid ${v4.borderHi}`, color: v4.textDim,
+        fontFamily: display, fontWeight: 700, fontSize: 13,
+        cursor: 'pointer', textAlign: 'center',
+      }}>
+        Use your team ID for a verified, shareable receipt →
+      </button>
     </div>
   );
 }
