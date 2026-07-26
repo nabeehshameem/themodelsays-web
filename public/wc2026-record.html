@@ -182,7 +182,8 @@ reconstructs each prediction from the model parameters as they existed at least
 sixteen hours before the match — a walk-forward rebuild from git history, not a
 retrospective fit:</p>
 <pre><code>git clone https://github.com/nabeehshameem/fpl-optimiser
-python wc/scripts/grade_retrospective.py</code></pre>
+cd fpl-optimiser
+python wc/retrospective/grade_retrospective.py</code></pre>
 <p>That regenerates <code>per_match.csv</code> and <code>summary.txt</code>,
 which are the only inputs to this page. If your numbers differ from the ones
 above, the numbers above are wrong.</p>
