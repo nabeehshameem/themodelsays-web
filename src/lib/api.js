@@ -97,26 +97,25 @@ export function subscribeEmail(email) {
 
 // GET /api/fpl/model/gw/{gw}
 //
-// Three distinct states — all are 200s except the first:
+// Two states:
 //
-//  404                     → gameweek not locked yet (no squad committed)
+//  404  → gameweek not locked yet
 //
-//  { revealed: false,      → COMMITMENT PHASE (locked, deadline not passed).
-//    gameweek, locked_at_utc, deadline_utc, squad_hash }
-//    The squad is intentionally absent. Render the hash + deadline countdown;
-//    do NOT show "loading" or an error.
+//  200  → locked: squad visible immediately (open publication — the git commit
+//         timestamp proves it was committed before the deadline).
+//    { gameweek, locked_at_utc, deadline_utc, squad_hash, deadline_passed,
+//      squad: [{ player_id, name, position, team, price,
+//                is_xi, is_captain, is_vice, bench_order }],
+//      transfers: { in: [...], out: [...], hits },
+//      free_transfers, bank, expected_points,
+//      result: null | {       → null until the gameweek is graded
+//        gross_points, hit_points, net_points,
+//        effective_captain: { player_id, name, ... } | null,
+//        autosubs: [{ out: {...}, in: {...} }],
+//        graded_at_utc } }
 //
-//  { revealed: true,       → REVEAL PHASE (deadline passed)
-//    gameweek, locked_at_utc, deadline_utc, squad_hash,
-//    squad: [{ player_id, name, position, team,
-//              is_xi, is_captain, is_vice, bench_order }],
-//    transfers: { in: [...], out: [...], hits },
-//    free_transfers, bank, expected_points,
-//    result: null | {          → null until the gameweek is graded
-//      gross_points, hit_points, net_points,
-//      effective_captain: { player_id, name, ... } | null,
-//      autosubs: [{ out: {...}, in: {...} }],
-//      graded_at_utc } }
+//  deadline_passed: use for "still time to change yours" copy, NOT to gate
+//  the squad display — the squad is always visible once the GW is locked.
 export function fetchModelGameweek(gw, { signal } = {}) {
   return request(`/api/fpl/model/gw/${gw}`, { signal });
 }

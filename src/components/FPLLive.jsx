@@ -13,10 +13,10 @@
 //    correctly returns zero gameweeks. That is what most visitors will see
 //    first, so it gets real copy rather than a spinner or a dash.
 //
-// 2. The COMMITMENT PHASE is a feature, not a loading state. Between the lock
-//    and the deadline the API returns { revealed: false } with only a hash.
-//    Showing the hash IS the product: it is the proof the squad existed
-//    before the deadline. Never render it as "loading" or an error.
+// 2. The OPEN PUBLICATION is a feature, not a loading state. The squad is
+//    published at lock time — before the deadline — and the git commit
+//    timestamp is the proof. Show the squad immediately on lock, with a
+//    countdown while there is still time to change your own.
 //
 // 3. Receipt errors are distinguished. 409 (not graded yet), 404 (no such
 //    team) and 502 (FPL down) mean different things to a user and must not
@@ -79,46 +79,23 @@ function CommitmentCard({ gw }) {
   const left = useCountdown(gw?.deadline_utc);
   if (!gw) return null;
 
-  if (!gw.revealed) {
-    return (
-      <div style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <div style={label}>gameweek {gw.gameweek} · committed</div>
-          <div style={{ ...label, color: v4.amber }}>{left} to deadline</div>
-        </div>
-        <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.55, margin: '14px 0 0' }}>
-          The model's squad is locked. Its fingerprint is published below — the
-          full squad is revealed after the deadline, and the two must match.
-        </p>
-        <div style={{
-          marginTop: 16, padding: '12px 14px', background: 'rgba(0,0,0,0.35)',
-          border: `1px solid ${v4.border}`, borderRadius: 10,
-          fontFamily: mono, fontSize: 11, color: v4.electric,
-          wordBreak: 'break-all', lineHeight: 1.5,
-        }}>
-          {gw.squad_hash}
-        </div>
-        <div style={{ ...label, marginTop: 10, textTransform: 'none', letterSpacing: 0 }}>
-          SHA-256, committed {new Date(gw.locked_at_utc).toUTCString()}
-        </div>
-      </div>
-    );
-  }
-
   const xi = (gw.squad || []).filter(p => p.is_xi);
   const bench = (gw.squad || []).filter(p => !p.is_xi)
     .sort((a, b) => a.bench_order - b.bench_order);
-  const cap = (gw.squad || []).find(p => p.is_captain);
+
+  const status = gw.result ? 'graded' : gw.deadline_passed ? 'submitted' : 'live';
 
   return (
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <div style={label}>gameweek {gw.gameweek} · revealed</div>
-        {gw.result && (
+        <div style={label}>gameweek {gw.gameweek} · {status}</div>
+        {gw.result ? (
           <div style={{ fontFamily: mono, fontSize: 22, fontWeight: 700, color: v4.electric }}>
             {gw.result.net_points} pts
           </div>
-        )}
+        ) : !gw.deadline_passed ? (
+          <div style={{ ...label, color: v4.amber }}>{left} to deadline</div>
+        ) : null}
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
@@ -153,8 +130,8 @@ function CommitmentCard({ gw }) {
       )}
 
       <div style={{ ...label, marginTop: 14, textTransform: 'none', letterSpacing: 0 }}>
-        Verify: this squad hashes to {gw.squad_hash?.slice(0, 16)}…, published
-        before the deadline.
+        Committed {new Date(gw.locked_at_utc).toUTCString()} — published to
+        the public repo before the deadline.
       </div>
     </div>
   );
@@ -282,8 +259,8 @@ export function FPLSeasonPanel({ gameweek }) {
         <div style={card}>
           <div style={label}>next gameweek</div>
           <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.6, margin: '12px 0 0' }}>
-            The first squad is committed about ten hours before the Gameweek 1
-            deadline. Its fingerprint appears here the moment it's published.
+            The first squad is published about ten hours before the Gameweek 1
+            deadline — committed to the public repo before the clock runs out.
           </p>
         </div>
       )}

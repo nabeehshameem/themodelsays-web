@@ -276,7 +276,7 @@
 
     <h2>Model updates</h2>
     <p>
-      For FPL 2026/27, the model re-fits after each gameweek using the latest player history. Parameters and form adjustments update automatically; the squad commitment and result for each gameweek are published to the public record before and after the deadline respectively.
+      For FPL 2026/27, the model re-fits after each gameweek using the latest player history. Parameters and form adjustments update automatically. The model's full squad and pre-deadline projections are published to a public git repo when it locks — the commit timestamp proves the squad existed before the deadline. Results are published after the gameweek finishes.
     </p>
     <p>
       The FPL projection model in use is chosen by an out-of-sample bake-off, not by preference. Before the 2026/27 season we evaluated three predictors on gameweeks 29–34 of 2025/26, with no model having seen those weeks during training. The Dixon-Coles projection won on both overall accuracy and — more importantly for squad selection — accuracy on its highest-confidence picks. A gradient-boosted machine learning model placed behind it, statistically indistinguishable from a naive recent-form baseline once evaluated honestly. If the season's graded record says a different model is better, we will change it, and the evaluation will be public.

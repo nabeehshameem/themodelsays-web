@@ -99,8 +99,8 @@ export function ProjectionsPanel({ gameweek }) {
         <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.6, margin: '12px 0 0' }}>
           The model publishes its projections when it locks its squad, about ten
           hours before each deadline — captain shortlist, the best projected
-          player in every position, and anyone it has ruled out. Its own team
-          stays sealed until the deadline passes.
+          player in every position, and anyone it has ruled out. The squad
+          itself is published at the same time.
         </p>
       </div>
     );
@@ -140,8 +140,8 @@ export function ProjectionsPanel({ gameweek }) {
             ))}
           </div>
           <p style={{ ...label, marginTop: 8, textTransform: 'none', letterSpacing: 0 }}>
-            Highest projected points, doubled if captained. The model's actual
-            armband choice is revealed with its squad after the deadline.
+            Highest projected points, doubled if captained. The model's squad
+            and captain are published alongside these projections.
           </p>
         </>
       )}

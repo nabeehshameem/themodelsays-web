@@ -3,7 +3,7 @@ import { fetchSimulation, predictWorldCupMatch, wcFantasy } from '../lib/api.js'
 import WorldCupPredictor from './WorldCupPredictor.jsx';
 import WCFantasySection from './WCFantasySection.jsx';
 import GroupStandings from './GroupStandings.jsx';
-import { FPLSeasonPanel, ReceiptFlow } from './FPLLive.jsx';
+import { FPLSeasonPanel } from './FPLLive.jsx';
 import { ProjectionsPanel } from './ProjectionsPanel.jsx';
 
 const v4 = {
@@ -802,9 +802,6 @@ function V4FPLSection() {
         <ProjectionsPanel />
         <div style={{ marginTop: 32 }}>
           <FPLSeasonPanel />
-        </div>
-        <div style={{ marginTop: 32 }}>
-          <ReceiptFlow />
         </div>
         <div style={{ marginTop: 28, display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
           <a href="https://www.tiktok.com/@themodel.says" target="_blank" rel="noopener noreferrer" style={{
