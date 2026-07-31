@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FPL 2026/27 Opening Squad Guide — TheModelSays</title>
-  <meta name="description" content="The model's framework for building a 2026/27 FPL opening squad — fixture run analysis GW1–6, player tiers, and the multi-gameweek thinking that actually wins the game. Updated as news lands." />
+  <meta name="description" content="GW1–6 fixture analysis and our squad framework for FPL 2026/27 — built on top of the model's per-player projections. Updated as transfer and injury news lands before the August deadline." />
   <link rel="canonical" href="https://www.themodelsays.com/fpl-preview" />
+  <meta name="robots" content="noindex" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5120443387712788" crossorigin="anonymous"></script>
   <style>
@@ -118,8 +119,9 @@
       color: var(--dim);
       border-left: 3px solid var(--purple);
       padding-left: 18px;
-      margin-bottom: 48px;
+      margin-bottom: 24px;
     }
+    .intro + .intro { margin-top: 0; }
     h2 {
       font-size: 22px;
       font-weight: 700;
@@ -167,6 +169,21 @@
       color: var(--electric);
     }
 
+    /* ── two-voice labels ── */
+    .voice-label {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: 'Courier New', monospace;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .voice-model { background: rgba(0,255,135,0.1); color: var(--electric); border: 1px solid rgba(0,255,135,0.2); }
+    .voice-us    { background: rgba(123,46,227,0.15); color: #a97ff5;       border: 1px solid rgba(123,46,227,0.3); }
+
     /* ── stat strip ── */
     .stat-row { display: flex; gap: 16px; flex-wrap: wrap; margin: 28px 0; }
     .stat {
@@ -187,58 +204,8 @@
     }
     .stat .desc { font-size: 11px; color: var(--very-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
 
-    /* ── fixture grid ── */
-    .fixture-grid-wrap {
-      overflow-x: auto;
-      margin: 24px 0;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-    }
-    .fixture-grid {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    .fixture-grid th {
-      background: rgba(255,255,255,0.04);
-      color: var(--very-dim);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 10px 14px;
-      text-align: left;
-      font-family: 'Courier New', monospace;
-      white-space: nowrap;
-    }
-    .fixture-grid th:first-child { min-width: 100px; }
-    .fixture-grid td {
-      padding: 11px 14px;
-      border-top: 1px solid var(--border);
-      vertical-align: middle;
-    }
-    .fixture-grid tr:hover td { background: rgba(255,255,255,0.02); }
-    .team-name {
-      font-weight: 600;
-      color: var(--text);
-      white-space: nowrap;
-    }
-    .opp {
-      display: inline-block;
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 7px;
-      border-radius: 6px;
-      white-space: nowrap;
-      letter-spacing: 0.03em;
-    }
-    /* H vs A */
-    .opp::after { content: attr(data-venue); font-weight: 400; font-size: 9px; opacity: 0.7; margin-left: 2px; }
-    /* difficulty tiers */
-    .d-easy  { background: rgba(0,255,135,0.1);  color: var(--electric); border: 1px solid rgba(0,255,135,0.25); }
-    .d-mid   { background: rgba(255,255,255,0.05); color: var(--dim);     border: 1px solid var(--border); }
-    .d-hard  { background: rgba(255,92,92,0.1);   color: #FF8080;        border: 1px solid rgba(255,92,92,0.25); }
+    /* ── fixture grid (generated) ── */
+    .fx-note { font-size: 12px; color: var(--very-dim); line-height: 1.55; margin-top: 8px; }
 
     /* ── player tier cards ── */
     .tier-grid {
@@ -406,24 +373,27 @@
   <div class="container">
 
     <p class="eyebrow">FPL 2026/27 · Opening Squad Guide</p>
-    <h1>Building for the first<br/><span>six gameweeks</span>, not one</h1>
+    <h1>The model picks for one gameweek.<br/><span>This guide looks further.</span></h1>
 
     <p class="intro">
-      The model does not optimise for a single gameweek. The opening squad is selected to maximise expected points across GW1–6, which means the captain for GW1 is less important than which teams you have covered for a full fixture run. This guide shows the model's current direction — the players and teams it is weighting most heavily — and will be updated as the transfer window closes, injuries are confirmed, and prices are set.
+      The model optimises for the gameweek in front of it: it takes that week's projections, applies the squad rules, and returns the best XI it can afford. It does not currently plan across a fixture run — a multi-gameweek planner is on the roadmap, and it will ship only if it beats the current one on an out-of-sample test, like every other change we have made.
+    </p>
+    <p class="intro" style="margin-bottom:48px">
+      That leaves a gap this guide fills. An opening squad is not really a one-week decision: you keep most of it for a month. So below, the model's projections sit alongside our own read of the first six fixtures — clearly labelled, so you always know which is which. <strong style="color:var(--text)">From the model:</strong> per-player projections, the fixture table, the locked squad once published. <strong style="color:var(--text)">From us:</strong> which projections to act on, chip timing, and what to watch before the deadline.
     </p>
 
     <div class="stat-row">
       <div class="stat">
+        <div class="val">1</div>
+        <div class="desc">Model's GW horizon</div>
+      </div>
+      <div class="stat">
         <div class="val">6</div>
-        <div class="desc">GW planning horizon</div>
+        <div class="desc">GWs this guide covers</div>
       </div>
       <div class="stat">
         <div class="val">£100m</div>
         <div class="desc">Starting budget</div>
-      </div>
-      <div class="stat">
-        <div class="val">1</div>
-        <div class="desc">Free transfer GW2+</div>
       </div>
       <div class="stat">
         <div class="val">2</div>
@@ -439,120 +409,17 @@
 
     <h2>Fixture run: GW1–6</h2>
 
+    <span class="voice-label voice-model">From the model</span>
     <p>
-      The coloring reflects the model's relative difficulty assessment — <span style="color:var(--electric);font-weight:600">green</span> opponents are likely beatable (promoted sides or weaker defences), <span style="color:#FF8080;font-weight:600">red</span> opponents are top-eight calibre. Home and away is shown as <code>H</code> / <code>A</code>.
+      The shading and ordering below come from the model's own Dixon-Coles parameters — each cell shows the expected goals the model gives that team in that fixture, from the same file the player projections use. Teams are ranked by their total across the window. Home and away is shown as <code>H</code> / <code>A</code>.
     </p>
 
-    <div class="fixture-grid-wrap">
-      <table class="fixture-grid">
-        <thead>
-          <tr>
-            <th>Team</th>
-            <th>GW1</th>
-            <th>GW2</th>
-            <th>GW3</th>
-            <th>GW4</th>
-            <th>GW5</th>
-            <th>GW6</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="team-name">Man City</td>
-            <td><span class="opp d-easy" data-venue="H">BOU</span></td>
-            <td><span class="opp d-mid" data-venue="A">CRY</span></td>
-            <td><span class="opp d-easy" data-venue="H">COV</span></td>
-            <td><span class="opp d-hard" data-venue="A">MUN</span></td>
-            <td><span class="opp d-easy" data-venue="H">SUN</span></td>
-            <td><span class="opp d-hard" data-venue="A">LIV</span></td>
-          </tr>
-          <tr>
-            <td class="team-name">Arsenal</td>
-            <td><span class="opp d-easy" data-venue="H">COV</span></td>
-            <td><span class="opp d-hard" data-venue="A">AVL</span></td>
-            <td><span class="opp d-hard" data-venue="H">CHE</span></td>
-            <td><span class="opp d-easy" data-venue="A">SUN</span></td>
-            <td><span class="opp d-mid" data-venue="A">BHA</span></td>
-            <td><span class="opp d-easy" data-venue="H">LEE</span></td>
-          </tr>
-          <tr>
-            <td class="team-name">Liverpool</td>
-            <td><span class="opp d-mid" data-venue="A">NEW</span></td>
-            <td><span class="opp d-mid" data-venue="H">NFO</span></td>
-            <td><span class="opp d-easy" data-venue="H">IPS</span></td>
-            <td><span class="opp d-mid" data-venue="A">FUL</span></td>
-            <td><span class="opp d-mid" data-venue="H">BOU</span></td>
-            <td><span class="opp d-hard" data-venue="H">MCI</span></td>
-          </tr>
-          <tr>
-            <td class="team-name">Everton</td>
-            <td><span class="opp d-mid" data-venue="H">CRY</span></td>
-            <td><span class="opp d-mid" data-venue="A">BOU</span></td>
-            <td><span class="opp d-mid" data-venue="H">MUN</span></td>
-            <td><span class="opp d-hard" data-venue="A">TOT</span></td>
-            <td><span class="opp d-easy" data-venue="H">IPS</span></td>
-            <td><span class="opp d-easy" data-venue="A">HUL</span></td>
-          </tr>
-          <tr>
-            <td class="team-name">Brighton</td>
-            <td><span class="opp d-hard" data-venue="A">AVL</span></td>
-            <td><span class="opp d-hard" data-venue="H">CHE</span></td>
-            <td><span class="opp d-easy" data-venue="H">LEE</span></td>
-            <td><span class="opp d-easy" data-venue="H">COV</span></td>
-            <td><span class="opp d-hard" data-venue="H">ARS</span></td>
-            <td><span class="opp d-easy" data-venue="A">SUN</span></td>
-          </tr>
-          <tr>
-            <td class="team-name">Newcastle</td>
-            <td><span class="opp d-hard" data-venue="H">LIV</span></td>
-            <td><span class="opp d-hard" data-venue="A">TOT</span></td>
-            <td><span class="opp d-mid" data-venue="H">BOU</span></td>
-            <td><span class="opp d-easy" data-venue="A">LEE</span></td>
-            <td><span class="opp d-easy" data-venue="H">HUL</span></td>
-            <td><span class="opp d-easy" data-venue="H">COV</span></td>
-          </tr>
-          <tr>
-            <td class="team-name">Brentford</td>
-            <td><span class="opp d-hard" data-venue="H">TOT</span></td>
-            <td><span class="opp d-easy" data-venue="A">LEE</span></td>
-            <td><span class="opp d-easy" data-venue="H">SUN</span></td>
-            <td><span class="opp d-mid" data-venue="A">BOU</span></td>
-            <td><span class="opp d-hard" data-venue="H">CHE</span></td>
-            <td><span class="opp d-hard" data-venue="A">AVL</span></td>
-          </tr>
-          <tr>
-            <td class="team-name">Aston Villa</td>
-            <td><span class="opp d-mid" data-venue="H">BHA</span></td>
-            <td><span class="opp d-hard" data-venue="H">ARS</span></td>
-            <td><span class="opp d-easy" data-venue="H">HUL</span></td>
-            <td><span class="opp d-mid" data-venue="H">NFO</span></td>
-            <td><span class="opp d-hard" data-venue="H">TOT</span></td>
-            <td><span class="opp d-mid" data-venue="H">BRE</span></td>
-          </tr>
-          <tr>
-            <td class="team-name" style="color:var(--very-dim);font-style:italic">Coventry City</td>
-            <td><span class="opp d-hard" data-venue="A">ARS</span></td>
-            <td><span class="opp d-easy" data-venue="H">HUL</span></td>
-            <td><span class="opp d-hard" data-venue="A">MCI</span></td>
-            <td><span class="opp d-mid" data-venue="H">BHA</span></td>
-            <td><span class="opp d-mid" data-venue="H">NFO</span></td>
-            <td><span class="opp d-mid" data-venue="A">NEW</span></td>
-          </tr>
-          <tr>
-            <td class="team-name" style="color:var(--very-dim);font-style:italic">Hull City</td>
-            <td><span class="opp d-hard" data-venue="H">MUN</span></td>
-            <td><span class="opp d-easy" data-venue="A">COV</span></td>
-            <td><span class="opp d-hard" data-venue="A">AVL</span></td>
-            <td><span class="opp d-hard" data-venue="A">CHE</span></td>
-            <td><span class="opp d-mid" data-venue="A">NEW</span></td>
-            <td><span class="opp d-mid" data-venue="H">EVE</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+<!-- FIXTURE_GRID:START -->
+<!-- FIXTURE_GRID:END -->
 
+    <span class="voice-label voice-us" style="margin-top:24px">Our read</span>
     <p>
-      <strong style="color:var(--text)">Man City are the standout early-season pick.</strong> Bournemouth, Crystal Palace, and Coventry in the first three gameweeks is the kind of fixture run that makes premiums justified. GW4 at Manchester United is the first real test, and GW6 at Liverpool is the only genuinely difficult fixture in the block. The model weights this run heavily: Haaland and two City defensive or midfield assets is the default opening structure.
+      <strong style="color:var(--text)">Man City are the standout early-season pick.</strong> Bournemouth, Crystal Palace, and Coventry in the first three gameweeks is the kind of fixture run that makes premiums justified. GW4 at Manchester United is the first real test, and GW6 at Liverpool is the only genuinely difficult fixture in the block. City top the model's expected-goals table over these six fixtures. Our read: Haaland plus two City assets is the default opening structure.
     </p>
     <p>
       Arsenal play Coventry at home in GW1, which flatters their opening record, then face a tricky GW2 at Villa and GW3 home to Chelsea. The run improves significantly in GW4–6. <strong style="color:var(--text)">Arsenal defenders and Gyökeres are high-confidence picks over the six-week block</strong>, even if GW2–3 are not as easy as the raw fixtures suggest.
@@ -563,10 +430,10 @@
 
     <!-- ── PREMIUMS ────────────────────────────────────────── -->
     <hr class="divider" />
-    <h2>Premiums: where to spend big</h2>
+    <h2>The model's projections: premiums</h2>
 
     <p>
-      With only one wildcard before Christmas, the premium picks in the opening squad have to earn their place over weeks, not a single blank or double. The model's premium tier starts above £9m.
+      The projection numbers are the model's output for GW1 — one gameweek only. Our commentary underneath each player is our read of that projection in context of the fixture run above.
     </p>
 
     <div class="tier-grid">
@@ -604,7 +471,7 @@
             <div class="pc-pts-label">GW1 proj.</div>
           </div>
         </div>
-        <div class="pc-note">Arsenal's most consistent points scorer. GW1 home to Coventry is a near-certain return; GW3 home to Chelsea is the differential opportunity. The model rates him as the second-most bankable premium over the six-week run.</div>
+        <div class="pc-note">Arsenal's most consistent points scorer. GW1 home to Coventry is a near-certain return; GW3 home to Chelsea is the differential opportunity. In our view, the second-most bankable premium over the six-week run after Haaland.</div>
       </div>
 
       <div class="player-card">
@@ -640,13 +507,13 @@
             <div class="pc-pts-label">GW1 proj.</div>
           </div>
         </div>
-        <div class="pc-note">Only worth the price if United's system is clicking. GW1 away at Hull is winnable but not guaranteed points. The model is lukewarm on his value relative to cheaper alternatives; avoid unless you have the funds after Haaland.</div>
+        <div class="pc-note">Only worth the price if United's system is clicking. GW1 away at Hull is winnable but not guaranteed points. We're lukewarm on his value relative to cheaper alternatives; avoid unless you have the funds after Haaland.</div>
       </div>
 
     </div>
 
     <!-- ── MID-RANGE ───────────────────────────────────────── -->
-    <h2>Mid-range picks: £6–8.5m</h2>
+    <h2>The model's projections: mid-range</h2>
 
     <p>
       This is where the opening squad is usually won or lost. Getting two or three of these right is more impactful than the premium selections, because the differential here is larger and the budget freed up by a sub-premium pick is meaningful.
@@ -687,7 +554,7 @@
             <div class="pc-pts-label">GW1 proj.</div>
           </div>
         </div>
-        <div class="pc-note">Arsenal's defensive anchor. GW1 home to Coventry is a near-certain clean sheet opportunity. One of the few premiums in the DEF position who reliably adds attacking returns (goals, set pieces). High floor in the model's early assessments.</div>
+        <div class="pc-note">Arsenal's defensive anchor. GW1 home to Coventry is a near-certain clean sheet opportunity. One of the few defenders who reliably adds attacking returns (goals, set pieces). High floor in the model's early assessments.</div>
       </div>
 
       <div class="player-card">
@@ -723,7 +590,7 @@
             <div class="pc-pts-label">GW1 proj.</div>
           </div>
         </div>
-        <div class="pc-note">GW1 is tough (Brighton at home for Villa). The model's GW1 projection underweights what he does in a full season context. Villa's fixtures improve from GW3 — Hull and Forest are the soft landings. A longer-term carry who pays off from mid-block.</div>
+        <div class="pc-note">GW1 is tough (Brighton at home for Villa). The model projects him on one gameweek only, so a player whose value builds across a run can look cheap here. We think this is one of those cases — the model's number is the model's number, and we are disagreeing with it. Villa's fixtures improve from GW3 — Hull and Forest are the soft landings.</div>
       </div>
 
       <div class="player-card">
@@ -777,7 +644,7 @@
             <div class="pc-pts-label">GW1 proj.</div>
           </div>
         </div>
-        <div class="pc-note">Brentford's focal point in attack. GW1 home to Spurs is a tough opener but Brentford's GW2–4 run (Leeds, Sunderland, Bournemouth) is very workable. The model sees him as one of the better mid-range forwards over the six-week block.</div>
+        <div class="pc-note">Brentford's focal point in attack. GW1 home to Spurs is a tough opener but Brentford's GW2–4 run (Leeds, Sunderland, Bournemouth) is very workable. In our view, one of the better mid-range forwards over the six-week block.</div>
       </div>
 
       <div class="player-card">
@@ -801,10 +668,10 @@
     </div>
 
     <!-- ── BUDGET ──────────────────────────────────────────── -->
-    <h2>Budget picks: £4–5.5m</h2>
+    <h2>The model's projections: budget</h2>
 
     <p>
-      Budget picks free up the funds for premiums. The model targets budget players who either have genuine clean sheet probability (enabling premium attackers elsewhere) or have attacking returns from good fixtures at low cost. Avoid budget enablers who will ride the bench — always ask whether the saving is worth the trade-off in projected points.
+      Budget picks free up the funds for premiums. We target budget players who either have genuine clean sheet probability or have attacking returns from good fixtures at low cost. Avoid budget enablers who will ride the bench — always ask whether the saving is worth the trade-off in projected points.
     </p>
 
     <div class="tier-grid">
@@ -860,7 +727,7 @@
             <div class="pc-pts-label">GW1 proj.</div>
           </div>
         </div>
-        <div class="pc-note">The model's standout budget midfielder. GW1 away at Hull is tough but GW3 home to Everton is a differential opportunity. Price depends entirely on whether he's fit and starting — check pre-season closely. If he's selected, this is one of the highest-value picks in the squad.</div>
+        <div class="pc-note">Our standout budget midfielder. GW1 away at Hull is tough but GW3 home to Everton is a differential opportunity. Price depends entirely on whether he's fit and starting — check pre-season closely. If he's selected, this is one of the highest-value picks in the squad.</div>
       </div>
 
       <div class="player-card">
@@ -921,10 +788,11 @@
 
     <!-- ── CAPTAIN ─────────────────────────────────────────── -->
     <hr class="divider" />
-    <h2>Captain rotation: GW1–4</h2>
+    <h2>Our captain plan: GW1–4</h2>
 
+    <span class="voice-label voice-us">Our read</span>
     <p>
-      The model does not armband-chase — the same player who was captain last week is not automatically the correct choice this week. Below is the rotation the model's optimiser weights most heavily, assuming the default opening squad.
+      The optimiser produces one squad for one gameweek, not a rotation. The plan below is ours, built from the model's projections and the fixture table above. We do not armband-chase — the same player who was captain last week is not automatically the correct choice this week.
     </p>
 
     <table class="cap-table">
@@ -954,17 +822,18 @@
         <tr>
           <td>4</td>
           <td>Saka / Gyökeres</td>
-          <td>Haaland travels to Man United; the model switches to Arsenal assets. Arsenal are away at Sunderland — not glamorous but the underlying expected goals gap is significant.</td>
+          <td>Haaland travels to Man United; we switch to Arsenal assets. Arsenal are away at Sunderland — not glamorous but the underlying expected goals gap is significant.</td>
         </tr>
       </tbody>
     </table>
 
     <!-- ── CHIPS ──────────────────────────────────────────────── -->
     <hr class="divider" />
-    <h2>Chip timing: early thoughts</h2>
+    <h2>Our chip plan</h2>
 
+    <span class="voice-label voice-us">Our read</span>
     <p>
-      Chip timing in FPL 2026/27 is most dependent on the blank and double gameweek calendar, which will not be announced until mid-season. These are the model's prior expectations for when to hold or play each chip.
+      Chip timing in FPL 2026/27 is most dependent on the blank and double gameweek calendar, which will not be announced until mid-season. These are our current expectations for when to hold or play each chip.
     </p>
 
     <div class="chip-row">
@@ -997,10 +866,11 @@
 
     <!-- ── WATCHLIST ────────────────────────────────────────── -->
     <hr class="divider" />
-    <h2>Watch list: subject to change</h2>
+    <h2>What we're watching</h2>
 
+    <span class="voice-label voice-us">Our read</span>
     <p>
-      These are the players or situations the model is monitoring before finalising the opening squad. They will be updated in this article as pre-season news comes in.
+      These are the situations we're monitoring before finalising the squad. We'll update this as pre-season news comes in.
     </p>
 
     <ul class="watch-list">
@@ -1038,6 +908,10 @@
     <div class="callout callout-amber">
       <p><strong>These projections are not final.</strong> The model's GW1 squad will be committed to the public repo at lock time (approximately ten hours before the GW1 deadline, around 17:30 UTC on 21 August). Between now and then, this article will be updated with confirmed signings, pre-season fitness news, and any price adjustments on FPL launch day. The squad that gets locked is what the model genuinely buys — no retroactive changes, no moving the goalposts. The git commit timestamp is the proof.</p>
     </div>
+
+    <p style="font-size:14px;color:var(--very-dim);margin-top:24px;line-height:1.65">
+      The model's squad for each gameweek is published before the deadline and graded afterwards. This guide is our commentary on top of it — where our read differs from the model, the record will show which was right.
+    </p>
 
     <div class="footer-note">
       <p>
