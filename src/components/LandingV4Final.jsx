@@ -120,6 +120,7 @@ function V4Nav() {
             { label: 'Results',         anchor: 'results' },
             { label: 'Score Predictor', anchor: 'predictor' },
             { label: 'FPL',             anchor: 'fpl' },
+            { label: 'FPL Guide',       href: '/fpl-preview' },
             { label: 'WC Record',       href: '/wc2026-record' },
             { label: 'How it works',    href: '/methodology' },
           ].map(({ label, anchor, href }) => (
@@ -1171,6 +1172,7 @@ const _FOOTER_LINKS = {
   'Fantasy Squad':     { scroll: 'fantasy' },
   'Match Predictions': { scroll: 'predictor' },
   'FPL 2026/27':      { scroll: 'fpl' },
+  'FPL Guide':        { href: '/fpl-preview', external: false },
   'WC 2026 Record':   { href: '/wc2026-record', external: false },
   'Track record':      { scroll: 'accuracy' },
   'How it works':      { href: '/methodology', external: false },
@@ -1197,7 +1199,7 @@ function FooterLink({ label }) {
 function V4Footer() {
   const mobile = useIsMobile();
   const cols = [
-    ['App',   ['World Cup 2026', 'Results', 'Score Predictor', 'FPL 2026/27']],
+    ['App',   ['World Cup 2026', 'Results', 'Score Predictor', 'FPL 2026/27', 'FPL Guide']],
     ['About', ['WC 2026 Record', 'How it works', 'Track record', 'Updates', 'Contact', 'Privacy Policy']],
   ];
   return (

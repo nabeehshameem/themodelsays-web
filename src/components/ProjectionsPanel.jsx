@@ -70,11 +70,24 @@ export function ProjectionsPanel({ gameweek }) {
   const [pos, setPos] = useState('MID');
 
   useEffect(() => {
-    if (!gameweek) { setState('pending'); return undefined; }
     const ac = new AbortController();
     (async () => {
       try {
-        setData(await fpl.projections(gameweek, { signal: ac.signal }));
+        // The gameweek prop is optional: the panel is dropped into the page as
+        // <ProjectionsPanel /> with no arguments, so it has to work out which
+        // gameweek is current by itself. Previously a missing prop short-
+        // circuited straight to the "not published yet" state, which meant the
+        // panel would have gone on saying that after the lock had published
+        // real projections.
+        let gw = gameweek;
+        if (!gw) {
+          const season = await fpl.season({ signal: ac.signal });
+          const graded = season?.gameweeks ?? [];
+          gw = graded.length
+            ? graded[graded.length - 1].gameweek + 1
+            : 1;
+        }
+        setData(await fpl.projections(gw, { signal: ac.signal }));
         setState('ready');
       } catch (e) {
         if (e.name === 'AbortError') return;
