@@ -185,8 +185,30 @@ export function fetchProjections(gw, { signal } = {}) {
   return request(`/api/fpl/projections/${gw}`, { signal });
 }
 
+// GET /api/fpl/tools/{gw} → {
+//   gameweek, generated_at_utc, model,
+//   optimal_xi: { formation, players: [{ player_id, name, team, position, price,
+//                                        projected_points, is_captain }],
+//                 total_projected, note },
+//   captain: [{ player_id, name, team, position, price, projected_points,
+//               opponent, venue, captain_delta }],
+//   gw_predictions: [{ home, away, kickoff_utc, p_home, p_draw, p_away,
+//                       top_scoreline, xg_home, xg_away }],
+//   fixture_ticker: { from_gw, to_gw,
+//                     teams: [{ team, cells: [{ gw, opponent, venue, xg_for }],
+//                               total_xg }] }
+// }
+//
+// Published ~24h before the deadline (at refresh time), alongside the projections.
+// 404 until then. These are interactive tools, NOT the model's actual squad —
+// the optimal_xi note makes this explicit.
+export function fetchGwTools(gw, { signal } = {}) {
+  return request(`/api/fpl/tools/${gw}`, { signal });
+}
+
 export const fpl = {
   projections: fetchProjections,
+  tools: fetchGwTools,
   modelGameweek: fetchModelGameweek,
   season: fetchModelSeason,
   receipt: fetchReceipt,
