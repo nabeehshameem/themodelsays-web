@@ -46,9 +46,9 @@ def fetch(url: str, *, origin: str | None = None, method: str = "GET") -> tuple[
         req.add_header("Origin", origin)
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
-            return resp.status, dict(resp.headers), resp.read()
+            return resp.status, {k.lower(): v for k, v in resp.headers.items()}, resp.read()
     except urllib.error.HTTPError as e:
-        return e.code, dict(e.headers), e.read()
+        return e.code, {k.lower(): v for k, v in e.headers.items()}, e.read()
 
 
 def main() -> None:
@@ -69,7 +69,7 @@ def main() -> None:
             js_url = parser.src if parser.src.startswith("http") else f"{SITE}{parser.src}"
             print(f"checking bundle MIME type: {js_url}")
             js_status, js_headers, _ = fetch(js_url)
-            ct = js_headers.get("Content-Type", "")
+            ct = js_headers.get("content-type", "")
             if js_status != 200:
                 problems.append(
                     f"JS bundle {js_url} returned HTTP {js_status} — "
@@ -90,9 +90,10 @@ def main() -> None:
         problems.append(f"Railway /api/fpl/model/season returned HTTP {api_status}")
     else:
         print(f"  [PASS] Railway API 200 OK")
+        print(f"  CORS header: {api_headers.get('access-control-allow-origin', '(not present)')}")
 
     # ── 3. CORS header allows the site origin ─────────────────────────────
-    acao = api_headers.get("Access-Control-Allow-Origin", "")
+    acao = api_headers.get("access-control-allow-origin", "")
     if acao not in (SITE, "*"):
         problems.append(
             f"CORS: Access-Control-Allow-Origin is {acao!r}, expected {SITE!r} or '*'. "
