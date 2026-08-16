@@ -66,19 +66,18 @@ function Row({ p, rank, highlight }) {
 
 export function ProjectionsPanel({ gameweek }) {
   const [data, setData] = useState(null);
-  const [state, setState] = useState('loading');
+  const [state, setState] = useState('init');
   const [pos, setPos] = useState('MID');
 
   useEffect(() => {
     const ac = new AbortController();
+    // A request that never settles used to leave this panel showing its
+    // initial state indefinitely - which is exactly how the site came to look
+    // abandoned. Time it out and show the designed error instead.
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; ac.abort(); }, 10000);
     (async () => {
       try {
-        // The gameweek prop is optional: the panel is dropped into the page as
-        // <ProjectionsPanel /> with no arguments, so it has to work out which
-        // gameweek is current by itself. Previously a missing prop short-
-        // circuited straight to the "not published yet" state, which meant the
-        // panel would have gone on saying that after the lock had published
-        // real projections.
         let gw = gameweek;
         if (!gw) {
           const season = await fpl.season({ signal: ac.signal });
@@ -90,19 +89,35 @@ export function ProjectionsPanel({ gameweek }) {
         setData(await fpl.projections(gw, { signal: ac.signal }));
         setState('ready');
       } catch (e) {
-        if (e.name === 'AbortError') return;
+        if (e.name === 'AbortError' && !timedOut) return;   // unmount: silent
         // 404 means "not published yet", which is the normal state for most of
         // the week — not something to show as a failure.
         setState(e instanceof ApiError && e.status === 404 ? 'pending' : 'error');
       }
-    })();
-    return () => ac.abort();
+    })().finally(() => clearTimeout(timer));
+    return () => { clearTimeout(timer); ac.abort(); };
   }, [gameweek]);
 
-  if (state === 'loading') {
-    return <div style={{ ...card, ...label, letterSpacing: 0 }}>
-      Loading the model's projections…
-    </div>;
+  // Initial state, and therefore what the PRERENDERER bakes into the static
+  // HTML that every visitor and crawler sees first. It must never read as
+  // "Loading…": if the client fetch fails, that string is what stays on screen
+  // permanently, which is precisely how the site came to look abandoned. A
+  // skeleton shows the shape of real content and makes no claim.
+  if (state === 'init') {
+    return (
+      <div style={card}>
+        <div style={label}>{'projections'}</div>
+        <div aria-hidden style={{ marginTop: 14 }}>
+          {[92, 78, 85, 70, 88].map((w, i) => (
+            <div key={i} style={{
+              height: 12, width: `${w}%`, marginBottom: 10, borderRadius: 4,
+              background: 'linear-gradient(90deg,rgba(255,255,255,.07),'
+                        + 'rgba(255,255,255,.03))',
+            }} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (state === 'pending') {
