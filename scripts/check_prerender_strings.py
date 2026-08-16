@@ -59,6 +59,20 @@ def main() -> None:
     html = DIST.read_text(encoding="utf-8", errors="replace")
     problems: list[str] = []
 
+    # A healthy prerender contains real prose — hero text, section headings,
+    # player names from committed predictions. Below ~8,000 chars the prerenderer
+    # either silently bailed out or returned a near-empty shell. Crawlers and
+    # AdSense reviewers would see almost nothing, which is what caused the
+    # original AdSense rejection.
+    MIN_CHARS = 8_000
+    if len(html) < MIN_CHARS:
+        problems.append(
+            f"prerendered HTML is only {len(html):,} chars (minimum {MIN_CHARS:,}). "
+            "The prerenderer may have silently failed — crawlers would see an empty page."
+        )
+    else:
+        print(f"prerendered HTML: {len(html):,} chars (above {MIN_CHARS:,} minimum)")
+
     for pattern, reason in BANNED:
         m = re.search(pattern, html, re.IGNORECASE)
         if m:
