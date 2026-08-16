@@ -23,7 +23,7 @@ import urllib.error
 from html.parser import HTMLParser
 
 SITE = "https://www.themodelsays.com"
-RAILWAY_SEASON = "https://fpl-optimiser-production.up.railway.app/api/fpl/model/season"
+RAILWAY_SEASON = "https://web-production-373bce.up.railway.app/api/fpl/model/season"
 
 
 class ScriptSrcParser(HTMLParser):
