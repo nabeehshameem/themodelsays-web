@@ -11,6 +11,7 @@
     { "source": "/terms", "destination": "/terms.html" },
     { "source": "/wc2026-record", "destination": "/wc2026-record.html" },
     { "source": "/fpl-preview", "destination": "/fpl-preview.html" },
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
