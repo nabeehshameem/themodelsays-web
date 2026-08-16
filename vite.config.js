@@ -20,6 +20,8 @@ function dropPrerenderChunk(outDir = 'dist') {
         for (const c of chunks) {
           doc = doc.replace(
             new RegExp(`\\s*<link[^>]*(?:modulepreload|preload)[^>]*${c}[^>]*>`, 'g'), '');
+          doc = doc.replace(
+            new RegExp(`\\s*<script[^>]*${c}[^>]*>\\s*</script>`, 'g'), '');
         }
         writeFileSync(html, doc);
       }
