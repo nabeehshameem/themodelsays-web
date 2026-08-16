@@ -259,8 +259,9 @@ export function FPLSeasonPanel({ gameweek }) {
         <div style={card}>
           <div style={label}>next gameweek</div>
           <p style={{ color: v4.textDim, fontSize: 14, lineHeight: 1.6, margin: '12px 0 0' }}>
-            The first squad is published about ten hours before the Gameweek 1
-            deadline — committed to the public repo before the clock runs out.
+            The squad publishes when the model locks, before each deadline —
+            committed to the public repo. The git timestamp is the proof it
+            was not changed afterwards.
           </p>
         </div>
       )}
