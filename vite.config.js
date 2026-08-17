@@ -11,22 +11,33 @@ function dropPrerenderChunk(outDir = 'dist') {
   return {
     name: 'drop-prerender-chunk',
     closeBundle() {
-      const assets = join(outDir, 'assets');
-      if (!existsSync(assets)) return;
-      const chunks = readdirSync(assets).filter(f => /^prerender-.*\.js$/.test(f));
+      // vitePrerenderPlugin may place the chunk in dist/ root OR dist/assets/
+      // depending on version — scan both so we never miss it.
+      const dirsToScan = [outDir, join(outDir, 'assets')];
+      const found = [];   // [{name, dir}]
+      for (const dir of dirsToScan) {
+        if (!existsSync(dir)) continue;
+        for (const f of readdirSync(dir)) {
+          if (/^prerender-.*\.js$/.test(f)) found.push({ name: f, dir });
+        }
+      }
+      if (!found.length) return;
+
       const html = join(outDir, 'index.html');
       if (existsSync(html)) {
         let doc = readFileSync(html, 'utf8');
-        for (const c of chunks) {
+        for (const { name: c } of found) {
+          // Escape dots so the regex matches the literal filename.
+          const escaped = c.replace(/\./g, '\\.');
           doc = doc.replace(
-            new RegExp(`\\s*<link[^>]*(?:modulepreload|preload)[^>]*${c}[^>]*>`, 'g'), '');
+            new RegExp(`\\s*<link[^>]*(?:modulepreload|preload)[^>]*${escaped}[^>]*>`, 'g'), '');
           doc = doc.replace(
-            new RegExp(`\\s*<script[^>]*${c}[^>]*>\\s*</script>`, 'g'), '');
+            new RegExp(`\\s*<script[^>]*${escaped}[^>]*>\\s*</script>`, 'g'), '');
         }
         writeFileSync(html, doc);
       }
-      for (const c of chunks) unlinkSync(join(assets, c));
-      if (chunks.length) console.log(`dropped build-only chunk(s): ${chunks.join(', ')}`);
+      for (const { name: f, dir } of found) unlinkSync(join(dir, f));
+      console.log(`dropped build-only chunk(s): ${found.map(x => x.name).join(', ')}`);
     },
   };
 }
