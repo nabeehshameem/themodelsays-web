@@ -56,6 +56,19 @@ def main() -> None:
             "Run 'npm run build' first, then re-run this check."
         )
 
+    # A prerender-*.js file surviving into dist/ means dropPrerenderChunk failed
+    # to find and delete it. If index.html still references it, Vercel's catch-all
+    # will serve text/html for it and React will never mount.
+    import glob as _glob
+    stale = _glob.glob(str(ROOT / "dist" / "prerender-*.js")) + \
+            _glob.glob(str(ROOT / "dist" / "assets" / "prerender-*.js"))
+    if stale:
+        names = ", ".join(Path(f).name for f in stale)
+        raise SystemExit(
+            f"[FAIL] prerender chunk(s) not deleted after build: {names}\n"
+            "dropPrerenderChunk failed to find them — check vite.config.js."
+        )
+
     html = DIST.read_text(encoding="utf-8", errors="replace")
     problems: list[str] = []
 
