@@ -163,10 +163,18 @@ function GwPredictions({ predictions }) {
                   color: homeWins ? v4.text : v4.textDim,
                 }}>{m.home}</span>
 
-                <span style={{
-                  fontFamily: mono, fontSize: 15, fontWeight: 700,
-                  color: v4.electric, minWidth: 44, textAlign: 'center',
-                }}>{Math.round(m.xg_home)}-{Math.round(m.xg_away)}</span>
+                {/* xG is continuous so it differentiates every fixture; rounding to an integer
+                    "scoreline" produces contradictions (e.g. ARS 1.46 rounds to 1-1 despite
+                    a 56% win probability and top_scoreline of 1-0 in the committed JSON). */}
+                <span style={{ minWidth: 96, textAlign: 'center' }}>
+                  <span style={{
+                    display: 'block', fontFamily: mono, fontSize: 15,
+                    fontWeight: 700, color: v4.electric,
+                  }}>{m.xg_home.toFixed(1)} – {m.xg_away.toFixed(1)}</span>
+                  <span style={{
+                    display: 'block', ...lbl, letterSpacing: 0, marginTop: 2,
+                  }}>xG · likeliest {m.top_scoreline}</span>
+                </span>
 
                 <span style={{
                   flex: 1, fontSize: 14,
@@ -186,7 +194,7 @@ function GwPredictions({ predictions }) {
         </div>
       ))}
       <p style={{ ...lbl, marginTop: 14, textTransform: 'none', letterSpacing: 0, lineHeight: 1.5 }}>
-        Most likely scoreline from the Dixon-Coles model. Win% shown as Home · Draw · Away.
+        xG from the Dixon-Coles model. Likeliest = modal exact scoreline. Win% as Home · Draw · Away.
         Bold team = model favourite.
       </p>
     </div>

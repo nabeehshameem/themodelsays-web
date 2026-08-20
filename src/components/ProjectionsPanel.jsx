@@ -185,6 +185,12 @@ export function ProjectionsPanel({ gameweek }) {
         ))}
       </div>
 
+      {pos === 'GK' && (
+        <p style={{ ...label, marginTop: 6, marginBottom: 4, textTransform: 'none', letterSpacing: 0 }}>
+          One keeper per club — ranked by projected points within that constraint.
+        </p>
+      )}
+
       {list.length === 0 ? (
         <p style={{ ...label, marginTop: 10, textTransform: 'none', letterSpacing: 0 }}>
           No {pos} projections for this gameweek.
