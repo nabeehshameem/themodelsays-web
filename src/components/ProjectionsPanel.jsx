@@ -195,15 +195,23 @@ export function ProjectionsPanel({ gameweek }) {
 
       {data.excluded?.length > 0 && (
         <>
-          <div style={{ ...label, marginTop: 20, color: v4.amber }}>
-            ruled out ({data.excluded.length})
+          <div style={{ ...label, marginTop: 22, color: v4.amber }}>
+            ruled out · {data.excluded.length} players
           </div>
-          <p style={{ color: v4.textDim, fontSize: 13, lineHeight: 1.55, marginTop: 6 }}>
-            {data.excluded.map(p => `${p.name} (${p.team})`).join(' · ')}
-          </p>
-          <p style={{ ...label, marginTop: 6, textTransform: 'none', letterSpacing: 0 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 8 }}>
+            {data.excluded.map(p => (
+              <span key={p.player_id} style={{
+                fontFamily: mono, fontSize: 11, color: v4.textDim,
+                background: 'rgba(255,255,255,0.05)',
+                border: `1px solid ${v4.border}`,
+                borderRadius: 6, padding: '3px 9px',
+              }}>
+                {p.name} <span style={{ color: v4.textVeryDim }}>{p.team}</span>
+              </span>
+            ))}
+          </div>
+          <p style={{ ...label, marginTop: 8, textTransform: 'none', letterSpacing: 0, lineHeight: 1.5 }}>
             Confirmed non-starters and flagged players, excluded from selection.
-            The list is public in the repo — disagree with it freely.
           </p>
         </>
       )}

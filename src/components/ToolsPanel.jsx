@@ -26,7 +26,7 @@ const TABS = [
   { id: 'xi',       label: 'Optimal XI'  },
   { id: 'captain',  label: 'Captain'     },
   { id: 'fixtures', label: 'GW Fixtures' },
-  { id: 'ticker',   label: 'Ticker'      },
+  { id: 'ticker',   label: 'Schedule'    },
 ];
 
 const POS_ORDER = { GK: 0, DEF: 1, MID: 2, FWD: 3 };
@@ -118,6 +118,11 @@ function CaptainList({ captain }) {
 
 // ── GW Predictions ─────────────────────────────────────────────────
 
+function fmtKickoff(utc) {
+  const d = new Date(utc);
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
 function GwPredictions({ predictions }) {
   if (!predictions.length) {
     return (
@@ -126,67 +131,82 @@ function GwPredictions({ predictions }) {
       </p>
     );
   }
+
+  // Group by date
+  const byDate = [];
+  const seen = {};
+  [...predictions]
+    .sort((a, b) => new Date(a.kickoff_utc) - new Date(b.kickoff_utc))
+    .forEach(m => {
+      const d = fmtKickoff(m.kickoff_utc);
+      if (!seen[d]) { seen[d] = true; byDate.push({ date: d, matches: [] }); }
+      byDate[byDate.length - 1].matches.push(m);
+    });
+
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <div style={{ minWidth: 520 }}>
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr 80px 3fr 72px',
-          gap: 8, padding: '4px 0 8px', borderBottom: `1px solid ${v4.border}`,
-        }}>
-          {['HOME', 'AWAY', 'SCORE', 'H · D · A', 'xG'].map(h => (
-            <span key={h} style={lbl}>{h}</span>
-          ))}
-        </div>
-        {predictions.map((m, i) => {
-          const total = m.p_home + m.p_draw + m.p_away || 100;
-          return (
-            <div key={i} style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr 80px 3fr 72px',
-              gap: 8, padding: '9px 0', alignItems: 'center',
-              borderBottom: `1px solid ${v4.border}`,
-            }}>
-              <span style={{ color: v4.text, fontSize: 13, fontWeight: 600 }}>{m.home}</span>
-              <span style={{ color: v4.textDim, fontSize: 13 }}>{m.away}</span>
-              <span style={{ color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 700 }}>
-                {m.top_scoreline}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ display: 'flex', height: 10, borderRadius: 3, overflow: 'hidden', flex: 1, minWidth: 60 }}>
-                  <div style={{ width: `${m.p_home / total * 100}%`, background: 'rgba(0,255,135,0.55)' }} />
-                  <div style={{ width: `${m.p_draw / total * 100}%`, background: 'rgba(255,255,255,0.18)' }} />
-                  <div style={{ width: `${m.p_away / total * 100}%`, background: 'rgba(123,46,227,0.55)' }} />
-                </div>
-                <span style={{ ...lbl, letterSpacing: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  {m.p_home.toFixed(0)}·{m.p_draw.toFixed(0)}·{m.p_away.toFixed(0)}
+    <div>
+      {byDate.map(({ date, matches }) => (
+        <div key={date}>
+          <div style={{ ...lbl, color: v4.textVeryDim, marginTop: 14, marginBottom: 2 }}>{date}</div>
+          {matches.map((m, i) => {
+            // Which side is the model backing?
+            const homeWins = m.p_home > m.p_away && m.p_home > m.p_draw;
+            const awayWins = m.p_away > m.p_home && m.p_away > m.p_draw;
+            return (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '10px 0', borderBottom: `1px solid ${v4.border}`,
+              }}>
+                <span style={{
+                  flex: 1, textAlign: 'right', fontSize: 14,
+                  fontWeight: homeWins ? 700 : 400,
+                  color: homeWins ? v4.text : v4.textDim,
+                }}>{m.home}</span>
+
+                <span style={{
+                  fontFamily: mono, fontSize: 15, fontWeight: 700,
+                  color: v4.electric, minWidth: 44, textAlign: 'center',
+                }}>{m.top_scoreline}</span>
+
+                <span style={{
+                  flex: 1, fontSize: 14,
+                  fontWeight: awayWins ? 700 : 400,
+                  color: awayWins ? v4.text : v4.textDim,
+                }}>{m.away}</span>
+
+                <span style={{
+                  ...lbl, letterSpacing: 0, minWidth: 88, textAlign: 'right',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {m.p_home.toFixed(0)}% · {m.p_draw.toFixed(0)}% · {m.p_away.toFixed(0)}%
                 </span>
               </div>
-              <span style={{ ...lbl, letterSpacing: 0 }}>
-                {m.xg_home?.toFixed(2)} : {m.xg_away?.toFixed(2)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      <p style={{ ...lbl, marginTop: 12, textTransform: 'none', letterSpacing: 0, lineHeight: 1.5 }}>
-        Green = home · grey = draw · purple = away. Top scoreline from the Dixon-Coles matrix.
+            );
+          })}
+        </div>
+      ))}
+      <p style={{ ...lbl, marginTop: 14, textTransform: 'none', letterSpacing: 0, lineHeight: 1.5 }}>
+        Most likely scoreline from the Dixon-Coles model. Win% shown as Home · Draw · Away.
+        Bold team = model favourite.
       </p>
     </div>
   );
 }
 
-// ── Fixture Ticker ─────────────────────────────────────────────────
+// ── Attack Schedule ─────────────────────────────────────────────────
+// Ranked by cumulative attacking xG from the DC model. Each team's
+// upcoming fixtures are shown as inline pills, coloured by per-fixture
+// xG — green = favourable attacking match, red = tough.
 
-function cellStyle(xg, lo, hi) {
+function pillColor(xg, lo, hi) {
   const t = hi > lo ? (xg - lo) / (hi - lo) : 0.5;
-  if (t >= 0.65) return { bg: 'rgba(0,255,135,0.17)', text: '#00FF87' };
-  if (t >= 0.35) return { bg: 'rgba(255,176,32,0.15)', text: '#FFB020' };
-  return { bg: 'rgba(255,96,96,0.15)', text: '#ff8080' };
+  if (t >= 0.65) return { bg: 'rgba(0,255,135,0.15)', text: '#00FF87', border: 'rgba(0,255,135,0.3)' };
+  if (t >= 0.35) return { bg: 'rgba(255,176,32,0.12)', text: '#FFB020', border: 'rgba(255,176,32,0.28)' };
+  return { bg: 'rgba(255,100,100,0.12)', text: '#ff8080', border: 'rgba(255,100,100,0.28)' };
 }
 
 function FixtureTicker({ ticker }) {
   const { teams, from_gw, to_gw } = ticker;
-  const gws = [];
-  for (let g = from_gw; g <= to_gw; g++) gws.push(g);
 
   let lo = Infinity, hi = -Infinity;
   teams.forEach(t => t.cells.forEach(c => {
@@ -194,65 +214,60 @@ function FixtureTicker({ ticker }) {
     if (c.xg_for > hi) hi = c.xg_for;
   }));
 
-  const colTemplate = `80px 56px ${gws.map(() => '72px').join(' ')}`;
+  const sorted = [...teams].sort((a, b) => b.total_xg - a.total_xg);
+  const maxXg = sorted[0]?.total_xg || 1;
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <div style={{ minWidth: 140 + gws.length * 76 }}>
-        <div style={{
-          display: 'grid', gridTemplateColumns: colTemplate,
-          gap: 4, padding: '4px 0 8px', borderBottom: `1px solid ${v4.border}`,
-        }}>
-          <span style={lbl}>Team</span>
-          <span style={{ ...lbl, textAlign: 'right' }}>xG</span>
-          {gws.map(g => (
-            <span key={g} style={{ ...lbl, textAlign: 'center' }}>GW{g}</span>
-          ))}
-        </div>
-
-        {teams.map((t, ri) => {
-          const byGw = Object.fromEntries(t.cells.map(c => [c.gw, c]));
-          return (
-            <div key={t.team} style={{
-              display: 'grid', gridTemplateColumns: colTemplate,
-              gap: 4, padding: '5px 0',
-              borderBottom: `1px solid ${v4.border}`,
-              background: ri % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.013)',
-            }}>
-              <span style={{ color: v4.text, fontSize: 13, fontWeight: 600, alignSelf: 'center' }}>
-                {t.team}
-              </span>
-              <span style={{
-                fontFamily: mono, fontSize: 12, fontWeight: 700,
-                color: v4.electric, textAlign: 'right', alignSelf: 'center',
-              }}>
-                {t.total_xg.toFixed(1)}
-              </span>
-              {gws.map(g => {
-                const c = byGw[g];
-                if (!c) {
-                  return (
-                    <div key={g} style={{ textAlign: 'center', color: v4.textVeryDim, fontSize: 10, alignSelf: 'center' }}>—</div>
-                  );
-                }
-                const { bg, text } = cellStyle(c.xg_for, lo, hi);
-                return (
-                  <div key={g} style={{ background: bg, borderRadius: 5, padding: '4px 4px', textAlign: 'center' }}>
-                    <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: text, lineHeight: 1.3 }}>
-                      {c.opponent} {c.venue}
-                    </div>
-                    <div style={{ fontFamily: mono, fontSize: 9, color: text, opacity: 0.75 }}>
-                      {c.xg_for.toFixed(2)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
+    <div>
+      <div style={{ ...lbl, color: v4.textVeryDim, marginBottom: 14 }}>
+        attack schedule · GW{from_gw}–{to_gw} · ranked by total expected goals scored
       </div>
-      <p style={{ ...lbl, marginTop: 12, textTransform: 'none', letterSpacing: 0, lineHeight: 1.5 }}>
-        Green = easy (high expected goals) · red = hard. Ordered by cumulative xG over GW{from_gw}–{to_gw}.
+      {sorted.map((t, ri) => (
+        <div key={t.team} style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '9px 0', borderBottom: `1px solid ${v4.border}`,
+        }}>
+          <span style={{ ...lbl, minWidth: 20, textAlign: 'right' }}>{ri + 1}</span>
+          <span style={{ color: v4.text, fontSize: 13, fontWeight: 700, minWidth: 38 }}>
+            {t.team}
+          </span>
+
+          {/* xG bar */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 2, maxWidth: 120 }}>
+              <div style={{
+                height: '100%', borderRadius: 2,
+                width: `${(t.total_xg / maxXg) * 100}%`,
+                background: 'rgba(0,255,135,0.5)',
+              }} />
+            </div>
+            <span style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: v4.electric, minWidth: 30 }}>
+              {t.total_xg.toFixed(1)}
+            </span>
+          </div>
+
+          {/* Fixture pills */}
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {t.cells.map(c => {
+              const { bg, text, border } = pillColor(c.xg_for, lo, hi);
+              return (
+                <span key={c.gw} style={{
+                  fontFamily: mono, fontSize: 10, fontWeight: 700,
+                  color: text, background: bg,
+                  border: `1px solid ${border}`,
+                  borderRadius: 5, padding: '2px 6px',
+                  letterSpacing: '0.03em', whiteSpace: 'nowrap',
+                }}>
+                  {c.opponent} {c.venue}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      <p style={{ ...lbl, marginTop: 14, textTransform: 'none', letterSpacing: 0, lineHeight: 1.5 }}>
+        Total xG = cumulative expected goals scored over GW{from_gw}–{to_gw} per the Dixon-Coles model.
+        Green pill = good attacking fixture · red = hard.
       </p>
     </div>
   );
