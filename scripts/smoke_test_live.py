@@ -5,8 +5,10 @@ smoke_test_live.py
 Headless smoke test for the deployed site. Verifies:
   1. The JS bundle is served as application/javascript (not text/html, which
      indicates a missing hashed asset being served by the SPA catch-all).
-  2. The Railway API is reachable and /api/fpl/model/season returns 200.
-  3. The ALLOWED_ORIGINS CORS header allows the site origin.
+  2. If the main bundle references a prerender-*.js chunk (static import), that
+     chunk exports real content — not a stub — so React is not silently broken.
+  3. The Railway API is reachable and /api/fpl/model/season returns 200.
+  4. The ALLOWED_ORIGINS CORS header allows the site origin.
 
 Run after every production deploy, or in CI:
   python scripts/smoke_test_live.py
@@ -68,7 +70,7 @@ def main() -> None:
         else:
             js_url = parser.src if parser.src.startswith("http") else f"{SITE}{parser.src}"
             print(f"checking bundle MIME type: {js_url}")
-            js_status, js_headers, _ = fetch(js_url)
+            js_status, js_headers, js_body = fetch(js_url)
             ct = js_headers.get("content-type", "")
             if js_status != 200:
                 problems.append(
@@ -83,7 +85,45 @@ def main() -> None:
             else:
                 print(f"  [PASS] bundle MIME type OK ({ct.split(';')[0].strip()})")
 
-    # ── 2. Railway /api/fpl/model/season reachable ─────────────────────────
+            # ── 2. Prerender chunk integrity check ─────────────────────────
+            # vite-prerender-plugin causes Vite to put React into the prerender
+            # chunk as a shared module. Stubbing or deleting that chunk removes
+            # React → the whole app silently breaks. Detect this early.
+            if js_status == 200:
+                js_text = js_body.decode("utf-8", errors="replace")
+                prerender_refs = re.findall(r'["\'](\./prerender-[A-Za-z0-9_-]+\.js)["\']', js_text)
+                if prerender_refs:
+                    print(f"  bundle references prerender chunk(s): {prerender_refs}")
+                    for ref in prerender_refs:
+                        chunk_url = re.sub(r'/assets/[^/]+$', ref[1:], js_url)
+                        # ref is like "./prerender-Abc123.js"; build absolute URL
+                        base = js_url.rsplit("/", 1)[0]
+                        chunk_url = f"{base}/{ref.lstrip('./')}"
+                        c_status, c_headers, c_body = fetch(chunk_url)
+                        c_text = c_body.decode("utf-8", errors="replace").strip()
+                        if c_status != 200:
+                            problems.append(
+                                f"Prerender chunk {chunk_url} returned HTTP {c_status} — "
+                                "catch-all is serving HTML → MIME error in browser"
+                            )
+                        elif c_text == "export const prerender=()=>{};":
+                            problems.append(
+                                f"Prerender chunk {ref} is a no-op stub but the main bundle "
+                                "statically imports React from it — React will be undefined "
+                                "and the app will fail to mount. Remove vite-prerender-plugin "
+                                "or use manualChunks to keep React out of the prerender chunk."
+                            )
+                        elif len(c_text) < 500:
+                            problems.append(
+                                f"Prerender chunk {ref} looks suspiciously small ({len(c_text)} bytes) — "
+                                "expected full React code if the main bundle imports from it"
+                            )
+                        else:
+                            print(f"  [PASS] prerender chunk OK ({len(c_text)} bytes)")
+                else:
+                    print(f"  [PASS] no prerender chunk references in main bundle")
+
+    # ── 3. Railway /api/fpl/model/season reachable ─────────────────────────
     print(f"checking Railway endpoint: {RAILWAY_SEASON}")
     api_status, api_headers, api_body = fetch(RAILWAY_SEASON, origin=SITE)
     if api_status != 200:
@@ -92,7 +132,7 @@ def main() -> None:
         print(f"  [PASS] Railway API 200 OK")
         print(f"  CORS header: {api_headers.get('access-control-allow-origin', '(not present)')}")
 
-    # ── 3. CORS header allows the site origin ─────────────────────────────
+    # ── 4. CORS header allows the site origin ─────────────────────────────
     acao = api_headers.get("access-control-allow-origin", "")
     if acao not in (SITE, "*"):
         problems.append(
