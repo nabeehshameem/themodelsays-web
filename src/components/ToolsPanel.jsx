@@ -166,7 +166,7 @@ function GwPredictions({ predictions }) {
                 <span style={{
                   fontFamily: mono, fontSize: 15, fontWeight: 700,
                   color: v4.electric, minWidth: 44, textAlign: 'center',
-                }}>{m.top_scoreline}</span>
+                }}>{Math.round(m.xg_home)}-{Math.round(m.xg_away)}</span>
 
                 <span style={{
                   flex: 1, fontSize: 14,
