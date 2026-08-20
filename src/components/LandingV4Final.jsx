@@ -322,10 +322,149 @@ function V4Hero() {
               Read the guide
             </a>
           </div>
+
+          {/* Mini league hook — small but visible in the hero */}
+          <div style={{
+            marginTop: 28, display: 'inline-flex', alignItems: 'center', gap: 10,
+            padding: '9px 16px', borderRadius: 10,
+            background: 'rgba(0,255,135,0.06)', border: `1px solid rgba(0,255,135,0.2)`,
+          }}>
+            <span style={{ color: v4.textDim, fontFamily: mono, fontSize: 12 }}>Mini league code:</span>
+            <span style={{ color: v4.electric, fontFamily: mono, fontSize: 14, fontWeight: 800, letterSpacing: '0.1em' }}>tj22cy</span>
+            <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11 }}>↓ full details below</span>
+          </div>
         </div>
 
         {/* right — FPL captain widget */}
         <WidgetFPLCaptain />
+      </div>
+    </div>
+  );
+}
+
+// ── Mini League ───────────────────────────────────────────────────
+function V4MiniLeague() {
+  const mobile = useIsMobile();
+  const [copied, setCopied] = React.useState(false);
+
+  function copyCode() {
+    navigator.clipboard?.writeText('tj22cy').then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div style={{
+      position: 'relative', overflow: 'hidden',
+      background: 'linear-gradient(135deg, rgba(0,255,135,0.08) 0%, rgba(13,1,24,0) 60%)',
+      borderTop: `1px solid rgba(0,255,135,0.25)`,
+      borderBottom: `1px solid rgba(0,255,135,0.12)`,
+      padding: mobile ? '52px 20px' : '72px 56px',
+    }}>
+      {/* Background glow */}
+      <div style={{ position: 'absolute', top: -80, left: -80, width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,255,135,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+      <div style={{ maxWidth: 1320, margin: '0 auto', position: 'relative' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: mobile ? '1fr' : '1fr 1fr',
+          gap: mobile ? 36 : 64,
+          alignItems: 'center',
+        }}>
+          {/* Left: copy */}
+          <div>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: 'rgba(0,255,135,0.1)', border: `1px solid rgba(0,255,135,0.3)`,
+              borderRadius: 999, padding: '4px 14px', marginBottom: 20,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: v4.electric, animation: 'tmsPulse 2s ease infinite' }} />
+              <span style={{ color: v4.electric, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>FPL Mini League 2026/27</span>
+            </div>
+
+            <h2 style={{
+              color: v4.text, fontFamily: display,
+              fontSize: mobile ? 36 : 54,
+              fontWeight: 700, letterSpacing: '-0.035em',
+              lineHeight: 1.05, margin: '0 0 16px',
+            }}>
+              Beat the Model.<br />
+              <span style={{ color: v4.electric }}>One season.</span>
+            </h2>
+
+            <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.6, maxWidth: 480, margin: '0 0 32px' }}>
+              The model's squad is committed before every deadline. Track it head-to-head against yours — and everyone else who joins — over the full 38 gameweeks.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                Join code
+              </div>
+
+              {/* Big code display */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 0,
+                background: 'rgba(0,0,0,0.5)',
+                border: `2px solid rgba(0,255,135,0.4)`,
+                borderRadius: 14, overflow: 'hidden',
+                maxWidth: 380,
+              }}>
+                <span style={{
+                  flex: 1,
+                  fontFamily: mono, fontSize: mobile ? 40 : 52, fontWeight: 800,
+                  color: v4.electric, letterSpacing: '0.15em',
+                  padding: mobile ? '16px 20px' : '18px 28px',
+                  textTransform: 'uppercase',
+                }}>tj22cy</span>
+                <button
+                  onClick={copyCode}
+                  style={{
+                    background: copied ? 'rgba(0,255,135,0.2)' : 'rgba(0,255,135,0.08)',
+                    border: 'none', borderLeft: `1px solid rgba(0,255,135,0.25)`,
+                    color: copied ? v4.electric : v4.textDim,
+                    fontFamily: mono, fontSize: 11, fontWeight: 700,
+                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                    padding: '0 20px', cursor: 'pointer',
+                    alignSelf: 'stretch', transition: 'all 160ms ease',
+                    whiteSpace: 'nowrap',
+                  }}>
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+
+              <p style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11, margin: 0, lineHeight: 1.6 }}>
+                FPL app → Leagues → Join a league → enter code above
+              </p>
+            </div>
+          </div>
+
+          {/* Right: how it works */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {[
+              { n: '01', title: 'Model locks first', body: 'Squad published before every deadline, git-timestamped. The model can\'t change its picks after seeing your team.' },
+              { n: '02', title: 'Same rules as you', body: '£100m budget, 3 per club, real FPL transfers and hits. No oracle. No hindsight. Just the model playing the game.' },
+              { n: '03', title: 'Full season on the record', body: '38 gameweeks, every score graded in public on this site. The model\'s results are live the moment FPL publishes them.' },
+            ].map(({ n, title, body }) => (
+              <div key={n} style={{
+                display: 'flex', gap: 16,
+                padding: '18px 20px',
+                background: 'rgba(255,255,255,0.03)',
+                border: `1px solid ${v4.border}`,
+                borderRadius: 12,
+              }}>
+                <span style={{
+                  fontFamily: mono, fontSize: 12, fontWeight: 800,
+                  color: v4.electric, minWidth: 24, paddingTop: 2,
+                }}>{n}</span>
+                <div>
+                  <div style={{ color: v4.text, fontFamily: display, fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{title}</div>
+                  <div style={{ color: v4.textDim, fontSize: 13, lineHeight: 1.55 }}>{body}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -686,6 +825,7 @@ function LandingV4Final() {
     <div style={{ background: v4.bg, color: v4.text, fontFamily: display, width: '100%', minHeight: '100%' }}>
       <V4Nav />
       <div id="home"><V4Hero /></div>
+      <V4MiniLeague />
       <div id="fpl"><V4FPLSection /></div>
       <V4UCLStub />
       <V4WCArchive />
