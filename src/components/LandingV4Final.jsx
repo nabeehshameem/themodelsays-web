@@ -1,6 +1,6 @@
 import React from 'react';
-import { fpl } from '../lib/api.js';
-import { FPLSeasonPanel } from './FPLLive.jsx';
+import { fpl, subscribeEmail } from '../lib/api.js';
+import { FPLSeasonPanel, ReceiptFlow } from './FPLLive.jsx';
 import { ProjectionsPanel } from './ProjectionsPanel.jsx';
 import { ToolsPanel } from './ToolsPanel.jsx';
 
@@ -131,16 +131,23 @@ function V4Nav() {
 }
 
 // ── Hero right panel: live captain preview from GW tools ─────────────
-function WidgetFPLCaptain() {
+function WidgetFPLCaptain({ onDeadline }) {
   const [captains, setCaptains] = React.useState(null);
   const [gameweek, setGameweek] = React.useState(null);
   const [err, setErr] = React.useState(false);
 
   React.useEffect(() => {
-    fpl.tools(1)
+    fpl.season()
+      .then(s => {
+        const nextGw = s.gameweeks?.length
+          ? s.gameweeks[s.gameweeks.length - 1].gameweek + 1
+          : 1;
+        return fpl.tools(nextGw);
+      })
       .then(data => {
         setCaptains((data.captain || []).slice(0, 5));
         setGameweek(data.gameweek);
+        if (onDeadline && data.deadline_utc) onDeadline(data.gameweek, data.deadline_utc);
       })
       .catch(() => setErr(true));
   }, []);
@@ -234,12 +241,24 @@ const FPL_SAYINGS = [
 
 function V4Hero() {
   const [i, setI] = React.useState(0);
+  const [badge, setBadge] = React.useState('FPL 2026/27 · SEASON LIVE');
   const mobile = useIsMobile();
 
   React.useEffect(() => {
     const t = setInterval(() => setI(p => (p + 1) % FPL_SAYINGS.length), 2800);
     return () => clearInterval(t);
   }, []);
+
+  function handleDeadline(gw, deadlineUtc) {
+    const d = new Date(deadlineUtc);
+    const now = new Date();
+    if (d > now) {
+      const opts = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: false };
+      setBadge(`FPL 2026/27 · GW${gw} DEADLINE ${d.toLocaleDateString('en-GB', opts).toUpperCase()} UTC`);
+    } else {
+      setBadge(`FPL 2026/27 · GW${gw} LIVE`);
+    }
+  }
 
   return (
     <div style={{ position: 'relative', overflow: 'hidden' }}>
@@ -265,7 +284,7 @@ function V4Hero() {
             fontFamily: mono, fontWeight: 600, letterSpacing: '0.04em',
           }}>
             <span style={{ width: 7, height: 7, borderRadius: 999, background: v4.electric, flexShrink: 0, animation: 'tmsPulse 2s ease infinite' }} />
-            FPL 2026/27 · GW1 DEADLINE 21 AUG 17:30 UTC
+            {badge}
           </div>
 
           <h1 style={{
@@ -336,7 +355,7 @@ function V4Hero() {
         </div>
 
         {/* right — FPL captain widget */}
-        <WidgetFPLCaptain />
+        <WidgetFPLCaptain onDeadline={handleDeadline} />
       </div>
     </div>
   );
@@ -470,6 +489,88 @@ function V4MiniLeague() {
   );
 }
 
+// ── Email capture ─────────────────────────────────────────────────
+function V4EmailCapture() {
+  const mobile = useIsMobile();
+  const [email, setEmail] = React.useState('');
+  const [state, setState] = React.useState('idle'); // idle | busy | done | error
+
+  async function submit(e) {
+    e.preventDefault();
+    if (!email.includes('@')) return;
+    setState('busy');
+    try {
+      await subscribeEmail(email);
+      setState('done');
+    } catch {
+      setState('error');
+    }
+  }
+
+  return (
+    <div style={{
+      borderTop: `1px solid ${v4.border}`,
+      borderBottom: `1px solid ${v4.border}`,
+      background: v4.bg,
+      padding: mobile ? '36px 20px' : '44px 56px',
+    }}>
+      <div style={{ maxWidth: 1320, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ color: v4.text, fontFamily: display, fontSize: mobile ? 18 : 22, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 4 }}>
+            Get notified when the squad locks.
+          </div>
+          <div style={{ color: v4.textDim, fontFamily: mono, fontSize: 12 }}>
+            One email per gameweek, ~10 hours before each deadline. No spam.
+          </div>
+        </div>
+
+        {state === 'done' ? (
+          <div style={{
+            padding: '12px 24px', borderRadius: 10,
+            background: 'rgba(0,255,135,0.1)', border: `1px solid rgba(0,255,135,0.3)`,
+            color: v4.electric, fontFamily: mono, fontSize: 13, fontWeight: 700,
+          }}>
+            ✓ You're on the list
+          </div>
+        ) : (
+          <form onSubmit={submit} style={{ display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap' }}>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: `1px solid ${state === 'error' ? 'rgba(255,176,32,0.5)' : v4.border}`,
+                borderRadius: 10, padding: '11px 16px',
+                color: v4.text, fontFamily: mono, fontSize: 13,
+                outline: 'none', width: 220,
+              }}
+            />
+            <button type="submit" disabled={state === 'busy'} style={{
+              padding: '11px 24px', borderRadius: 10,
+              background: state === 'busy' ? 'rgba(0,255,135,0.4)' : v4.electric,
+              color: v4.bg, border: 'none',
+              fontFamily: display, fontWeight: 700, fontSize: 14,
+              cursor: state === 'busy' ? 'default' : 'pointer',
+              whiteSpace: 'nowrap',
+            }}>
+              {state === 'busy' ? 'Subscribing…' : 'Notify me'}
+            </button>
+          </form>
+        )}
+
+        {state === 'error' && (
+          <div style={{ color: v4.amber, fontFamily: mono, fontSize: 12, width: '100%' }}>
+            Something went wrong — try again in a moment.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── FPL Section ───────────────────────────────────────────────────
 function V4FPLSection() {
   const mobile = useIsMobile();
@@ -494,6 +595,9 @@ function V4FPLSection() {
         </div>
         <div style={{ marginTop: 20 }}>
           <FPLSeasonPanel />
+        </div>
+        <div style={{ marginTop: 20 }}>
+          <ReceiptFlow />
         </div>
         <div style={{ marginTop: 28, display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
           <a href="https://www.tiktok.com/@themodel.says" target="_blank" rel="noopener noreferrer" style={{
@@ -826,6 +930,7 @@ function LandingV4Final() {
       <V4Nav />
       <div id="home"><V4Hero /></div>
       <V4MiniLeague />
+      <V4EmailCapture />
       <div id="fpl"><V4FPLSection /></div>
       <V4UCLStub />
       <V4WCArchive />
