@@ -2,48 +2,44 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { vitePrerenderPlugin } from 'vite-prerender-plugin';
 import { resolve, join } from 'node:path';
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 
-// The prerender entry is a BUILD-TIME module: Vite emits it as a chunk and
-// preloads it from index.html, so every visitor would download ~170 kB that
-// is never executed. Strip the preload and delete the chunk after the build.
+// The prerender entry is a BUILD-TIME module. Vite compiles it into
+// prerender-xxx.js and the main bundle may reference it via a dynamic import.
+// We cannot delete the file (the import would resolve to Vercel's catch-all,
+// which returns text/html → MIME error → React never mounts). Instead we
+// replace the chunk with a tiny no-op stub so the import resolves harmlessly
+// and strip any unnecessary preload tags from index.html.
 function dropPrerenderChunk(outDir = 'dist') {
   return {
     name: 'drop-prerender-chunk',
     closeBundle() {
+      // 1. Strip <link modulepreload> and <script> tags that point at the
+      //    prerender chunk — they cause unnecessary downloads.
       const htmlPath = join(outDir, 'index.html');
-      if (!existsSync(htmlPath)) return;
-
-      let doc = readFileSync(htmlPath, 'utf8');
-
-      // Extract the paths of all prerender chunk references BEFORE stripping,
-      // so we know exactly which files to delete regardless of where Vite put them.
-      const refPaths = [];
-      const refRe = /(?:src|href)=["']([^"']*prerender-[^"']+\.js)["']/g;
-      let m;
-      while ((m = refRe.exec(doc)) !== null) refPaths.push(m[1]);
-
-      if (!refPaths.length) {
-        console.log('drop-prerender-chunk: no prerender references found — nothing to do');
-        return;
+      if (existsSync(htmlPath)) {
+        let doc = readFileSync(htmlPath, 'utf8');
+        doc = doc.replace(/<link\b[^>]*\bprerender-[^>]*>/g, '');
+        doc = doc.replace(/<script\b[^>]*\bprerender-[^>]*>[\s\S]*?<\/script>/g, '');
+        writeFileSync(htmlPath, doc);
       }
 
-      // Strip every <link> and <script> that references a prerender chunk.
-      // The broad class selector (not the filename) avoids regex-escaping issues
-      // and catches any tag format Vite might generate.
-      doc = doc.replace(/<link\b[^>]*\bprerender-[^>]*>/g, '');
-      doc = doc.replace(/<script\b[^>]*\bprerender-[^>]*>[\s\S]*?<\/script>/g, '');
-      writeFileSync(htmlPath, doc);
-
-      // Delete each referenced file from disk.
-      const deleted = [];
-      for (const ref of refPaths) {
-        // ref is an absolute-ish URL path like "/assets/prerender-xxx.js"
-        const filePath = join(outDir, ref.replace(/^\//, ''));
-        if (existsSync(filePath)) { unlinkSync(filePath); deleted.push(ref); }
-        else console.warn(`drop-prerender-chunk: expected file not found at ${filePath}`);
+      // 2. Stub out every prerender-xxx.js file so any dynamic import in the
+      //    main bundle resolves to a no-op instead of triggering the
+      //    text/html MIME error from Vercel's SPA catch-all.
+      const STUB = 'export const prerender=()=>{};';
+      const stubbed = [];
+      for (const dir of [outDir, join(outDir, 'assets')]) {
+        if (!existsSync(dir)) continue;
+        for (const f of readdirSync(dir)) {
+          if (/^prerender-.*\.js$/.test(f)) {
+            writeFileSync(join(dir, f), STUB);
+            stubbed.push(f);
+          }
+        }
       }
-      console.log(`dropped build-only chunk(s): ${deleted.join(', ')}`);
+      if (stubbed.length) console.log(`stubbed prerender chunk(s): ${stubbed.join(', ')}`);
+      else console.log('drop-prerender-chunk: no prerender chunks found');
     },
   };
 }

@@ -56,18 +56,23 @@ def main() -> None:
             "Run 'npm run build' first, then re-run this check."
         )
 
-    # A prerender-*.js file surviving into dist/ means dropPrerenderChunk failed
-    # to find and delete it. If index.html still references it, Vercel's catch-all
-    # will serve text/html for it and React will never mount.
+    # The prerender chunk must be replaced with a no-op stub (not deleted — the
+    # main bundle may import it by hash, and deleting the file causes Vercel's
+    # catch-all to serve text/html → MIME error → React never mounts).
+    # Verify the stub is in place and is trivially small (< 200 bytes).
     import glob as _glob
-    stale = _glob.glob(str(ROOT / "dist" / "prerender-*.js")) + \
-            _glob.glob(str(ROOT / "dist" / "assets" / "prerender-*.js"))
-    if stale:
-        names = ", ".join(Path(f).name for f in stale)
-        raise SystemExit(
-            f"[FAIL] prerender chunk(s) not deleted after build: {names}\n"
-            "dropPrerenderChunk failed to find them — check vite.config.js."
-        )
+    chunk_files = _glob.glob(str(ROOT / "dist" / "prerender-*.js")) + \
+                  _glob.glob(str(ROOT / "dist" / "assets" / "prerender-*.js"))
+    for cf in chunk_files:
+        size = Path(cf).stat().st_size
+        if size > 200:
+            raise SystemExit(
+                f"[FAIL] prerender chunk {Path(cf).name} is {size} bytes — "
+                "dropPrerenderChunk did not stub it. The full SSR bundle will "
+                "be downloaded by every visitor. Check vite.config.js."
+            )
+    if chunk_files:
+        print(f"prerender chunk(s) stubbed: {', '.join(Path(f).name for f in chunk_files)}")
 
     html = DIST.read_text(encoding="utf-8", errors="replace")
     problems: list[str] = []
