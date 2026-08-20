@@ -7,7 +7,10 @@
 // All endpoints documented in the backend repo: api.py / FastAPI auto-docs at
 // `${VITE_API_URL}/docs`.
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Vercel project-level env vars override .env.production at build time.
+// Guard against a value that was saved without a scheme (bare hostname).
+const _apiRaw = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = /^https?:\/\//.test(_apiRaw) ? _apiRaw : `https://${_apiRaw}`;
 
 class ApiError extends Error {
   constructor(message, status, body) {
