@@ -137,6 +137,8 @@ function WidgetFPLCaptain({ onDeadline }) {
   const [err, setErr] = React.useState(false);
 
   React.useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(() => { if (!cancelled) setErr(true); }, 10_000);
     fpl.season()
       .then(s => {
         const nextGw = s.gameweeks?.length
@@ -145,11 +147,14 @@ function WidgetFPLCaptain({ onDeadline }) {
         return fpl.tools(nextGw);
       })
       .then(data => {
+        if (cancelled) return;
+        clearTimeout(timer);
         setCaptains((data.captain || []).slice(0, 5));
         setGameweek(data.gameweek);
         if (onDeadline && data.deadline_utc) onDeadline(data.gameweek, data.deadline_utc);
       })
-      .catch(() => setErr(true));
+      .catch(() => { if (!cancelled) setErr(true); });
+    return () => { cancelled = true; clearTimeout(timer); };
   }, []);
 
   const loading = captains === null && !err;
@@ -231,17 +236,28 @@ function WidgetFPLCaptain({ onDeadline }) {
   );
 }
 
+const MINI_LEAGUE_CODE = 'tj22cy';
+
 // ── Hero — FPL 2026/27 ────────────────────────────────────────────────
 const FPL_SAYINGS = [
-  "Dixon-Coles. Every gameweek.",
-  "Every squad committed before the deadline.",
-  "Open model. Graded live. No excuses.",
-  "104 WC matches called. FPL is next.",
+  "Captain the fixture.",
+  "Trust the projection.",
+  "The squad is locked.",
+  "Projections. Not hunches.",
+];
+
+const HERO_FEATURES = [
+  { label: 'Player projections', anchor: 'fpl', desc: 'xPts for every player' },
+  { label: 'Captain picks',      anchor: 'fpl', desc: 'Safe · balanced · differential' },
+  { label: 'Optimal XI',         anchor: 'fpl', desc: 'Best 11 within FPL rules' },
+  { label: 'Model squad',        anchor: 'fpl', desc: 'Committed before deadline' },
+  { label: 'Beat the Model',     anchor: 'fpl', desc: 'Your GW receipt vs ours' },
 ];
 
 function V4Hero() {
   const [i, setI] = React.useState(0);
   const [badge, setBadge] = React.useState('FPL 2026/27 · SEASON LIVE');
+  const [ctaGw, setCtaGw] = React.useState(null);
   const mobile = useIsMobile();
 
   React.useEffect(() => {
@@ -250,6 +266,7 @@ function V4Hero() {
   }, []);
 
   function handleDeadline(gw, deadlineUtc) {
+    setCtaGw(gw);
     const d = new Date(deadlineUtc);
     const now = new Date();
     if (d > now) {
@@ -258,6 +275,10 @@ function V4Hero() {
     } else {
       setBadge(`FPL 2026/27 · GW${gw} LIVE`);
     }
+  }
+
+  function scrollTo(anchor) {
+    document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth' });
   }
 
   return (
@@ -271,11 +292,12 @@ function V4Hero() {
           gridTemplateColumns: mobile ? '1fr' : '1.05fr 1fr',
           gap: mobile ? 32 : 48,
           position: 'relative',
-          padding: mobile ? '64px 20px 52px' : '110px 56px 90px',
+          padding: mobile ? '64px 20px 52px' : '100px 56px 80px',
         }}
       >
         {/* left */}
         <div>
+          {/* Live deadline badge */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             padding: '5px 12px 5px 8px', borderRadius: 999,
@@ -287,50 +309,53 @@ function V4Hero() {
             {badge}
           </div>
 
+          {/* Primary headline — FPL first */}
           <h1 style={{
             color: v4.text,
-            fontSize: mobile ? 56 : 96,
-            fontWeight: 700, letterSpacing: '-0.045em',
+            fontSize: mobile ? 48 : 80,
+            fontWeight: 700, letterSpacing: '-0.04em',
             lineHeight: 0.96, margin: 0, fontFamily: display,
           }}>
-            The model<br/>says.
+            FPL predictions.<br />
+            <span style={{
+              background: `linear-gradient(120deg, ${v4.electric} 0%, #00e8c8 70%)`,
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            }}>On the record.</span>
           </h1>
 
-          <div style={{ marginTop: 18, height: 64, position: 'relative' }}>
+          {/* Rotating FPL-specific sayings */}
+          <div style={{ marginTop: 20, height: 40, position: 'relative', overflow: 'hidden' }}>
             <span key={i} style={{
-              display: 'inline-block', fontFamily: display, fontWeight: 700,
-              fontSize: mobile ? 26 : 44,
-              letterSpacing: '-0.03em',
-              background: `linear-gradient(120deg, ${v4.electric} 0%, #00e8c8 60%, ${v4.electric} 100%)`,
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+              display: 'inline-block', fontFamily: mono, fontWeight: 600,
+              fontSize: mobile ? 14 : 15, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: v4.textDim,
               animation: 'tmsFade 2.8s ease infinite',
             }}>
-              "{FPL_SAYINGS[i]}"
+              {FPL_SAYINGS[i]}
             </span>
           </div>
 
-          <p style={{ color: v4.textDim, fontSize: mobile ? 16 : 18, lineHeight: 1.55, marginTop: 22, maxWidth: 540, fontWeight: 400 }}>
-            The same Dixon-Coles engine that{' '}
-            <a href="/wc2026-record" style={{ color: v4.text, fontWeight: 600, textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.25)' }}>
-              went 59.6% W/D/L over 104 WC matches
-            </a>
-            {' '}turns to FPL. Squad published before each deadline. Record graded in public.
+          {/* Honest sub-copy — what the site does, no overclaiming */}
+          <p style={{ color: v4.textDim, fontSize: mobile ? 15 : 17, lineHeight: 1.6, marginTop: 16, maxWidth: 520, fontWeight: 400 }}>
+            Model estimates — not guarantees — for every FPL player. Captain picks with reasoning.
+            A 15-man squad committed before each deadline and graded in public, including the bad weeks.
           </p>
 
-          <div style={{ display: 'flex', gap: 12, marginTop: 36, flexWrap: 'wrap' }}>
+          {/* CTAs */}
+          <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
             <a
               href="#fpl"
-              onClick={e => { e.preventDefault(); document.getElementById('fpl')?.scrollIntoView({ behavior: 'smooth' }); }}
+              onClick={e => { e.preventDefault(); scrollTo('fpl'); }}
               style={{
                 padding: '13px 28px', borderRadius: 999,
                 background: v4.electric, color: v4.bg,
                 fontFamily: display, fontSize: 14, fontWeight: 700,
                 textDecoration: 'none', letterSpacing: '-0.01em',
               }}>
-              See GW1 tools
+              See GW{ctaGw || 1} tools
             </a>
             <a
-              href="/fpl-preview"
+              href="/methodology"
               style={{
                 padding: '13px 28px', borderRadius: 999,
                 background: 'rgba(255,255,255,0.05)', color: v4.text,
@@ -338,23 +363,40 @@ function V4Hero() {
                 fontFamily: display, fontSize: 14, fontWeight: 600,
                 textDecoration: 'none',
               }}>
-              Read the guide
+              How it works
             </a>
           </div>
 
-          {/* Mini league hook — small but visible in the hero */}
+          {/* Feature navigation strip */}
           <div style={{
-            marginTop: 28, display: 'inline-flex', alignItems: 'center', gap: 10,
-            padding: '9px 16px', borderRadius: 10,
-            background: 'rgba(0,255,135,0.06)', border: `1px solid rgba(0,255,135,0.2)`,
+            display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 28,
           }}>
-            <span style={{ color: v4.textDim, fontFamily: mono, fontSize: 12 }}>Mini league code:</span>
-            <span style={{ color: v4.electric, fontFamily: mono, fontSize: 14, fontWeight: 800, letterSpacing: '0.1em' }}>tj22cy</span>
-            <span style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 11 }}>↓ full details below</span>
+            {HERO_FEATURES.map(f => (
+              <a
+                key={f.label}
+                href={`#${f.anchor}`}
+                onClick={e => { e.preventDefault(); scrollTo(f.anchor); }}
+                title={f.desc}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '7px 14px', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${v4.border}`,
+                  color: v4.textDim, fontFamily: mono, fontSize: 11,
+                  fontWeight: 600, letterSpacing: '0.04em',
+                  textDecoration: 'none', cursor: 'pointer',
+                  transition: 'border-color 160ms, color 160ms',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,135,0.4)'; e.currentTarget.style.color = v4.electric; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = v4.border; e.currentTarget.style.color = v4.textDim; }}
+              >
+                {f.label}
+              </a>
+            ))}
           </div>
         </div>
 
-        {/* right — FPL captain widget */}
+        {/* right — live captain preview */}
         <WidgetFPLCaptain onDeadline={handleDeadline} />
       </div>
     </div>
@@ -367,7 +409,7 @@ function V4MiniLeague() {
   const [copied, setCopied] = React.useState(false);
 
   function copyCode() {
-    navigator.clipboard?.writeText('tj22cy').then(() => {
+    navigator.clipboard?.writeText(MINI_LEAGUE_CODE).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -435,7 +477,7 @@ function V4MiniLeague() {
                   color: v4.electric, letterSpacing: '0.15em',
                   padding: mobile ? '16px 20px' : '18px 28px',
                   textTransform: 'uppercase',
-                }}>tj22cy</span>
+                }}>{MINI_LEAGUE_CODE}</span>
                 <button
                   onClick={copyCode}
                   style={{
@@ -583,10 +625,12 @@ function V4FPLSection() {
             <span style={{ background: 'rgba(0,255,135,0.12)', color: v4.electric, fontFamily: mono, fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 6, letterSpacing: '0.08em' }}>SEASON LIVE</span>
           </div>
           <h2 style={{ color: v4.text, fontSize: mobile ? 32 : 48, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0, fontFamily: display }}>
-            FPL tools, powered<br/>by the same model.
+            The model's FPL tools.
           </h2>
-          <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.55, marginTop: 14, maxWidth: 520 }}>
-            Optimal XI, captain shortlist, scoreline predictions, fixture ticker — all from a committed model state. Squad locked before the deadline, every score graded in public.
+          <p style={{ color: v4.textDim, fontSize: 15, lineHeight: 1.55, marginTop: 14, maxWidth: 560 }}>
+            Player projections, captain shortlist, optimal XI, fixture ticker — model estimates updated before each deadline.
+            All projections are labelled as such: the model has uncertainty and will be wrong sometimes.
+            That's why every decision is committed to the public repo before you can see it.
           </p>
         </div>
         <ToolsPanel />
@@ -659,6 +703,17 @@ function V4WCArchive() {
       background: v4.bg2, borderTop: `1px solid ${v4.border}`,
     }}>
       <div style={{ maxWidth: 1320, margin: '0 auto' }}>
+        {/* Bridge copy — connect WC credibility to FPL offering */}
+        <div style={{ marginBottom: 36 }}>
+          <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+            Why trust it?
+          </div>
+          <p style={{ color: v4.textDim, fontSize: mobile ? 14 : 16, lineHeight: 1.6, maxWidth: 620, margin: 0 }}>
+            The same Dixon-Coles model — the same commitment to transparent, pre-deadline forecasts — now
+            runs for FPL. Here's what it did when every prediction was already on the record:
+          </p>
+        </div>
+
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
           <div>
             <div style={{ color: v4.textVeryDim, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>

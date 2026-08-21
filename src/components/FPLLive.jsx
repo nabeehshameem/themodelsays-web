@@ -59,15 +59,16 @@ function useCountdown(iso) {
   const [left, setLeft] = useState('');
   useEffect(() => {
     if (!iso) return undefined;
+    let id;
     const tick = () => {
       const ms = new Date(iso).getTime() - Date.now();
-      if (ms <= 0) { setLeft('deadline passed'); return; }
+      if (ms <= 0) { setLeft('deadline passed'); clearInterval(id); return; }
       const h = Math.floor(ms / 3.6e6);
       const m = Math.floor((ms % 3.6e6) / 6e4);
       setLeft(h >= 24 ? `${Math.floor(h / 24)}d ${h % 24}h` : `${h}h ${m}m`);
     };
     tick();
-    const id = setInterval(tick, 60_000);
+    id = setInterval(tick, 60_000);
     return () => clearInterval(id);
   }, [iso]);
   return left;
