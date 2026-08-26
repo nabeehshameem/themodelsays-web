@@ -91,8 +91,24 @@ function CommitmentCard({ gw }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div style={label}>gameweek {gw.gameweek} · {status}</div>
         {gw.result ? (
-          <div style={{ fontFamily: mono, fontSize: 22, fontWeight: 700, color: v4.electric }}>
-            {gw.result.net_points} pts
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+            <div style={{ fontFamily: mono, fontSize: 22, fontWeight: 700, color: v4.electric }}>
+              {gw.result.net_points} pts
+            </div>
+            {gw.result.corrections?.length > 0 && (
+              <div title={gw.result.corrections.map(c => c.reason).join(' | ')} style={{
+                fontFamily: mono, fontSize: 10, fontWeight: 700,
+                color: v4.amber, letterSpacing: '0.06em',
+                cursor: 'default', textTransform: 'uppercase',
+              }}>
+                revised ·&nbsp;
+                <a href={`https://github.com/nabeehshameem/fpl-optimiser/commit/${gw.result.corrections[0].commit}`}
+                   target="_blank" rel="noopener noreferrer"
+                   style={{ color: v4.amber, textDecoration: 'underline' }}>
+                  see why
+                </a>
+              </div>
+            )}
           </div>
         ) : !gw.deadline_passed ? (
           <div style={{ ...label, color: v4.amber }}>{left} to deadline</div>
@@ -175,7 +191,13 @@ function SeasonRecord({ season }) {
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 110, marginTop: 18 }}>
         {rows.map(r => (
           <div key={r.gameweek} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 90 }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 2, height: 90 }}>
+              {r.has_corrections && (
+                <div title="Score revised after grading" style={{
+                  position: 'absolute', top: -6, left: '50%', transform: 'translateX(-50%)',
+                  width: 5, height: 5, borderRadius: '50%', background: v4.amber,
+                }} />
+              )}
               <div title={`GW${r.gameweek}: model ${r.net_points}`} style={{
                 width: 10, height: `${(r.net_points / max) * 100}%`,
                 background: v4.electric, borderRadius: '2px 2px 0 0',

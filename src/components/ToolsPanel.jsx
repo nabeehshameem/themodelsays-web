@@ -259,12 +259,13 @@ function FixtureTicker({ ticker }) {
             {t.cells.map(c => {
               const { bg, text, border } = pillColor(c.xg_for, lo, hi);
               return (
-                <span key={c.gw} style={{
+                <span key={c.gw} title={`GW${c.gw} · ${c.xg_for.toFixed(2)} xG`} style={{
                   fontFamily: mono, fontSize: 10, fontWeight: 700,
                   color: text, background: bg,
                   border: `1px solid ${border}`,
                   borderRadius: 5, padding: '2px 6px',
                   letterSpacing: '0.03em', whiteSpace: 'nowrap',
+                  cursor: 'default',
                 }}>
                   {c.opponent} {c.venue}
                 </span>
@@ -275,7 +276,7 @@ function FixtureTicker({ ticker }) {
       ))}
       <p style={{ ...lbl, marginTop: 14, textTransform: 'none', letterSpacing: 0, lineHeight: 1.5 }}>
         Total xG = cumulative expected goals scored over GW{from_gw}–{to_gw} per the Dixon-Coles model.
-        Green pill = good attacking fixture · red = hard.
+        Green pill = good attacking fixture · red = hard · hover a pill to see expected goals.
       </p>
     </div>
   );

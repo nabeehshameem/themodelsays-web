@@ -115,7 +115,8 @@ export function subscribeEmail(email) {
 //        gross_points, hit_points, net_points,
 //        effective_captain: { player_id, name, ... } | null,
 //        autosubs: [{ out: {...}, in: {...} }],
-//        graded_at_utc } }
+//        graded_at_utc,
+//        corrections: [{ revised_at_utc, field, from, to, reason, commit }] } }
 //
 //  deadline_passed: use for "still time to change yours" copy, NOT to gate
 //  the squad display — the squad is always visible once the GW is locked.
