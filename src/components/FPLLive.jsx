@@ -322,7 +322,17 @@ export function ReceiptFlow({ gameweek }) {
   const [mode, setMode] = useState('id');
   const [teamId, setTeamId] = useState('');
   const [points, setPoints] = useState('');
-  const [gw, setGw] = useState(gameweek ?? '');
+  const [gw, setGw] = useState(gameweek != null ? String(gameweek) : '');
+
+  useEffect(() => {
+    if (gameweek != null) return;
+    const ac = new AbortController();
+    fpl.season({ signal: ac.signal }).then(s => {
+      const gws = s?.gameweeks ?? [];
+      if (gws.length) setGw(String(gws[gws.length - 1].gameweek));
+    }).catch(() => {});
+    return () => ac.abort();
+  }, [gameweek]);
   const [receipt, setReceipt] = useState(null);
   const [manual, setManual] = useState(null);
   const [err, setErr] = useState(null);

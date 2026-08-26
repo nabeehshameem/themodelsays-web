@@ -125,7 +125,8 @@ export function fetchModelGameweek(gw, { signal } = {}) {
 }
 
 // GET /api/fpl/model/season → {
-//   gameweeks: [{ gameweek, net_points, hit_points, fpl_average, cumulative }],
+//   gameweeks: [{ gameweek, net_points, hit_points, fpl_average, cumulative,
+//               has_corrections }],
 //   model_total, average_total,
 //   vs_average: { above, below, equal }
 // }
